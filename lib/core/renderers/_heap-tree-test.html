@@ -18,15 +18,16 @@
 <script type="module">
   import { HeapTreeRenderer } from "./heap-tree.js";
 
-  const small = [95, 85, 90, 70, 60, 45, 50];
+  // snapshots are 1-indexed: slot 0 is the unused placeholder (see structures/heap.js)
+  const small = ["·", 95, 85, 90, 70, 60, 45, 50];
   const r1 = new HeapTreeRenderer(document.getElementById("c1"));
   r1.draw(small, {});
 
-  const big = [30, 60, 50, 90, 85, 40, 70, 45, 20, 95, 10, 15];
+  const big = ["·", 30, 60, 50, 90, 85, 40, 70, 45, 20, 95, 10, 15];
   const r2 = new HeapTreeRenderer(document.getElementById("c2"));
   r2.draw(big, {
-    active: [0], compare: [1, 2], done: [11], danger: [4],
-    pointers: { k: 4 },
+    active: [1], compare: [2, 3], done: [12], danger: [5],
+    pointers: { k: 5 },
   });
 
   window.__renderDone = true;

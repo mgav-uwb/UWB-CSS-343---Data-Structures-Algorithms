@@ -61,13 +61,13 @@ A **queue** serves the **oldest** item next. But often "next" should mean **most
 
 ## It generalizes stack and queue
 
-| ADT | removes | rule |
-|---|---|---|
-| stack | most-recent | LIFO |
-| queue | oldest | FIFO |
+| ADT                | removes            | rule       |
+| ------------------ | ------------------ | ---------- |
+| stack              | most-recent        | LIFO       |
+| queue              | oldest             | FIFO       |
 | **priority queue** | **most-important** | by **key** |
 
-A stack or queue is a PQ whose "priority" is just insertion time. The PQ lets you choose *any* ordering key.
+A stack or queue is a PQ whose "priority" is just insertion time. The PQ lets you choose _any_ ordering key.
 
 --
 
@@ -113,13 +113,13 @@ A **max-priority-queue** of comparable keys supports:
 
 ## Why the obvious choices are too slow
 
-| implementation | insert | delMax |
-|---|---|---|
-| unordered array/list | Θ(1) | **Θ(n)** |
-| ordered array/list | **Θ(n)** | Θ(1) |
-| **binary heap** | **Θ(log n)** | **Θ(log n)** |
+| implementation       | insert       | delMax       |
+| -------------------- | ------------ | ------------ |
+| unordered array/list | Θ(1)         | **Θ(n)**     |
+| ordered array/list   | **Θ(n)**     | Θ(1)         |
+| **binary heap**      | **Θ(log n)** | **Θ(log n)** |
 
-Each simple option makes **one** operation cheap by making the other **linear**. We want *both* fast.
+Each simple option makes **one** operation cheap by making the other **linear**. We want _both_ fast.
 
 --
 
@@ -213,11 +213,11 @@ For a heap in `a[1..15]` (1-indexed):
 
 Same picture (a binary tree in an array), **different invariant**:
 
-| | BST | heap |
-|---|---|---|
-| order | left < node < right | parent ≥ children |
-| finds | any key, in order | **only the max** |
-| shape | can be unbalanced | always **complete** |
+|       | BST                 | heap                |
+| ----- | ------------------- | ------------------- |
+| order | left < node < right | parent ≥ children   |
+| finds | any key, in order   | **only the max**    |
+| shape | can be unbalanced   | always **complete** |
 
 A heap gives up "find any key" to make "find the max" and "stay balanced" trivial.
 
@@ -247,6 +247,8 @@ int  right (int k) { return 2*k + 1; }
 bool empty (MaxHeap& h) { return h.n == 0; }
 int  max   (MaxHeap& h) { return h.a[1]; }  // Θ(1)
 ```
+
+<small>Slot `a[0]` is wasted so the root sits at 1 and the `k/2`, `2k` arithmetic stays clean. Classic trick: since `a[0]` is free anyway, store the heap **size** there instead of a separate `n`.</small>
 
 ---
 
@@ -287,12 +289,12 @@ void insert(MaxHeap& h, int x) {
 ## swim — worked example
 
 ```text
-   insert 95 into           append at end:        swim:
-        [90]                    [90]                 [95]
-       /    \                  /    \               /    \
-     [80]  [70]     →       [80]  [70]     →     [90]  [70]
-     / \   /               / \   / \             / \   /
-   [30][60][50]         [30][60][50][95]      [30][60][50][80]
+   insert 95 into           append at end:           swim:
+        [90]                    [90]                  [95]
+       /    \                  /    \                /    \
+     [80]   [70]     →       [80]   [70]     →     [90]   [70]
+     /  \   /                /  \   /  \           /  \   /  \
+   [30][60][50]            [30][60][50][95]      [30][60][50][80]
                              (95 > 50, then          95 rises
                               95 > 80)               to the root
 ```
@@ -382,12 +384,12 @@ int delMax(MaxHeap& h) {
 
 ## sink vs swim
 
-|  | swim (insert) | sink (delMax) |
-|---|---|---|
-| starts at | a **leaf** | the **root** |
-| moves | **up** | **down** |
-| compares against | **1 parent** | **2 children** (pick larger) |
-| cost | Θ(log n) | Θ(log n) |
+|                  | swim (insert) | sink (delMax)                |
+| ---------------- | ------------- | ---------------------------- |
+| starts at        | a **leaf**    | the **root**                 |
+| moves            | **up**        | **down**                     |
+| compares against | **1 parent**  | **2 children** (pick larger) |
+| cost             | Θ(log n)      | Θ(log n)                     |
 
 Two mirror-image primitives — **every** heap operation is built from these two.
 
@@ -397,8 +399,8 @@ Two mirror-image primitives — **every** heap operation is built from these two
 
 <div class="algo-viz" data-algo="heap-ops">
 <pre class="viz-fallback">
-  press Delete Max: a[0] is the answer.
-   1) swap a[0] with the last element → shrink
+  press Delete Max: a[1] is the answer.
+   1) swap a[1] with the last element → shrink
    2) sink the new root: swap with the LARGER child
       while smaller → it settles at its level.
   the array view (top) and the tree view (bottom) update together.
@@ -468,59 +470,9 @@ Start at `k = n/2 = 4`; work down to the root.
 
 --
 
-## Why heapify is Θ(n), not Θ(n log n)
-
-The trick: **most nodes are near the bottom**, where sinking is **cheap**.
-
-- a node at height `i` costs at most `i` swaps
-- a complete tree has about `n / 2^{i+1}` nodes at height `i`
-
-```text
-   total work  ≤  Σ  (nodes at height i) · i
-              ≈  n · Σ  i / 2^{i+1}
-```
-
---
-
-## The sum is a constant
-
-```text
-   Σ_{i≥1}  i / 2^i   =  2        (a convergent series)
-```
-
-So total work `≤ n · (constant) = Θ(n)`.
-
-**Building a heap is linear** — cheaper than sorting, cheaper than n inserts.
-
---
-
-## Two ways to build
-
-| method | how | cost |
-|---|---|---|
-| repeated **insert** | swim each key as it arrives | **Θ(n log n)** |
-| **heapify** | put all keys in, sink `n/2 … 1` | **Θ(n)** |
-
-Same result; heapify wins when you have all the data **up front**. (Streaming keys one-at-a-time still needs repeated insert.)
-
---
-
-## Selection sort → heapsort
-
-Selection sort each round **scans** for the max — Θ(n) per round → **Θ(n²)**.
-
-Heapsort keeps the data in a **heap**, so "find the max" is Θ(log n) instead of Θ(n):
-
-```text
-   selection sort:  n rounds × Θ(n) scan   = Θ(n²)
-   heapsort:        n rounds × Θ(log n) pop = Θ(n log n)
-```
-
-Same skeleton, a heap for the bookkeeping.
-
---
-
 ## The swap-sum, explicitly
+
+The trick: **most nodes are near the bottom**, where sinking is **cheap** — few nodes near the root are expensive, but there are many cheap ones near the leaves, and geometric growth in node count beats linear growth in cost.
 
 Let `S = Σ_{i=0}^{h} 2^i (h − i)` — nodes at level `i` (there are `2^i` of them) times their sink cost (`h−i`, since the root is level 0 and sits at height `h`):
 
@@ -546,9 +498,9 @@ Shift `2S` one column right and subtract; every middle term cancels, leaving onl
 
 --
 
-## Substitute n for h — the punchline
+## Substitute n for h
 
-A complete tree of height `h` has between `2^h` and `2^{h+1}-1` nodes — using the same `n ≈ 2^h` shorthand as two slides back, `2^{h+1} = 2n` and `h = log₂ n`:
+A complete tree of height `h` has between `2^h` and `2^{h+1}-1` nodes — using the shorthand `n ≈ 2^h`, `2^{h+1} = 2n` and `h = log₂ n`:
 
 ```text
    S = 2^{h+1} − h − 2
@@ -556,7 +508,18 @@ A complete tree of height `h` has between `2^h` and `2^{h+1}-1` nodes — using 
      ≈ 2n − log₂ n          →   Θ(n)
 ```
 
-Building a heap costs at most **two comparisons per node**, minus a `log₂ n` correction — linear, not `n log n`.
+Building a heap costs at most **two comparisons per node**, minus a `log₂ n` correction — linear, not `n log n`. You cannot sort in O(n) comparisons, but you **can** heapify in O(n) — a heap is "less ordered" than a sorted array, and that's the discount.
+
+--
+
+## Two ways to build
+
+| method              | how                             | cost           |
+| ------------------- | ------------------------------- | -------------- |
+| repeated **insert** | swim each key as it arrives     | **Θ(n log n)** |
+| **heapify**         | put all keys in, sink `n/2 … 1` | **Θ(n)**       |
+
+Same result; heapify wins when you have all the data **up front**. (Streaming keys one-at-a-time still needs repeated insert.)
 
 --
 
@@ -564,15 +527,15 @@ Building a heap costs at most **two comparisons per node**, minus a `log₂ n` c
 
 <div class="algo-viz" data-algo="heap-build">
 <pre class="viz-fallback">
-   start: arbitrary array (a complete tree, not yet a heap)
-   press Build: sink node n/2, n/2−1, …, 1  (bottom-up)
+   Build: load an arbitrary array (a complete tree, not yet a heap)
+   press Heapify: sink node n/2, n/2−1, …, 1  (bottom-up)
    each sink swaps down with the larger child
    → a valid max-heap, in Θ(n) total.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Bottom-up **heapify**: sink each internal node from `n/2` to `1`. Watch the swaps cluster **near the bottom** (cheap) — total work is **Θ(n)**, not n·log n. Edit the array and press Build to try your own input.</small>
+<small>Bottom-up **heapify**: sink each internal node from `n/2` to `1`. Swaps cluster **near the bottom** (cheap) — Θ(n) total, not n·log n. Press Build, then Heapify, for your own input.</small>
 
 ---
 
@@ -625,11 +588,11 @@ Each round: park the max at the boundary, re-sink the rest.
 
 ## Which Θ(n log n) sort?
 
-| sort | worst | space | stable | note |
-|---|---|---|---|---|
-| **mergesort** | Θ(n log n) | **Θ(n)** | **yes** | needs a buffer |
-| **quicksort** | **Θ(n²)** | Θ(log n) | no | fastest in practice |
-| **heapsort** | **Θ(n log n)** | **Θ(1)** | no | guaranteed + in place |
+| sort          | worst          | space    | stable  | note                  |
+| ------------- | -------------- | -------- | ------- | --------------------- |
+| **mergesort** | Θ(n log n)     | **Θ(n)** | **yes** | needs a buffer        |
+| **quicksort** | **Θ(n²)**      | Θ(log n) | no      | fastest in practice   |
+| **heapsort**  | **Θ(n log n)** | **Θ(1)** | no      | guaranteed + in place |
 
 Heapsort is the safety net: no bad inputs, no extra memory.
 
@@ -637,11 +600,11 @@ Heapsort is the safety net: no bad inputs, no extra memory.
 
 ## Heapsort — properties
 
-| property | heapsort |
-|---|---|
-| worst / average time | **Θ(n log n)** |
-| extra space | **Θ(1)** — in place |
-| stable? | **no** |
+| property             | heapsort            |
+| -------------------- | ------------------- |
+| worst / average time | **Θ(n log n)**      |
+| extra space          | **Θ(1)** — in place |
+| stable?              | **no**              |
 
 The only `Θ(n log n)` sort that is **both** guaranteed-`n log n` **and** in-place. (Mergesort needs Θ(n) space; quicksort's worst case is Θ(n²).)
 
@@ -649,17 +612,19 @@ The only `Θ(n log n)` sort that is **both** guaranteed-`n log n` **and** in-pla
 
 ## 🎬 Demo — heapsort
 
-<div class="algo-viz" data-algo="heap-sort">
+<div class="algo-viz" data-algo="heap-build">
 <pre class="viz-fallback">
-   phase 1: heapify (bottom-up sinks) → a max-heap
-   phase 2: repeatedly swap a[0] to the end, shrink,
-            sink → the sorted tail grows from the right.
+   Build: load a raw array.
+   press Heapify: bottom-up sinks → a max-heap.
+   press Sort Down (only enabled after Heapify): repeatedly swap
+     a[1] to the end, shrink, sink → sorted tail grows from the right.
+   or press Heapsort to run both phases back-to-back.
    final: the whole array is sorted ascending, in place.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Heapify**, then **sort down**: each round parks the max at the right and re-sinks. The **green** tail is the finished, sorted part; everything is in the **one** array. Edit the array and press Build to sort your own input.</small>
+<small>**Heapify**, then **Sort Down**: each round parks the max at the right and re-sinks. The **green** tail is the sorted part — all in **one** array. Or press Heapsort to run both phases at once.</small>
 
 ---
 

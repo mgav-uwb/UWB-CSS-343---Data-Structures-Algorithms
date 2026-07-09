@@ -28,6 +28,7 @@
 .u-opbar button { font: 600 13px system-ui; border: 1px solid #7c5cff; background: #7c5cff; color: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
 .u-opbar button.ghost { background: #f7f8fb; color: #4b3ccc; }
 .u-opbar button:hover { filter: brightness(1.05); }
+.u-opbar button:disabled { background: #eceef2; border-color: #d7dbe6; color: #a7adba; cursor: not-allowed; filter: none; }
 .u-opbar .u-ops { display: inline-flex; gap: 6px; }
 .u-opbar .u-sep { width: 1px; align-self: stretch; background: #eceef2; margin: 0 3px; }
 
