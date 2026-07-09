@@ -97,6 +97,16 @@
 .reveal .algo-viz .viz-initbar .toks .done { color: #c3c9d6; }
 .reveal .algo-viz .viz-output .out { margin-top: 3px; font: 600 13px ui-monospace, Menlo, Consolas, monospace; color: #0a7d4d; line-height: 1.45; max-height: 46px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
 
+/* ---- FullDemo edit bar (heap-ops/heap-build/heap-sort): beat the legacy
+   .algo-viz input/button rules above (higher specificity would otherwise
+   squash the sequence box — wider here since range specs like "1..36:1:RAND"
+   are longer than a plain comma list). ---- */
+.reveal .algo-viz .u-opbar input.u-seq { width: 320px; font-size: 13px; }
+.reveal .algo-viz .u-opbar input.u-val { width: 60px; font-size: 13px; }
+.reveal .algo-viz .u-opbar button { background: #7c5cff; color: #fff; border-color: #7c5cff; padding: 7px 12px; font-size: 13px; }
+.reveal .algo-viz .u-opbar button.ghost { background: #f7f8fb; color: #4b3ccc; }
+.reveal .algo-viz .u-opbar button:hover { background: #6a4ce0; }
+
 /* ---- ASCII fallback (inside .algo-viz): removed by the demo builders at init.
    Visible only where the interactive demo cannot run (raw md, Canvas, print). ---- */
 .reveal .algo-viz .viz-fallback, .algo-viz .viz-fallback {

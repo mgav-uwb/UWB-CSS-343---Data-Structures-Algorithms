@@ -319,7 +319,7 @@ Into the heap `a = [ 90 80 70 30 60 50 ]`, **insert 85**. Where does it land?
 </pre>
 </div>
 
-<small>The heap lives in the **array** (top) — the tree (bottom) is the exact same data, same indices, no pointers. **Insert** appends, then **swims**: each **compare** is a parent–child check, each **swap** lifts the key one level — at most **log n** of them. Edit the build sequence and press Build to try your own starting heap.</small>
+<small>The **array** (top) and the tree (bottom) are the same data — no pointers. **Insert** appends, then **swims**: each **compare** is a parent–child check, each **swap** lifts the key one level. Edit the sequence and press Build to try your own heap.</small>
 
 ---
 
@@ -560,7 +560,7 @@ Building a heap costs at most **two comparisons per node**, minus a `log₂ n` c
 
 --
 
-## 🎬 Demo — build a heap (heapify)
+## 🎬 Demo — heapify
 
 <div class="algo-viz" data-algo="heap-build">
 <pre class="viz-fallback">
@@ -582,7 +582,7 @@ Building a heap costs at most **two comparisons per node**, minus a `log₂ n` c
 
 --
 
-## A heap is a sorting algorithm
+## From Heap to Heapsort
 
 If a heap can hand you the max in Θ(log n)… remove them **all**, largest first, and you have the data in order. That is **heapsort**, and it runs **in place** in the same array.
 
@@ -763,11 +763,12 @@ A **priority queue is the engine** — `n` symbols → Θ(n log n).
 
 ## ICA 6 — your turn
 
-Implement the **max-heap** core in `ica06/ica06.cpp` from a skeleton:
+Implement the **min-heap** core in `ica06/ica06.cpp` from a skeleton:
 
 - `insert` via **swim**
-- `delMax` via **sink** (remember: swap with the **larger** child)
-- `heapify` a given array **bottom-up**, then verify it is a heap
+- `delMin` via **sink** (swap with the **smaller** child)
+- `heapify` a given array **bottom-up**
+- `heapsort` — sort **in place**, ascending
 
 Build `-g`, run the self-tests, Valgrind-clean.
 

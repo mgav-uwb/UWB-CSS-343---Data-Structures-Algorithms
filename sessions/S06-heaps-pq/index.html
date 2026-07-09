@@ -68,7 +68,7 @@
           { name: "Delete Max", run: (s) => s.delMax() },
         ],
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 1000, height: [110, 780],
+        width: 1000, height: [75, 130],
       },
       "heap-build": {
         title: "heap",
@@ -78,7 +78,7 @@
         buildAll: (s, keys) => s.heapify(keys),
         stateMsg: () => "raw array — press Build to heapify in Θ(n)",
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 1000, height: [110, 840],
+        width: 1000, height: [75, 130],
       },
       "heap-sort": {
         title: "heap",
@@ -88,7 +88,7 @@
         buildAll: (s, keys) => s.heapsort(keys),
         stateMsg: () => "raw array — press Build to heapsort in place",
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 1000, height: [110, 840],
+        width: 1000, height: [75, 130],
       },
     });
   </script>

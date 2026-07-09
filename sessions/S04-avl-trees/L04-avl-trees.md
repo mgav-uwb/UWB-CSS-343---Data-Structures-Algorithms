@@ -5,10 +5,12 @@
   KaTeX gotcha: never put two "_" on one line (use a/b, not c_1/c_2). Verify
   every slide at 1280×620 before shipping. Code/ASCII lines ≤ ~56 chars (0.46em).
 
-  Reading (pre): Sedgewick §3.3 — use it for the BALANCE PROBLEM + ROTATIONS
-  (its intro + rotation mechanics transfer verbatim). §3.3's own tree is 2-3 /
-  red-black (node-capacity balance) — that family is S05. AVL keeps L03's
-  `balanced` shape (heights differ ≤1) as a live invariant — the lecture vehicle.
+  Reading (pre): OpenDSA §26.1–26.2 (Balanced Trees / The AVL Tree) — free
+  interactive VT modules: the invariant, the four rotation cases, O(log n).
+  Secondary: re-skim Sedgewick §3.2 (BST insert/delete + the Θ(n) worst case).
+  Sedgewick has no AVL section — §3.3's tree is 2-3 / red-black (node-capacity
+  balance), that family is S05. AVL keeps L03's `balanced` shape (heights
+  differ ≤1) as a live invariant — the lecture vehicle.
   TERMS: use L03's vocabulary — `balanced` (heights ≤1), `perfectly balanced`
   (min height). "height-balanced" is the textbook synonym for `balanced`; kept
   only as a one-time aside so we don't need S03↔S04 reconciliation callbacks.
@@ -44,12 +46,13 @@
 
 ## Reading
 
-**Review — Sedgewick & Wayne §3.2** (Binary Search Trees) — the foundation AVL builds on.
+**OpenDSA §26.1–26.2 — Balanced Trees · The AVL Tree** (free, interactive: opendsa-server.cs.vt.edu)
 
-- BST **search / insert / delete**, and why cost = **height**
-- how sorted input builds a **Θ(n)** path — the problem we fix tonight
+- the **balance invariant** — subtree heights differ by **≤ 1** at every node
+- the **four rotation cases** — single + double rotations
+- why every operation stays **O(log n)**
 
-_Secondary:_ ODS Ch 9. Reading quiz due before class.
+_Review:_ Sedgewick §3.2 — BST insert/delete and the **Θ(n)** worst-case path we fix tonight. Reading quiz (BST review) due before class.
 
 ---
 

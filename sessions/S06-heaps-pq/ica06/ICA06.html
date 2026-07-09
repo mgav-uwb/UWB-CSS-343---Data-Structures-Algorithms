@@ -56,13 +56,14 @@
     </div>
   </div>
 
-  <p>You implement the two reheapify walks from the lecture — <code>swim</code> and <code>sink</code> — plus the Θ(n) bottom-up <code>heapify</code>. The array-backed <code>MaxHeap</code>, <code>insert</code>, and <code>delMax</code> are given on top of your primitives, and the battery finishes by heapsorting 2047 keys.</p>
+  <p>You implement the three reheapify walks from the lecture — <code>swim</code>, <code>sink</code>, and the Θ(n) bottom-up <code>heapify</code> — plus <code>heapsort</code>, all for a <code>MinHeap</code>. <code>insert</code> and <code>delMin</code> are given on top of your primitives, and the battery finishes by heapsorting a large batch of 2047 keys.</p>
 
   <h2>Tasks</h2>
   <ol>
-    <li><code>swim</code> — carry an oversized key up: while it beats its parent (<code>k/2</code>), swap.</li>
-    <li><code>sink</code> — push an undersized key down: swap with the <strong>larger</strong> child while that child beats it.</li>
+    <li><code>swim</code> — carry an undersized key up: while it beats its parent (<code>k/2</code>) — i.e. is <strong>smaller</strong> — swap.</li>
+    <li><code>sink</code> — push an oversized key down: swap with the <strong>smaller</strong> child while that child beats it.</li>
     <li><code>heapify</code> — load a raw array, then sink every internal node from <code>n/2</code> down to 1 (bottom-up, Θ(n)).</li>
+    <li><code>heapsort</code> — sort <strong>in place</strong>, ascending, using only your own primitives (not <code>delMin</code> in a loop into a new vector — that's Θ(n) extra space, not the algorithm).</li>
   </ol>
 
   <h2>The tests run themselves</h2>
@@ -70,11 +71,12 @@
   <pre>g++ -std=c++17 -g ica06.cpp -o ica06 &amp;&amp; ./ica06</pre>
   <ul>
     <li><strong>T1</strong> insert (swim) keeps the heap invariant</li>
-    <li><strong>T2</strong> delMax (sink) returns items largest-first</li>
+    <li><strong>T2</strong> delMin (sink) returns items smallest-first</li>
     <li><strong>T3</strong> heapify a shuffled array — valid heap, same contents</li>
     <li><strong>T4</strong> heapify vs repeated insert — same heap contents</li>
-    <li><strong>T5</strong> heapify ascending input (the max-heap worst case)</li>
-    <li><strong>T6</strong> <em>the application:</em> heapsort 1..2047 — heapify + drain, out in sorted order</li>
+    <li><strong>T5</strong> heapify descending input (the min-heap worst case)</li>
+    <li><strong>T6</strong> heapsort — in place, ascending, matches a reference sort</li>
+    <li><strong>T7</strong> <em>the application:</em> heapsort a large batch of 2047 keys</li>
   </ul>
 
   <div class="aside"><span class="tag">Memory is graded</span>
@@ -89,8 +91,8 @@
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
-    <tr><td>Mechanics (swim, sink, heapify)</td><td>6</td><td>checked against our own test harness</td></tr>
-    <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
+    <tr><td>Mechanics (swim, sink, heapify, heapsort)</td><td>6</td><td>checked against our own test harness</td></tr>
+    <tr><td>Your test battery passes (T1–T7)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
   </table>
 
