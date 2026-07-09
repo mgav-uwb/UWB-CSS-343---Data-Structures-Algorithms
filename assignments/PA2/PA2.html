@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: the handout links below are RELATIVE and only resolve when this
+     page is served with the course site (local server / GitHub Pages). If you
+     paste this page's content into a Canvas page, replace those hrefs with the
+     Canvas Handouts page URLs (or drop the links, keeping the bold names). -->
+<!-- CSS 343 · PA2 page (v2 — multi-mode BinTree + merge). Student-facing. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PA2 — One Interface, Three Trees · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PA2 — One Interface, Three Trees (<code>BinTree</code> + merge)</h1>
+  <div class="subtitle">CSS 343 · Summer 2026 · Programming Assignment 2</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Out:</b> Thu Jul 9 (S6)</span>
+      <span><b>Due:</b> Tue Jul 21, 11:59 PM (S9)</span>
+      <span><b>Points:</b> 20</span>
+      <span><b>Individual</b></span>
+      <span><b>⚠ Leak-graded</b></span>
+    </div>
+  </div>
+
+  <h2>Purpose</h2>
+  <p>In the ICAs you built each tree in isolation. In PA2 you build them as an <em>engineer</em> does: <strong>one <code>BinTree</code> class whose balancing policy is chosen at construction</strong> — <code>Mode::VANILLA</code> (plain BST), <code>Mode::AVL</code> (rotations — port your ICA&nbsp;04 machinery), and <code>Mode::REDBLACK</code> (Sedgewick's <strong>left-leaning red-black</strong> insert, from the §3.3 reading) — then run the <strong>same adversarial input through all three</strong> and measure what each policy buys. Your class carries its own instruments (<code>rotations()</code>, <code>colorFlips()</code>), so the S4/S5 theory becomes numbers your own code produces: sorted <code>1..1023</code> gives heights <strong>1023 vs ~10 vs ~10</strong>, at a price of ~1013 rotations.</p>
+  <p>The second half is an operation none of the ICAs touched — and this time <strong>the algorithm is yours to design</strong>: <code>mergeWith</code>, combining two trees into one. We give you a <em>contract</em> (correct union, a height bound, <code>other</code> untouched) and a <strong><a href="./leaderboard.html">public leaderboard</a></strong>: every submission is benchmarked on four standard workloads, ranked on <strong>time</strong> and on <strong>peak memory</strong>, against five instructor baselines — from the naive insert-loop to split/join merging, the algorithm inside modern log-structured storage engines (RocksDB, Cassandra). No baseline wins everywhere; where does yours land?</p>
+  <p>A production system would put all this behind a database — and the index that database builds is a B-tree (S5), these structures' disk-scale cousin. Where the network hop is too slow (order books, schedulers, <code>std::map</code> itself — a red-black tree), this code runs in memory, as you'll write it.</p>
+
+  <h2>Statement of work</h2>
+  <p>Implement <code>BinTree</code> (int keys) in <code>bintree.h</code> / <code>bintree.cpp</code>. The public interface is fixed; add your own private recursive helpers. <code>displayTree</code> is <strong>given</strong> as a debugging aid.</p>
+  <ol>
+    <li><strong>Rule of Three + equality</strong> — deep copy constructor, destructor, self-assignment-safe <code>operator=</code> (mode and counters copy too); <code>operator==</code>/<code>!=</code> mean <strong>same keys AND same structure</strong> (mode is not compared — so the same keys inserted into <code>VANILLA</code> and <code>AVL</code> trees give <code>!=</code>).</li>
+    <li><strong>Core queries</strong> — <code>isEmpty</code>, <code>size</code>, <code>contains</code>, <code>treeHeight()</code> (# nodes on the longest path; empty = 0).</li>
+    <li><strong><code>insert</code>, per mode</strong> — duplicates return <code>false</code> in every mode; then the mode's fix-up: <code>VANILLA</code> nothing · <code>AVL</code> heights + the four rotation cases (<strong>your ICA&nbsp;04 code, ported</strong>) · <code>REDBLACK</code> the left-leaning insert — attach red, then <code>rotate-left</code>&nbsp;/&nbsp;<code>rotate-right</code>&nbsp;/&nbsp;<code>flip-colors</code> per the three ifs of §3.3, root forced black.</li>
+    <li><strong><code>remove</code></strong> — <code>VANILLA</code> only (Hibbard, successor promotion, no leaks). In balanced modes it returns <code>false</code> and changes nothing. The two refusals differ: AVL deletion is tractable — some of you built it as the ICA&nbsp;04 stretch — but red-black deletion is genuinely hard, and one method that works in one mode and breaks the invariant in another is worse than an honest refusal. Your report addresses this.</li>
+    <li><strong>Instrumentation</strong> — <code>rotations()</code> (every single rotation; a double counts 2) and <code>colorFlips()</code>, bumped inside your helpers.</li>
+    <li><strong><code>toSortedArray</code> + <code>mergeWith</code> — your algorithm.</strong> The contract, checked by our grader and the leaderboard harness: the tree ends up holding the <strong>union</strong> of the two key sets (shared keys once); <code>other</code> unchanged; self-merge safe; the result is a valid BST with height ≤ <strong>2·⌈log₂(n+1)⌉</strong> that stays internally consistent for its mode; and <strong>you instrument it yourself</strong> — set <code>mergeAuxBytes()</code> to the peak heap bytes your merge allocated (vectors, stacks, every <code>new</code> node); the harness audits it with a counting allocator, within 2× passes. <em>How</em> you meet the contract is the design exercise — insert-loop, flatten-merge-rebuild, streaming iterators, in-place vine rotations, split/join, or your own invention. <strong>Predict its time and space before you measure.</strong></li>
+  </ol>
+
+  <div class="aside"><span class="tag">Worked example — why "mode-consistent" bites</span>
+    <p>Merging by <em>flatten → union → rebuild a balanced tree</em> is a great way to hit the height bound, and for <code>VANILLA</code> it's the whole job. But the rebuilt nodes carry fields the <em>mode</em> depends on, and the union + height checks won't notice if they're wrong:</p>
+    <ul>
+      <li><strong>AVL:</strong> every node's <code>height</code> must equal its true subtree height. Leave it stale and the next <code>insert</code> computes a bogus balance factor and rotates the wrong way — the Θ(log&nbsp;n) guarantee silently breaks.</li>
+      <li><strong>REDBLACK:</strong> the rebuilt nodes need a valid coloring (no two reds stacked, equal black-height on every path, root black). All-black won't do — the next insert's fix-up misfires.</li>
+    </ul>
+    <p>So a merge can pass "union" and "height ≤ 2·⌈log₂(n+1)⌉" yet still fail the mode-consistency clause — and the grader's <strong>post-merge inserts</strong> are what catch it. Fix: after rebuilding, recompute <code>height</code> (AVL) or assign a valid coloring (RB) — or merge by a method that maintains those fields as it goes. Either way, <strong>test a few inserts after a merge</strong> in your <code>mydriver.cpp</code>.</p>
+  </div>
+
+  <h2>Verify as you go</h2>
+  <pre>g++ -std=c++17 -g bintree.cpp driver.cpp -o pa2
+./pa2 &gt; myoutput.txt &amp;&amp; diff myoutput.txt expected-output.txt   # no output = exact match
+valgrind --leak-check=full ./pa2                                 # on the CSS lab</pre>
+  <p>The given driver is the <strong>floor, not the ceiling</strong> — write your own <code>mydriver.cpp</code> covering the awkward states: empty trees, self-assignment, all four remove cases, merge with/into empty, self-merge.</p>
+
+  <div class="def"><span class="tag">The leaderboard</span>
+    Your <code>mergeWith</code> is entered into the <a href="./leaderboard.html"><strong>PA2 merge leaderboard</strong></a> under a codename you choose (put it in your report). <strong>The exact inputs are published</strong> — <code>starter/workloads/w{1..4}{a,b}.txt</code> (regenerable with the given <code>gen_workloads.cpp</code>): build each tree in AVL mode inserting in file order, merge b into a, and you are running precisely what the board runs. Four regimes: <em>W1 equal</em> (128K+128K) · <em>W2 tiny-into-big</em> (1K→1M) · <em>W3 50% overlap</em> · <em>W4 disjoint ranges</em>. The harness does the same, checks the contract, then ranks every entry on <strong>total time</strong> and <strong>peak auxiliary heap</strong> (audited, not self-reported). Five instructor baselines are pre-seeded; a contract violation on any workload keeps the entry off the board. <strong>Extra credit (up to +3):</strong> +1 for a <em>derivation</em> of your merge's time and aux-space complexity (recurrence or counting argument, validated by a doubling experiment — not just a stated O()) · +1 for beating any two baselines on either board · +1 for a top-3 student finish at closing.
+  </div>
+
+  <div class="def"><span class="tag">Measurement (for your report)</span>
+    <ol style="margin:6px 0">
+      <li><strong>The head-to-head</strong> (the driver prints it): heights and rotation counts for sorted <code>1..1023</code> in all three modes — what did each policy buy, and what did it cost?</li>
+      <li><strong>Your merge, predicted and measured</strong>: state your algorithm and its predicted time/space complexity <em>before</em> measuring; reconcile against your own timings and your <code>mergeAuxBytes()</code> accounting. Disagreement between prediction and measurement is the interesting part — explain it.</li>
+      <li><strong>Regime analysis</strong>: on which workloads should your algorithm be strongest and weakest, and why? (The baselines disagree with each other — W2 rewards m ≪ n specialists, W4 rewards concatenation.)</li>
+      <li>Two sentences on <code>remove</code>: AVL deletion is doable (ICA&nbsp;04's stretch goal!) yet PA2 refuses it — defend or attack that interface decision, mentioning the red-black case. One sentence: which of your operations <code>CREATE INDEX</code> + SQL would replace in a database-backed design.</li>
+    </ol>
+  </div>
+
+  <div class="aside"><span class="tag">Memory is graded</span>
+    Every <code>new</code> must be freed — including inside <code>remove</code> and the merge rebuild. Run
+    <code>valgrind --leak-check=full</code> on the CSS Linux lab; grading requires
+    <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
+    See the <a href="../../handouts/valgrind.html"><strong>Valgrind</strong></a> and
+    <a href="../../handouts/computing-environment.html"><strong>Computing Environment</strong></a> handouts.
+  </div>
+
+  <h2>What to submit (one zip)</h2>
+  <ol>
+    <li><code>bintree.h</code>, <code>bintree.cpp</code> — your class (graded against <strong>our</strong> driver).</li>
+    <li><code>mydriver.cpp</code> — your thorough test driver (also produces the merge-race numbers).</li>
+    <li>A <strong>report</strong> (PDF or Markdown, ≤ 2 pages): design summary (incl. your merge algorithm + predicted complexity), testing strategy, the measurement items, and your <strong>leaderboard codename</strong>.</li>
+  </ol>
+  <p><em>Grading policy:</em> we first compile <strong>only your <code>bintree.h</code> + <code>bintree.cpp</code> against our own <code>main()</code></strong>. If your class doesn't compile there, correctness falls back to your own drivers for partial credit — keep the public interface exactly as specified. Doesn't compile at all ⇒ 0 for correctness, per course policy.</p>
+
+  <h2>Grading (20 pts)</h2>
+  <table>
+    <tr><th>Criterion</th><th>Pts</th></tr>
+    <tr><td>Correctness (our driver: vanilla + Rule of Three, AVL bound, red-black bound, merge)</td><td>10</td></tr>
+    <tr><td><strong>Memory</strong> — Valgrind: 0 leaks and 0 errors (all-or-nothing)</td><td>3</td></tr>
+    <tr><td>Your testing (<code>mydriver.cpp</code>: every method, every mode, the awkward states)</td><td>2</td></tr>
+    <tr><td>Report — measurement &amp; analysis (head-to-head · predicted-vs-measured merge incl. accurate <code>mergeAuxBytes</code> · regime analysis · the two one-liners)</td><td>4</td></tr>
+    <tr><td><em>EC:</em> complexity derivation (validated by doubling) +1 · beat 2 baselines +1 · top-3 student finish +1</td><td>+3</td></tr>
+    <tr><td>Coding standards (helpers private, comments, naming)</td><td>1</td></tr>
+  </table>
+  <p><em>Counter checks (<code>rotations()</code>, <code>colorFlips()</code>) are graded against the standard algorithms from lecture/reading; if your correct variant counts differently, note it in the report and we'll review by hand.</em></p>
+
+  <h2>Starter files</h2>
+  <table>
+    <tr><th>File</th><th>What it is</th></tr>
+    <tr><td><code>bintree.h</code></td><td>The class specification — public surface fixed; Node (with <code>height</code>/<code>red</code>) given</td></tr>
+    <tr><td><code>bintree.cpp</code></td><td>Skeleton: <code>displayTree</code> <strong>given</strong>, everything else <code>TODO</code> (RB merge color rule stated)</td></tr>
+    <tr><td><code>driver.cpp</code></td><td>The given driver — the three-mode head-to-head, semantics checks, one merge</td></tr>
+    <tr><td><code>expected-output.txt</code></td><td>Exact expected output — <code>diff</code> against it</td></tr>
+    <tr><td><code>gen_workloads.cpp</code> + <code>workloads/</code></td><td>The leaderboard's exact inputs (8 files, one per tree) and their generator</td></tr>
+  </table>
+
+  <footer>
+    CSS 343 · Summer 2026 · PA2 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

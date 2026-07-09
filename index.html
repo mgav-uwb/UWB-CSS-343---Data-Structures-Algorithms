@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--
+  CSS 343 — course hub. Serve the WHOLE course from one server:
+      cd css343 && python3 -m http.server 8000      # then open http://localhost:8000/
+  Every lecture deck uses relative asset paths, so one root serves them all.
+  TO ADD A LECTURE: append one entry to the LECTURES array below (dir = folder
+  under sessions/ holding its index.html). Materials live in the MATERIALS array.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 343 — Course Hub</title>
+<style>
+  :root{ --bg:#0b0c10; --panel:#14161d; --line:#262a35; --ink:#e7eaf0; --dim:#8b93a7;
+         --accent:#00e58a; --accent2:#5cd47a; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+       padding:36px clamp(14px,5vw,64px) 72px}
+  header{margin-bottom:8px}
+  h1{font-size:34px;margin:0;letter-spacing:.5px}
+  .course-sub{font-size:18px;color:var(--ink);margin:4px 0 2px;font-weight:500}
+  .meta{color:var(--dim);font-size:13.5px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);
+     margin:38px 0 14px;font-weight:600}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
+         border:1px solid var(--line);border-left:3px solid var(--line);border-radius:11px;
+         padding:16px 18px;transition:border-color .15s,transform .15s,background .15s}
+  a.card:hover{border-color:var(--accent);border-left-color:var(--accent);
+               transform:translateY(-2px);background:#181b24}
+  .lec{display:flex;gap:14px;align-items:flex-start}
+  .badge{flex:0 0 auto;font-weight:700;font-size:14px;color:var(--accent);
+         border:1px solid var(--accent);border-radius:8px;padding:6px 9px;letter-spacing:.5px;
+         background:#00e58a14}
+  .ctitle{font-size:17px;font-weight:600;margin:0 0 4px}
+  .ctopics{color:var(--dim);font-size:13.5px;line-height:1.45}
+  .go{color:var(--accent2);font-size:13px;margin-top:9px;font-weight:600}
+  a.card.wip{border-left-color:#3a3f4d}
+  a.card.wip .badge{color:var(--dim);border-color:var(--line);background:transparent}
+  a.card.wip:hover{border-color:var(--accent2);border-left-color:var(--accent2)}
+  .wipchip{font-size:10.5px;font-weight:700;color:#0b0c10;background:var(--accent2);
+           border-radius:5px;padding:1px 6px;margin-left:7px;vertical-align:middle;letter-spacing:.3px}
+  .mat .ctitle{font-size:15.5px}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--dim);font-size:13px}
+  code{background:#000;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--accent2);font-size:12.5px}
+</style>
+</head>
+<body>
+  <header>
+    <h1>CSS 343 <span style="color:var(--dim);font-weight:400">&lt;/&gt;</span></h1>
+    <div class="course-sub">Data Structures, Algorithms &amp; Discrete Mathematics II</div>
+    <div class="meta">Summer 2026 · T/Th 6:00–8:30 PM · UW1-020 · Dr. Marcel Gavriliu</div>
+  </header>
+
+  <h2>Lectures</h2>
+  <div class="grid" id="lectures"></div>
+
+  <h2>Explore — interactive data structures &amp; algorithms</h2>
+  <p style="color:var(--dim);font-size:13.5px;margin:-4px 0 14px">
+    The <a href="lib/demo.html" style="color:var(--accent2);font-weight:600">full explorer</a> — every operation, step by step (forward &amp; back), with live operation counts. Jump straight to one:
+  </p>
+  <div class="grid" id="explorers"></div>
+
+  <h2>Reference &amp; materials</h2>
+  <div class="grid" id="materials"></div>
+
+  <footer>
+    One server for the whole course: <code>cd css343 &amp;&amp; python3 -m http.server 8000</code>
+    → open <code>http://localhost:8000/</code>. Each deck: <code>s</code> speaker notes ·
+    <code>f</code> fullscreen · <code>o</code> overview.
+    <br><br>
+    Some figures adapted from Sedgewick &amp; Wayne, <em>Algorithms</em>, 4th ed. — used per the authors' stated educational-use policy, with attribution.
+    <br><br>
+    Content licensed <a href="LICENSE">CC BY-NC-SA 4.0</a> · code licensed <a href="LICENSE-CODE">MIT</a>.
+  </footer>
+
+<script>
+// ───────── add a lecture here (dir = folder under sessions/ with its index.html) ─────────
+const LECTURES = [
+  { id:"L01", dir:"sessions/S01-time-analysis",
+    title:"Analysis of Algorithms: Time",
+    topics:"Counting a basic operation · order of growth · the doubling experiment (ratio → 2ᵇ) · intro to big-O · live C++ timing" },
+  { id:"L02", dir:"sessions/S02-space-asymptotics",
+    title:"Space Complexity & Asymptotic Notation",
+    topics:"Counting bytes (sizeof, padding, stack vs heap) · space as a function of N · O / Θ / Ω made precise · interactive mergesort & grid-BFS memory visualizers" },
+  { id:"L03", dir:"sessions/S03-trees-bst",
+    title:"Trees & Binary Search Trees",
+    topics:"trees & terminology · binary trees, traversals & expression trees · the BST as an ordered symbol table (search / insert / ordered ops / Hibbard delete) · analysis: cost = Θ(height), random BST ≈ 1.39 log₂ n · interactive BST engine + demos" },
+  { id:"L04", dir:"sessions/S04-avl-trees",
+    title:"Balanced Trees I: AVL",
+    topics:"the balance problem (a BST can degenerate to Θ(n)) · the AVL height-balance invariant · single &amp; double rotations · insertion with rebalancing · height ≤ 1.44 log₂ n — the Θ(log n) guarantee · interactive AVL-insertion visualizer" },
+  { id:"L05", dir:"sessions/S05-2-3-b-trees",
+    title:"Balanced Trees II: 2-3, B &amp; B+ Trees",
+    topics:"from AVL to multiway (2-3 nodes) · 2-3 insert (split &amp; promote) · red-black BSTs (rotate / flipColors) · B-trees &amp; B+ trees (disk, high fan-out, B vs B+) · when to use which · interactive 2-3 / B-tree / red-black demos" },
+  { id:"L06", dir:"sessions/S06-heaps-pq",
+    title:"Heaps &amp; Priority Queues; Heapsort",
+    topics:"the priority-queue ADT · binary heap (array, swim &amp; sink) · insert &amp; delMax · build-heap in Θ(n) · heapsort (in place) · d-ary &amp; indexed PQs · interactive swim / sink / heapify / heapsort demos" },
+  { id:"L07", dir:"sessions/S07-hashing",
+    title:"Hashing",
+    topics:"hash functions (uniform, modular, string) · separate chaining · open addressing (linear / quadratic / double probing) · load factor &amp; resizing · hashing vs balanced BST · interactive linear-probing &amp; resize demos" },
+  { id:"L08", dir:"sessions/S08-graphs-bfs-dfs",
+    title:"Graphs I: Representations, BFS/DFS, Topological Sort",
+    topics:"graph vocabulary &amp; representations (adjacency list vs matrix) · depth-first search (recursive + iterative) · breadth-first search (fewest-edge paths) · digraphs &amp; topological sort (Kahn / DFS post-order) · interactive DFS / BFS / topo demos" },
+  { id:"L09", dir:"sessions/S09-graphs-dijkstra",
+    title:"Graphs II: Dijkstra Shortest Paths",
+    topics:"weighted digraphs &amp; the shortest-paths tree · edge relaxation · Dijkstra (greedy + priority queue, O(E log V)) · nonnegative weights / Bellman-Ford · vs BFS / Prim / A* · interactive Dijkstra demo" },
+  { id:"L11", dir:"sessions/S11-mst-union-find",
+    title:"Union-Find &amp; Minimum Spanning Trees",
+    topics:"union-find (quick-union → weighting → path compression) · MST &amp; the cut property · Kruskal (sort + union-find) · Prim (priority queue) · articulation points · interactive union-find / Kruskal / Prim demos" },
+  { id:"L12", dir:"sessions/S12-greedy-huffman",
+    title:"Greedy Algorithms; Huffman Coding",
+    topics:"the greedy method &amp; the exchange argument · when greedy is optimal (vs DP) · Huffman coding (build the trie) · prefix-free codes &amp; compression · interactive Huffman-build demo" },
+  { id:"L13", dir:"sessions/S13-sorting-dc",
+    title:"Sorting &amp; Divide-and-Conquer",
+    topics:"divide-and-conquer &amp; the master theorem · mergesort · quicksort (partition, pivots, 3-way) · Ω(n log n) lower bound &amp; quickselect · interactive mergesort / quicksort / quickselect demos" },
+  { id:"L14", dir:"sessions/S14-dp-i",
+    title:"Dynamic Programming I",
+    topics:"overlapping subproblems + optimal substructure · memoization vs tabulation · Fibonacci → rod cutting · longest common subsequence · the DP recipe · interactive LCS-table demo" },
+  { id:"L15", dir:"sessions/S15-dp-ii",
+    title:"Dynamic Programming II",
+    topics:"0/1 knapsack (pseudo-polynomial) · edit distance · grid &amp; interval DP · traceback &amp; space-saving · interactive knapsack / edit-distance table demos" },
+  { id:"L16", dir:"sessions/S16-strings-tries",
+    title:"Strings: Tries &amp; Substring Search",
+    topics:"R-way tries &amp; TSTs · prefix operations (autocomplete, longest-prefix) · brute-force search · KMP (failure function) &amp; Boyer–Moore · interactive trie &amp; substring-search demos" },
+  { id:"L17", dir:"sessions/S17-regex-automata",
+    title:"Regular Expressions &amp; Finite Automata",
+    topics:"regexes &amp; the languages they describe · NFAs (ε-transitions) · Thompson's RE→NFA construction · NFA simulation (set of states) · Kleene's theorem · interactive NFA-build &amp; simulate demos" },
+];
+
+// ───────── interactive explorers (one full sandbox per structure) ─────────
+const EXPLORERS = [
+  { ds:"bst", title:"Binary Search Tree", desc:"search · insert · Hibbard delete · ordered ops: min/max/floor/ceiling/select/rank/range" },
+  { ds:"avl", title:"AVL Tree", desc:"self-balancing BST — insert &amp; delete with rotations; balance factor on every node" },
+  { ds:"heap", title:"Binary Heap / PQ", desc:"insert (swim) · delete-max (sink) · heapsort" },
+  { ds:"hash-lp", title:"Hash Table (linear probing)", desc:"hash · probe on collision · resize/rehash · Sedgewick delete" },
+  { ds:"graph", title:"Graph — DFS / BFS / topo-sort", desc:"depth-first, breadth-first layers, and Kahn topological sort on a sample DAG" },
+  { ds:"dijkstra", title:"Dijkstra Shortest Paths", desc:"edge relaxation → the shortest-paths tree, with live distance labels" },
+  { ds:"union-find", title:"Union-Find", desc:"weighted quick-union + path compression on the parent array" },
+];
+
+const MATERIALS = [
+  { href:"media/big-o-cheatsheet.html", title:"Big-O Cheat Sheet",
+    desc:"Time & space complexity — data structures, sorting, and graph algorithms, auto-colored by order of growth" },
+  { href:"handouts/asymptotic-notation.html", title:"Handout: Asymptotic Notation",
+    desc:"O, Ω, Θ (and o, ω) as sets of functions, with proofs, the best/average/worst-case treatment, and exercises" },
+  { href:"handouts/computing-environment.html", title:"Handout: Computing Environment",
+    desc:"The CSS Linux lab — connect (SSH), transfer files (scp), compile & run C++ incl. template classes, and check leaks with Valgrind" },
+  { href:"handouts/valgrind.html", title:"Handout: Valgrind",
+    desc:"Find memory leaks — build with -g, run it, and read the report (clean vs. a real leak), with annotated transcripts" },
+  { href:"schedule/schedule-canvas.html", title:"Schedule",
+    desc:"Session-by-session topic plan" },
+  { href:"syllabus/syllabus-canvas.html", title:"Syllabus",
+    desc:"Policies, grading, textbooks, office hours" },
+  { href:"assignments/", title:"Assignments",
+    desc:"Programming assignments — PA1 (linked lists), PA2 (three trees + merge leaderboard), PA3 (graph representations + the Dijkstra race), PA4 (mydiff — the DP capstone)" },
+];
+
+document.getElementById("lectures").innerHTML = LECTURES.map(l => `
+  <a class="card${l.wip ? " wip" : ""}" href="${l.dir}/index.html">
+    <div class="lec">
+      <span class="badge">${l.id}</span>
+      <div>
+        <div class="ctitle">${l.title}${l.wip ? ' <span class="wipchip">building</span>' : ""}</div>
+        <div class="ctopics">${l.topics}</div>
+        <div class="go">${l.wip ? "Preview scaffold →" : "Open deck →"}</div>
+      </div>
+    </div>
+  </a>`).join("");
+
+document.getElementById("explorers").innerHTML = EXPLORERS.map(e => `
+  <a class="card" href="lib/demo.html?ds=${e.ds}">
+    <div class="ctitle">${e.title}</div>
+    <div class="ctopics">${e.desc}</div>
+    <div class="go">Explore →</div>
+  </a>`).join("");
+
+document.getElementById("materials").innerHTML = MATERIALS.map(m => `
+  <a class="card mat" href="${m.href}">
+    <div class="ctitle">${m.title}</div>
+    <div class="ctopics">${m.desc}</div>
+    <div class="go">Open →</div>
+  </a>`).join("");
+</script>
+</body>
+</html>

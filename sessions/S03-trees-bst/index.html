@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS 343 · L03 — Trees &amp; Binary Search Trees</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="viz/viz.css">
+
+  <style>
+    :root { --accent: #7c5cff; }
+    .reveal h2 { color: #2a2a3a; }
+    .reveal h3 { color: var(--accent); }
+    .reveal section small { color: #66708a; }
+    .reveal table { font-size: 0.78em; }
+    .reveal pre { width: 100%; box-shadow: none; font-size: 0.46em; }
+    .reveal pre code { border-radius: 8px; }
+    .reveal img { background: #fff; border: 1px solid #eef0f4; border-radius: 8px; }
+    .reveal blockquote { width: 92%; }
+    /* placeholder for a not-yet-built interactive demo (replaces an old static image) */
+    .reveal .demo-todo { border: 2px dashed #d39a00; background: #fff8e8; color: #5a4a1a;
+      border-radius: 10px; padding: 14px 18px; margin: 14px auto; width: 92%;
+      font-size: 0.62em; line-height: 1.45; text-align: left; }
+    .reveal .demo-todo b { color: #9a5b00; }
+    .reveal .demo-todo code { background: #fdeec2; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section
+        data-markdown="L03-trees-bst.md"
+        data-separator="^\r?\n---\r?\n$"
+        data-separator-vertical="^\r?\n--\r?\n$"
+        data-separator-notes="^Note:">
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+  <script src="viz/viz-core.js"></script>
+  <script src="viz/bst-engine.js"></script>
+  <script src="viz/player.js"></script>
+  <script src="viz/bst.js"></script>
+  <script src="viz/d1-d3.js"></script>
+  <script src="viz/d4-d5.js"></script>
+  <script src="viz/d2-d6.js"></script>
+  <script src="viz/d7-expr.js"></script>
+  <script src="viz/d9-d10.js"></script>
+  <script src="viz/d11-experiments.js"></script>
+
+  <script>
+    Reveal.initialize({
+      hash: true,
+      slideNumber: "c/t",
+      transition: "slide",
+      plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
+    }).then(() => {
+      // Markdown slides exist only after init resolves — build the visualizers now.
+      if (window.initVizBst) window.initVizBst();
+      (window.__vizInits || []).forEach(function (f) { try { f(); } catch (e) { console.error(e); } });
+    });
+  </script>
+</body>
+</html>

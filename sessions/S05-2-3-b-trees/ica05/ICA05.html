@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: the handout links below are RELATIVE and only resolve when this
+     page is served with the course site (local server / GitHub Pages). If you
+     paste this page's content into a Canvas page, replace those hrefs with the
+     Canvas Handouts page URLs (or drop the links, keeping the bold names). -->
+<!-- CSS 343 · ICA 05 instructions. Self-contained, handout visual family.
+     Student-facing — contains NO solutions. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICA 05 — 2-3 Trees · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>ICA 05 — 2-3 Trees</h1>
+  <div class="subtitle">CSS 343 · Session 5 (Balanced Trees II: 2-3, B &amp; B+ Trees)</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Format:</b> in-class, individual</span>
+      <span><b>Language:</b> C++17</span>
+      <span><b>Starter:</b> <code>ica05.cpp</code></span>
+      <span><b>Submit:</b> your finished <code>ica05.cpp</code></span>
+      <span><b>⚠ Leak-graded</b></span>
+    </div>
+  </div>
+
+  <p>You build the split-and-promote machinery from the lecture. The <code>Node</code> struct, the recursive insert <strong>driver</strong>, search, and a <strong>unit-test battery</strong> are given — you implement the two primitives the driver leans on, then feed the tree the sorted stream that destroys a plain BST and watch every leaf stay at the same depth.</p>
+
+  <h2>Tasks</h2>
+  <ol>
+    <li><code>addKey</code> — insert a key (and the child to its right) into a node, keeping <code>key[]</code> sorted and the children aligned.</li>
+    <li><code>split</code> — turn a temporary 4-node into two 2-nodes, <strong>promoting the middle key</strong> via the out-parameter.</li>
+  </ol>
+
+  <h2>The tests run themselves</h2>
+  <p>Build and run — <code>main</code> reports each check as you go, so fill the <code>TODO</code>s top-to-bottom and re-run:</p>
+  <pre>g++ -std=c++17 -g ica05.cpp -o ica05 &amp;&amp; ./ica05</pre>
+  <ul>
+    <li><strong>T1–T2</strong> basics — a single 2-node; a 2-node grows to a 3-node (no split)</li>
+    <li><strong>T3</strong> the first split — the root grows up</li>
+    <li><strong>T4</strong> a cascading split from below</li>
+    <li><strong>T5</strong> duplicates are ignored</li>
+    <li><strong>T6</strong> a shuffled 17-key batch — valid 2-3, sorted, every leaf at the same depth</li>
+    <li><strong>T7</strong> <em>the application:</em> sorted 1..1000 — a plain BST would be a 999-deep path; your 2-3 tree must stay ≤ log₂ N deep</li>
+    <li><strong>T8</strong> the mirror worst case, reverse-sorted</li>
+  </ul>
+
+  <div class="aside"><span class="tag">Memory is graded</span>
+    When all tests pass, run
+    <code>valgrind --leak-check=full ./ica05</code> on the CSS Linux lab —
+    grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
+    The 2-3 nodes are real heap allocations — every split must leave nothing stranded. See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> and
+    <a href="../../../handouts/computing-environment.html"><strong>Computing Environment</strong></a> handouts.
+  </div>
+
+  <h2>Grading (10 pts)</h2>
+  <table>
+    <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
+    <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
+    <tr><td>Mechanics (addKey, split, batches)</td><td>6</td><td>checked against our own test harness</td></tr>
+    <tr><td>Your test battery passes (T1–T8)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
+    <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+  </table>
+
+  <h2>Submit</h2>
+  <p>Your finished <code>ica05.cpp</code> in the Canvas ICA 05 quiz (single file upload; you may resubmit). <strong>Due Wed Jul 8, 11:59 PM.</strong></p>
+
+  <footer>
+    CSS 343 · Summer 2026 · ICA 05 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

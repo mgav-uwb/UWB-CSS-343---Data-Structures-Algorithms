@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 343 — Data-Structure Demos</title>
+<link rel="stylesheet" href="core/lib.css">
+<style>
+  body { margin: 0; background: #f6f7fb; color: #1a1c22; font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { background: #0b0c10; color: #e7eaf0; padding: 18px clamp(14px,5vw,48px); }
+  header h1 { margin: 0; font-size: 21px; }
+  header h1 a { color: #8b93a7; text-decoration: none; font-weight: 400; }
+  header .sub { color: #8b93a7; font-size: 13px; margin-top: 3px; }
+  .picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .picker a { font-size: 13px; font-weight: 600; text-decoration: none; color: #cfd4e0; border: 1px solid #262a35; border-radius: 8px; padding: 5px 11px; }
+  .picker a.on { color: #0b0c10; background: #00e58a; border-color: #00e58a; }
+  main { max-width: 940px; margin: 0 auto; padding: 22px clamp(12px,4vw,28px) 60px; }
+  .blurb { color: #4a5064; font-size: 14px; margin: 0 2px 16px; }
+  .note { color: #66708a; font-size: 12.5px; margin: 14px 2px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1><a href="../index.html">CSS 343</a> · Data-Structure Demos</h1>
+  <div class="sub">Full sandboxes — every operation, step by step (forward &amp; back), with live operation counts.</div>
+  <div class="picker" id="picker"></div>
+</header>
+<main>
+  <p class="blurb" id="blurb"></p>
+  <div id="mount"></div>
+  <p class="note">Each structure here exposes <b>all</b> its operations. Lecture slides embed the <b>same</b> engine with a simplified view that spotlights one step. Missing a structure? It gets added as its lecture is built.</p>
+</main>
+
+<script type="module">
+  import { FullDemo } from "./index.js";
+  import { DEMOS } from "./demos/registry.js";
+
+  const ds = new URLSearchParams(location.search).get("ds") || "avl";
+  const spec = DEMOS[ds] || DEMOS.avl;
+
+  document.getElementById("picker").innerHTML = Object.values(DEMOS)
+    .map((d) => `<a href="?ds=${d.id}" class="${d.id === spec.id ? "on" : ""}">${d.title}</a>`).join("");
+  document.getElementById("blurb").textContent = spec.blurb || "";
+  document.title = `CSS 343 — ${spec.title} demo`;
+
+  new FullDemo(document.getElementById("mount"), spec);
+</script>
+</body>
+</html>

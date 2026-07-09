@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS 343 · L12 — Greedy Algorithms Generalized; Huffman Coding</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../../lib/core/lib.css">
+
+  <style>
+    :root { --accent: #7c5cff; }
+    .reveal h2 { color: #2a2a3a; }
+    .reveal h3 { color: var(--accent); }
+    .reveal section small { color: #66708a; }
+    .reveal table { font-size: 0.78em; }
+    .reveal pre { width: 100%; box-shadow: none; font-size: 0.46em; }
+    .reveal pre code { border-radius: 8px; }
+    .reveal img { background: #fff; border: 1px solid #eef0f4; border-radius: 8px; }
+    .reveal blockquote { width: 92%; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section
+        data-markdown="L12-greedy-huffman.md"
+        data-separator="^\r?\n---\r?\n$"
+        data-separator-vertical="^\r?\n--\r?\n$"
+        data-separator-notes="^Note:">
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true, slideNumber: "c/t", transition: "slide",
+      plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
+    });
+  </script>
+  <script type="module">
+    import { initDeckDemos, Huffman, TreeRenderer } from "../../lib/deck.js";
+    initDeckDemos({
+      // build() with no args uses the CLRS sample a:5 b:9 c:12 d:13 e:16 f:45 → total 224
+      // walk each symbol's root-to-leaf path for "cab", assemble the bits, decode back
+      "huffman-codes": {
+        make: () => { const h = new Huffman(); h.build(); return h; },   // tree pre-built silently
+        renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+        run: (s) => s.codesWalk("cab"),
+        costs: ["compare", "write"], chrome: { showCosts: true },
+        width: 820, height: 232,
+      },
+      "huffman-build": {
+        make: () => new Huffman(),
+        renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+        run: (s) => s.build(),
+        costs: ["compare", "link", "alloc"], chrome: { showCosts: true },
+        width: 820, height: 260,
+      },
+    });
+  </script>
+</body>
+</html>

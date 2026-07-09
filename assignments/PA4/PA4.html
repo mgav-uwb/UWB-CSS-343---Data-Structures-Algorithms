@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: relative handout links only resolve on the course site; when
+     pasting into Canvas, swap hrefs for the Canvas Handouts URLs. -->
+<!-- CSS 343 · PA4 page (both phases). Self-contained, handout family. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PA4 — mydiff · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+
+
+
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PA4 — <code>mydiff</code>: a Dynamic-Programming Capstone</h1>
+  <div class="subtitle">CSS 343 · Summer 2026 · Programming Assignment 4 (two phases)</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Out:</b> Thu Jul 30 (S12)</span>
+      <span><b>PA4a design due:</b> Thu Aug 6 (S14)</span>
+      <span><b>PA4b due:</b> Tue Aug 18 (S17), 11:59 PM</span>
+      <span><b>Points:</b> 12 + 28 = 40</span>
+      <span><b>Individual</b></span>
+    </div>
+  </div>
+
+  <h2>Purpose</h2>
+  <p>Every time you run <code>git diff</code>, a dynamic program runs: comparing two files <em>is</em> the longest-common-subsequence problem, and the diff you read <em>is</em> the traceback. In PA4 you build that tool — <code>mydiff</code> — end to end. It is the capstone of the DP arc: the 2-D table (S14), the traceback as the <em>product</em> rather than a by-product (S15), a second DP nested inside the first, and the space-optimization lesson forced on you by arithmetic — two 30,000-line files need a <strong>3.6&nbsp;GB</strong> table unless you know better.</p>
+  <p>Two phases: <strong>design first</strong> (PA4a, graded), then build (PA4b) and reconcile what changed. That is how non-trivial software actually gets made — and the design work is where the DP decisions live.</p>
+
+  <h2>The tool</h2>
+  <pre>./mydiff fileA fileB           unified diff, 3 context lines
+./mydiff -u N fileA fileB      unified diff, N context lines
+./mydiff --stat fileA fileB    counts only — the ROLLING-ROW mode; survives
+                               files far too large for the full table
+./mydiff --word i j fileA fileB   within-line markup for one line pair</pre>
+  <p>The CLI (<code>mydiff.cpp</code>) is <strong>given</strong>. You implement the four functions behind it, declared in the given <code>diff.h</code>:</p>
+  <ol>
+    <li><strong><code>lcsLines</code></strong> — the LCS <em>value</em> over file lines with <strong>two rolling rows</strong> (O(min(n,m)) memory). This is <code>--stat</code>, and it must survive the generated 30,000-line pair. <em>(Port your ICA&nbsp;14 <code>lcs</code>; keys change from characters to lines, and the memory discipline is new.)</em></li>
+    <li><strong><code>diffLines</code></strong> — the full edit script: strip the common <strong>prefix and suffix</strong> first (that keeps real inputs inside the table budget), build the LCS table over what remains, then <strong>traceback</strong> into <code>' '</code>/<code>'-'</code>/<code>'+'</code> edits. Convention: within a changed run, deletions precede insertions — and mind that a backward walk <em>reverses</em> your tie-break.</li>
+    <li><strong><code>unifiedDiff</code></strong> — group the script into hunks (changes plus <code>context</code> common lines), each headed <code>@@ -start,count +start,count @@</code>. Check against <code>expected-unified.txt</code>.</li>
+    <li><strong><code>markLine</code></strong> — the same DP one level down: character-level comparison of one changed line pair, rendered wdiff-style — <code>[-deleted-]</code> and <code>{+inserted+}</code>.</li>
+  </ol>
+
+  <h2>PA4a — the design document (12 pts, due Thu Aug 6)</h2>
+  <ol>
+    <li><strong>Overview &amp; data-structure choices, with reasons</strong> — which tables, dimensions, cell meaning; where rolling rows apply and <em>why they can't naively support traceback</em> (the design problem of the assignment); how trimming bounds the table.</li>
+    <li><strong>Component diagram</strong> — the four functions' data flow; who owns which memory.</li>
+    <li><strong>Function descriptions</strong> — recurrences written out, base cases, your traceback tie-break.</li>
+    <li><strong>Test plan + the greedy counterexample</strong> — construct, by hand, a file pair where <em>greedy</em> line matching produces a non-minimal diff, and show the minimal one. (S12 taught you why greedy needs a proof; here's a place it fails.)</li>
+  </ol>
+  <p>Your design is graded on its own terms; changing course during implementation costs nothing — PA4b's report explains the delta.</p>
+
+  <h2>PA4b — implementation (28 pts, due Tue Aug 18)</h2>
+  <pre>g++ -std=c++17 -O2 diff.cpp mydiff.cpp -o mydiff
+./mydiff sampleA.txt sampleB.txt | diff - expected-unified.txt   # exact with the stated tie-break
+valgrind --leak-check=full ./mydiff sampleA.txt sampleB.txt      # on the CSS lab
+g++ -std=c++17 -O2 gen_corpus.cpp -o gen && ./gen
+./mydiff --stat big_A_30000.txt big_B_30000.txt                  # seconds and small memory — or your
+                                                                 # lcsLines built the full table</pre>
+  <div class="def"><span class="tag">Measurement (report)</span>
+    A doubling table over the <code>bench_*</code> pairs (1000 → 8000 lines) for the full diff — time and peak memory — with the O(n·m) reading; the big-pair <code>--stat</code> run as evidence the rolling rows work; and your PA4a greedy counterexample revisited with the real tool's output.
+  </div>
+  <div class="aside"><span class="tag">The video (≤ 10 min, required)</span>
+    Compile and run on the lab, walk each rubric feature to where it lives in your code, and disclose known bugs or limitations. Your program is graded following your video's instructions — unclear steps cost points.
+  </div>
+
+  <h2>What to submit</h2>
+  <ol>
+    <li><strong>PA4a</strong> (Canvas, PDF): the design document.</li>
+    <li><strong>PA4b</strong> (Canvas): one zip — <code>diff.cpp</code> (+ your test files; <code>diff.h</code>/<code>mydiff.cpp</code> unchanged) — plus the <strong>report</strong> (PDF, separate) and the <strong>video</strong>.</li>
+  </ol>
+  <p><em>Grading policy:</em> we compile <strong>your <code>diff.cpp</code> against our own <code>main()</code></strong>. The autograder pins no particular alignment: edit scripts are checked by <em>reconstruction</em> and <em>optimality</em> (changes = n+m−2·LCS); unified output by <em>patching</em> A into B. Any correct tie-break passes. Doesn't compile ⇒ 0 for correctness.</p>
+
+  <h2>Grading (40 pts)</h2>
+  <table>
+    <tr><th></th><th>Criterion</th><th>Pts</th></tr>
+    <tr><td>PA4a</td><td>Design: choices-with-reasons 4 · diagram 2 · recurrences 3 · test plan + greedy counterexample 3</td><td>12</td></tr>
+    <tr><td rowspan="7">PA4b</td><td>Correctness (autograder: lcsLines 3 · diffLines 5 · unifiedDiff 4 · markLine 2)</td><td>14</td></tr>
+    <tr><td><strong>Memory</strong> — valgrind clean AND the 30,000-line <code>--stat</code> runs in small memory</td><td>3</td></tr>
+    <tr><td>Your testing (empty, identical, one-line, all-different, context 0)</td><td>3</td></tr>
+    <tr><td>Report (reconciliation 1 · doubling table + reading 2 · counterexample revisited 1)</td><td>4</td></tr>
+    <tr><td>Video (build, run, feature walk, disclosure)</td><td>2</td></tr>
+    <tr><td>Coding standards (recurrences commented at the loops)</td><td>2</td></tr>
+    <tr><td><em>EC:</em> <strong>Hirschberg</strong> — optimal full diffs in O(min(n,m)) table memory (divide-and-conquer meets DP)</td><td>+2</td></tr>
+  </table>
+
+  <h2>Starter files</h2>
+  <table>
+    <tr><th>File</th><th>What it is</th></tr>
+    <tr><td><code>diff.h</code></td><td>The four-function specification (fixed)</td></tr>
+    <tr><td><code>diff.cpp</code></td><td>Skeleton: <code>fileLines</code> given, four <code>TODO</code>s</td></tr>
+    <tr><td><code>mydiff.cpp</code></td><td>The CLI (given — do not change)</td></tr>
+    <tr><td><code>sampleA.txt</code> / <code>sampleB.txt</code></td><td>The worked sample pair</td></tr>
+    <tr><td><code>expected-unified.txt</code> / <code>expected-stat.txt</code></td><td>Exact expected CLI output on the sample</td></tr>
+    <tr><td><code>gen_corpus.cpp</code></td><td>Fixed-seed bench pairs (1000–8000 lines) + the 30,000-line big pair</td></tr>
+  </table>
+
+  <footer>
+    CSS 343 · Summer 2026 · PA4 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

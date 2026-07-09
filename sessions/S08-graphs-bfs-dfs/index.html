@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS 343 · L08 — Graphs I: Representations, BFS/DFS, Topological Sort</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="../../lib/core/lib.css">
+
+  <style>
+    :root { --accent: #7c5cff; }
+    .reveal h2 { color: #2a2a3a; }
+    .reveal h3 { color: var(--accent); }
+    .reveal section small { color: #66708a; }
+    .reveal table { font-size: 0.78em; }
+    .reveal pre { width: 100%; box-shadow: none; font-size: 0.46em; }
+    .reveal pre code { border-radius: 8px; }
+    .reveal img { background: #fff; border: 1px solid #eef0f4; border-radius: 8px; }
+    .reveal blockquote { width: 92%; }
+  </style>
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+      <section
+        data-markdown="L08-graphs-bfs-dfs.md"
+        data-separator="^\r?\n---\r?\n$"
+        data-separator-vertical="^\r?\n--\r?\n$"
+        data-separator-notes="^Note:">
+      </section>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+  <script>
+    Reveal.initialize({
+      hash: true, slideNumber: "c/t", transition: "slide",
+      plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
+    });
+  </script>
+  <script type="module">
+    import { initDeckDemos, Graph, GraphRenderer } from "../../lib/deck.js";
+    // build() ignores input and installs the fixed sample DAG, so build it here in make()
+    const graphView = () => ({
+      make: () => { const g = new Graph(); g.build(); return g; },
+      renderer: (c) => new GraphRenderer(c, { directed: true }),
+      costs: ["visit", "compare"], chrome: { showCosts: true }, width: 800, height: 250,
+    });
+    initDeckDemos({
+      "graph-dfs":  { ...graphView(), run: (s) => s.dfs(0) },   // dive along tree edges, backtrack
+      "graph-bfs":  { ...graphView(), run: (s) => s.bfs(0) },   // expand in layers; distance labels
+      "graph-topo": { ...graphView(), run: (s) => s.topo() },   // Kahn: peel in-degree-0 vertices
+    });
+  </script>
+</body>
+</html>

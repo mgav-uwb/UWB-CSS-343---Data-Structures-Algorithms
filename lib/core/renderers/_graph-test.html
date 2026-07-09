@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>graph.js renderer smoke test</title>
+<style>
+  body { font: 14px system-ui, sans-serif; background: #f6f7fb; padding: 20px; }
+  canvas { background: #fff; border: 1px solid #ddd; display: block; margin-bottom: 20px; }
+  h3 { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<h3 id="s1">undirected</h3>
+<canvas id="c1" width="820" height="360"></canvas>
+<h3 id="s2">directed</h3>
+<canvas id="c2" width="820" height="360"></canvas>
+
+<script type="module">
+  import { GraphRenderer } from "./graph.js";
+
+  const snapshot = {
+    nodes: [
+      { id: 0, x: 0.1, y: 0.5 },
+      { id: 1, x: 0.4, y: 0.2 },
+      { id: 2, x: 0.4, y: 0.8 },
+      { id: 3, x: 0.7, y: 0.5 },
+      { id: 4, x: 0.95, y: 0.3 },
+    ],
+    edges: [
+      { u: 0, v: 1, w: 4 },
+      { u: 0, v: 2, w: 2 },
+      { u: 1, v: 3, w: 5 },
+      { u: 2, v: 3, w: 1 },
+      { u: 3, v: 4, w: 3 },
+    ],
+  };
+
+  const hl = {
+    nodes: { done: [0], active: [3], visited: [1, 2] },
+    edges: { tree: [[0, 2], [2, 3]], active: [[3, 4]] },
+    dist: { 0: 0, 1: 4, 2: 2, 3: 3, 4: Infinity },
+  };
+
+  const r1 = new GraphRenderer(document.getElementById("c1"));
+  r1.draw(snapshot, hl);
+
+  const r2 = new GraphRenderer(document.getElementById("c2"), { directed: true });
+  r2.draw(snapshot, hl);
+
+  window.__renderDone = true;
+</script>
+</body>
+</html>

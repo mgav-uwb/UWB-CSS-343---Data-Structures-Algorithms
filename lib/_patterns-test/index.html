@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 343 — interaction patterns test</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="../core/lib.css">
+<style>.reveal h3 { color: #7c5cff; }</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+  <section><h2>Three interaction patterns</h2></section>
+
+  <section>
+    <h3>CaseDemo — rotation styles</h3>
+    <div class="algo-viz" data-algo="rot-cases"><pre class="viz-fallback">[ demo ]</pre></div>
+  </section>
+
+  <section>
+    <h3>InteractiveDemo — click a node, rotate its subtree</h3>
+    <div class="algo-viz" data-algo="rotate-any"><pre class="viz-fallback">[ demo ]</pre></div>
+  </section>
+
+  <section>
+    <h3>DualDemo — plain BST vs AVL (same keys)</h3>
+    <div class="algo-viz" data-algo="bst-vs-avl"><pre class="viz-fallback">[ demo ]</pre></div>
+  </section>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script type="module">
+  import { initDeckDemos, AVL, BST, TreeRenderer } from "../deck.js";
+  Reveal.initialize({ hash: true, slideNumber: "c/t" });
+
+  initDeckDemos({
+    // 1) CASE-SELECTOR: each case builds a tree then inserts the key that triggers that rotation
+    "rot-cases": {
+      make: () => new AVL(),
+      renderer: (c) => new TreeRenderer(c, { labels: "bf" }),
+      costs: ["compare", "rotation"],
+      cases: [
+        { name: "LL", group: "single", build: [30, 20], run: (s) => s.insert(10) },
+        { name: "RR", group: "single", build: [10, 20], run: (s) => s.insert(30) },
+        { name: "LR", group: "double", build: [30, 10], run: (s) => s.insert(20) },
+        { name: "RL", group: "double", build: [10, 30], run: (s) => s.insert(20) },
+      ],
+    },
+    // 2) CLICK-A-NODE: rotate the selected subtree (BST.rotate returns {trace, sel})
+    "rotate-any": {
+      make: () => new BST(),
+      initial: "50,30,70,20,40,60,80,10,25",
+      renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+      autoSelect: 30,
+      selectMsg: (k) => `selected ${k} — Rotate right / left`,
+      ops: [
+        { name: "Rotate right", run: (s, k) => s.rotate(k, "R") },
+        { name: "Rotate left", run: (s, k) => s.rotate(k, "L") },
+      ],
+    },
+    // 3) SIDE-BY-SIDE: same keys into both; heights diverge
+    "bst-vs-avl": {
+      panels: [
+        { title: "plain BST", make: () => new BST(), renderer: (c) => new TreeRenderer(c, { labels: "none" }) },
+        { title: "AVL", make: () => new AVL(), renderer: (c) => new TreeRenderer(c, { labels: "bf" }) },
+      ],
+      op: (s, v) => s.insert(v),
+      sequence: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    },
+  });
+</script>
+</body>
+</html>

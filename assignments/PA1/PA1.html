@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: the <a href="../..…"> handout links below are RELATIVE and only
+     resolve when this page is served with the course site (local server / GitHub
+     Pages). If you paste this page's content into a Canvas page, replace those
+     hrefs with the Canvas Handouts page URLs (or drop the links, keeping the
+     bold handout names). -->
+<!-- CSS 343 · PA1 assignment page. Self-contained, same visual family as the
+     handouts. Host this / paste its content into the Canvas PA1 page. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PA1 — Two Linked Lists (Memory &amp; Measurement) · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:840px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:26px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:20px;margin:32px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  h3{font-size:16.5px;margin:20px 0 6px;color:#2a2d36}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;
+      font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  pre .c{color:var(--dim)}
+  .def,.ex,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:#f0f2f6} td code{background:#eef1f6}
+  .rubric td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  ul,ol{margin:8px 0;padding-left:24px} li{margin:5px 0}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PA1 — Various Linked-List Implementations<br>(Memory &amp; Measurement)</h1>
+  <div class="subtitle">CSS 343 · Data Structures, Algorithms &amp; Discrete Mathematics II · Summer 2026</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Out:</b> Tue Jun 30 (S3)</span>
+      <span><b>Due:</b> Thu Jul 9, 11:59 pm (S6)</span>
+      <span><b>Points:</b> 20</span>
+      <span><b>Work:</b> individual</span>
+      <span><b>Language:</b> C++17, graded on the CSS Linux lab</span>
+    </div>
+  </div>
+
+  <h2>Purpose</h2>
+  <p>This assignment reinforces the fundamentals of <strong>dynamic memory allocation, pointer manipulation, and copy-constructor / Rule-of-Three design</strong> by implementing two different linked-list structures. You will also (1) practice <strong>compiling template classes</strong> in C++, (2) build data structures whose internals are <strong>encapsulated</strong> behind a stable public interface, and (3) <em>measure</em> what you built using the Week-1 analysis toolkit — a <strong>doubling experiment</strong> for time and a <strong>bytes-per-node</strong> analysis for space.</p>
+  <p>The linked lists themselves are review (CSS 142/342). The new work is doing the C++ memory management <strong>cleanly and leak-free</strong>, and then <strong>measuring</strong> the result instead of just asserting its Big-O.</p>
+
+  <h2>Variations of linked lists</h2>
+  <p>Linked lists come in many internal forms:</p>
+  <ul>
+    <li><strong>singly</strong> vs <strong>doubly</strong> linked (a <code>next</code> pointer only, vs <code>prev</code> and <code>next</code>);</li>
+    <li><strong>with</strong> or <strong>without</strong> a <strong>dummy (sentinel) header</strong> node;</li>
+    <li><strong>linear</strong> (the last node's <code>next</code> is <code>nullptr</code>) vs <strong>circular</strong> (the last node links back to the header / first node).</li>
+  </ul>
+  <p>Although these differ internally, they can expose the <strong>same external behavior</strong>. A user of the list — your driver program — should not be able to tell which internal form it is using. That is the point of <strong>data abstraction</strong> and <strong>encapsulation</strong>: the same public interface, two different implementations behind it. This PA makes that concrete by giving the two classes below <em>identical</em> public methods over <em>different</em> internals.</p>
+
+  <h2>Learning objectives</h2>
+  <p>After this assignment you will be able to:</p>
+  <ul>
+    <li>Apply C++ pointer operations and dynamic memory management (<code>new</code> / <code>delete</code>).</li>
+    <li>Design classes that correctly <strong>allocate, manage, and release</strong> dynamic memory — the <strong>Rule of Three</strong> (destructor, copy constructor, assignment operator), <strong>Valgrind-clean</strong>.</li>
+    <li>Implement and <strong>compare</strong> multiple linked-list variations and <strong>analyze their performance</strong> from measured data.</li>
+    <li>Understand the <strong>compilation and use of template classes</strong> in C++.</li>
+    <li>Run a <strong>doubling experiment</strong> and read an <strong>order of growth</strong> off the ratio of running times (L01).</li>
+    <li>Reason about <strong>memory cost in bytes</strong> — <code>sizeof</code>, node overhead, pointer count, sentinel cost (L02).</li>
+  </ul>
+
+  <h2>Starter files</h2>
+  <p>The <code>starter/</code> folder provides skeletons and minimal samples — copy and extend them; do not submit them unchanged:</p>
+  <table>
+    <tr><th>File</th><th>What it is</th></tr>
+    <tr><td><code>NDLList.h</code>, <code>NDLList.cpp</code></td><td>header (class spec given) + a <code>.cpp</code> skeleton to implement</td></tr>
+    <tr><td><code>CDLList.h</code>, <code>CDLList.cpp</code></td><td>same, for the circular doubly linked list</td></tr>
+    <tr><td><code>sample_driver.cpp</code></td><td>a <strong>minimal</strong> functional test — does <strong>not</strong> cover every method; extend into your <code>driver.cpp</code></td></tr>
+    <tr><td><code>doubling_compare.cpp</code></td><td>a skeleton for the timing experiment; extend into your <code>compare_driver.cpp</code></td></tr>
+  </table>
+  <div class="aside"><span class="tag">New to the lab?</span>
+    Two handouts get you from zero to a graded build: <a href="../../handouts/computing-environment.html"><strong>Computing Environment</strong></a> (connect to the CSS Linux lab, transfer files, and compile/run C++ — including the template-class rule) and <a href="../../handouts/valgrind.html"><strong>Valgrind</strong></a> (build with <code>-g</code>, run the leak check, and read the report). <strong>All grading happens on the lab.</strong>
+  </div>
+
+  <h2>Part 1 — Singly linked list, no dummy header (<code>NDLList</code>)</h2>
+  <p>Design and implement a singly linked list <strong>without</strong> a dummy header, named <code>NDLList</code>. Implement it as a <strong>template class</strong> so it can store any type. <code>head</code> points at the <strong>first real node</strong>. Files: <code>NDLList.h</code>, <code>NDLList.cpp</code>.</p>
+  <pre>template &lt;class Object&gt;
+struct LListNode {                 <span class="c">// list node</span>
+    Object item;
+    LListNode* next;
+};
+
+template &lt;class Object&gt;
+class NDLList {
+public:
+    NDLList();                                   <span class="c">// constructor: head = nullptr</span>
+    NDLList(const NDLList&amp; rhs);                  <span class="c">// copy constructor (deep copy)</span>
+    ~NDLList();                                  <span class="c">// destructor (free all nodes)</span>
+    const NDLList&amp; operator=(const NDLList&amp; rhs); <span class="c">// assignment operator (deep copy)</span>
+
+    bool   isEmpty() const;                      <span class="c">// is the list empty?</span>
+    int    size() const;                         <span class="c">// number of nodes</span>
+    void   clear();                              <span class="c">// remove all nodes</span>
+    void   insert(const Object&amp; obj, int index); <span class="c">// insert at 0-based index; 0 = at head</span>
+    int    find(const Object&amp; obj) const;        <span class="c">// index of obj, or -1 if not found</span>
+    void   remove(const Object&amp; obj);            <span class="c">// remove first occurrence of obj</span>
+    Object retrieve(int index) const;            <span class="c">// data at index</span>
+private:
+    LListNode&lt;Object&gt;* head;                      <span class="c">// first real node (no dummy header)</span>
+};</pre>
+  <p>You may adapt the dummy-header list from lab, removing the sentinel to meet this requirement.</p>
+
+  <h2>Part 2 — Circular doubly linked list, dummy header (<code>CDLList</code>)</h2>
+  <p>Design and implement a <strong>circular</strong>, <strong>doubly</strong> linked list <strong>with</strong> a dummy header, named <code>CDLList</code>, also a template class. <strong>Same public interface</strong> as <code>NDLList</code> — different internals. Files: <code>CDLList.h</code>, <code>CDLList.cpp</code>.</p>
+  <p>Structural requirements:</p>
+  <ul>
+    <li>a <strong>dummy header</strong> (sentinel) node;</li>
+    <li>each node has <code>item</code>, <code>prev</code>, <code>next</code>;</li>
+    <li>the header's <code>next</code> → the first data node, the header's <code>prev</code> → the last data node;</li>
+    <li>the last data node's <code>next</code> → the header (<strong>circular</strong>).</li>
+  </ul>
+  <pre>template &lt;class Object&gt;
+struct DLListNode {
+    Object item;
+    DLListNode* prev;
+    DLListNode* next;
+};
+
+template &lt;class Object&gt;
+class CDLList {
+public:
+    CDLList();                                    <span class="c">// constructor: create the dummy header</span>
+    CDLList(const CDLList&amp; rhs);                   <span class="c">// copy constructor (deep copy)</span>
+    ~CDLList();                                   <span class="c">// destructor (free all nodes incl. header)</span>
+    const CDLList&amp; operator=(const CDLList&amp; rhs);  <span class="c">// assignment operator (deep copy)</span>
+
+    bool   isEmpty() const;
+    int    size() const;
+    void   clear();
+    void   insert(const Object&amp; obj, int index);  <span class="c">// index 0 = first data node</span>
+    int    find(const Object&amp; obj) const;
+    void   remove(const Object&amp; obj);
+    Object retrieve(int index) const;
+private:
+    DLListNode&lt;Object&gt;* header;                    <span class="c">// dummy header (sentinel)</span>
+};</pre>
+  <div class="def"><span class="tag">Template compilation — the one rule</span>
+    Because these are template classes, the implementation must be visible at the point of instantiation. <strong>End each header with the matching <code>.cpp</code></strong> — <code>#include "NDLList.cpp"</code> at the bottom of <code>NDLList.h</code>, <code>#include "CDLList.cpp"</code> at the bottom of <code>CDLList.h</code> — and do <strong>not</strong> compile the <code>.cpp</code> files separately. You compile only your driver, which <code>#include</code>s the headers. (The <a href="../../handouts/computing-environment.html">Computing Environment</a> handout, §4, walks through this with a worked build.)
+  </div>
+
+  <h2>Part 3 — Functional testing (your own <code>driver.cpp</code>)</h2>
+  <p>Write your <strong>own</strong> <code>driver.cpp</code> that verifies the correctness of <strong>both</strong> classes. (<code>starter/sample_driver.cpp</code> is a minimal example — it does <strong>not</strong> test everything.)</p>
+  <p>Testing goals:</p>
+  <ul>
+    <li><code>#include</code> both headers (<code>NDLList.h</code>, <code>CDLList.h</code>).</li>
+    <li>Test <strong>every public method</strong> of <strong>both</strong> classes.</li>
+    <li>Test with <strong>multiple data types</strong> (e.g. <code>int</code> and <code>string</code>) — they are templates.</li>
+    <li>Cover <strong>edge cases</strong>: empty list, insert at head / middle / tail, remove a missing element, <code>retrieve</code> at the boundaries, and a <strong>deep-copy test</strong> (copy or assign a list, mutate the original, confirm the copy is unchanged — proving you did not alias the nodes).</li>
+  </ul>
+  <pre>g++ -std=c++17 driver.cpp -o driver &amp;&amp; ./driver</pre>
+
+  <h2>Part 4 — Performance comparison: the doubling experiment</h2>
+  <p>Both classes implement the same methods with the same Big-O for most operations — yet their <strong>actual runtime differs</strong> because of their internals. Write your <strong>own</strong> <code>compare_driver.cpp</code> (extend <code>starter/doubling_compare.cpp</code>) to measure and compare them.</p>
+  <p>Comparison goals:</p>
+  <ul>
+    <li><code>#include</code> both headers.</li>
+    <li>Compare the public operations of <code>NDLList</code> and <code>CDLList</code>.</li>
+    <li>Use <strong>multiple data types</strong>.</li>
+    <li>For each operation, run it at <strong>N = 1000, 2000, 4000, 8000, …</strong>, time it, and print the <strong>ratio</strong> of each time to the previous N.</li>
+  </ul>
+  <p>Read the order of growth off the ratio, exactly as in L01:</p>
+  <blockquote>ratio → <strong>2</strong> ⇒ linear Θ(n) · ratio → <strong>4</strong> ⇒ quadratic Θ(n²) · ratio → <strong>1</strong> ⇒ constant Θ(1).</blockquote>
+  <p>Most operations are the same Θ on both lists, so the interesting findings are <strong>(a)</strong> the <strong>constant-factor</strong> difference and <strong>(b)</strong> the operations where the two genuinely <em>differ in order</em> — e.g. inserting at the <strong>tail</strong> is an O(n) walk in <code>NDLList</code> but O(1) via the header's <code>prev</code> in <code>CDLList</code>.</p>
+  <pre>g++ -std=c++17 -O2 compare_driver.cpp -o compare &amp;&amp; ./compare</pre>
+
+  <h2>Part 5 — Analysis and report</h2>
+  <p>Submit a brief written report (PDF or Word, <strong>separately</strong> — not in the zip). It must include all of the following:</p>
+  <ol>
+    <li><strong>Summary of your work</strong> — what you implemented, the approach you took, and the results you obtained (one short paragraph).</li>
+    <li><strong>Template compilation</strong> — what considerations are required when compiling template classes in C++? (Why the <code>#include "X.cpp"</code> line; why you don't compile the <code>.cpp</code> separately.)</li>
+    <li><strong>Experimental results</strong> —
+      <ul>
+        <li><strong>Time:</strong> your doubling table(s) and the <strong>order of growth</strong> you inferred for each measured operation.</li>
+        <li><strong>Memory (bytes per node):</strong> <code>sizeof</code> of each node type; how many pointers each carries; the dummy-header cost; total bytes for an N-node list of <code>int</code> vs of <code>string</code>. (Apply L02.)</li>
+      </ul>
+    </li>
+    <li><strong>Analysis</strong> — <em>why</em> the two implementations differ — in constant factor and in which operations — tied to their <strong>structure</strong> (the extra <code>prev</code> pointer, the dummy header, circularity, and pointer-chasing / cache behavior). Provide technical justification, supported by your data.</li>
+    <li><strong>Conclusion</strong> — what you conclude from the experiments; and, specifically, <strong>what to be careful about when compiling and running template classes</strong>.</li>
+    <li><strong>Use of AI tools (required disclosure)</strong> — per the syllabus: which parts you asked AI about and what it returned (cite the tool as a URL; summarize prompts). <strong>If you used none,</strong> include exactly: <em>"I did not use any AI tools for this assignment. I assert that all work submitted is entirely my own."</em></li>
+    <li><strong>Programming task log</strong> — a table: Date · In · Out · Tasks · Duration, with a <strong>Total</strong>.</li>
+  </ol>
+  <table>
+    <tr><th>Date</th><th>In</th><th>Out</th><th>Tasks</th><th>Duration</th></tr>
+    <tr><td>6/30/2026</td><td>3pm</td><td>6pm</td><td>NDLList core + Rule of Three</td><td>3 h</td></tr>
+    <tr><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+    <tr><td><strong>Total</strong></td><td></td><td></td><td></td><td><strong>20 h</strong></td></tr>
+  </table>
+
+  <h2>Memory management &amp; Valgrind (required)</h2>
+  <p>Because this assignment leans heavily on pointers, your classes <strong>must correctly manage all dynamically allocated memory</strong>: every <code>new</code> must be matched by a <code>delete</code>, handled in your <strong>constructors, destructor, <code>clear()</code>, and assignment operator</strong>. <strong>Your program must not leak.</strong></p>
+  <p>We grade memory with <strong>Valgrind</strong>; develop with it yourself:</p>
+  <pre>g++ -std=c++17 -g compare_driver.cpp -o compare &amp;&amp; valgrind --leak-check=full ./compare</pre>
+  <p>If any leaks or memory errors are detected, <strong>no points are awarded for the Memory criterion.</strong> (Alternatively, the Address/Undefined-Behavior Sanitizer catches many of the same bugs: <code>g++ -std=c++17 -fsanitize=address,undefined …</code>.) See the <a href="../../handouts/valgrind.html"><strong>Valgrind handout</strong></a> for how to read the report (clean run vs. a real leak, with annotated transcripts).</p>
+
+  <h2>Unit testing non-public methods (optional)</h2>
+  <p>You may use any unit-testing framework you like. <strong>Submitting unit tests is optional</strong>, but if you include them they must run on a Linux server (or Replit). To test <strong>non-public</strong> helpers, you may temporarily expose them or add <strong>public test-helper functions</strong> to the class, then call them from your test program.</p>
+
+  <h2>Compilation requirement</h2>
+  <div class="aside"><span class="tag">Read this — it's worth the most points</span>
+    We download your submission and compile it on <strong>Linux</strong> with <code>g++ -std=c++17</code>. <strong>If it does not compile, you receive 0 for Correctness</strong>, regardless of design intent. If any special build steps are required, state them clearly in your report (failure to do so means the program is not graded). See the <a href="../../handouts/computing-environment.html">Computing Environment</a> handout for how to connect to the CSS Linux lab, compile (including template classes), and run Valgrind.
+  </div>
+
+  <h2>What to submit</h2>
+  <p><strong>1. Source code (in a zip):</strong></p>
+  <ul>
+    <li><code>NDLList.h</code>, <code>NDLList.cpp</code>, <code>CDLList.h</code>, <code>CDLList.cpp</code></li>
+    <li>your <strong>own</strong> <code>driver.cpp</code> (comprehensive functional tests)</li>
+    <li>your <strong>own</strong> <code>compare_driver.cpp</code> (the doubling experiment)</li>
+    <li>any additional helper files needed for testing</li>
+  </ul>
+  <div class="def"><span class="tag">Grading policy</span>
+    The provided <code>sample_driver.cpp</code> / <code>doubling_compare.cpp</code> are minimal and do <strong>not</strong> test all required methods — your testing programs must thoroughly exercise <strong>all</strong> public methods with <strong>multiple types</strong>. During grading we <strong>first link only your list-class files to our own <code>main()</code></strong>:
+    <ul>
+      <li>if your classes compile and work, <strong>full credit is possible</strong>;</li>
+      <li>if they fail, we fall back to <strong>your</strong> driver(s) — so a thorough <code>driver.cpp</code> is your safety net;</li>
+      <li>if you provide <strong>no</strong> testing files <strong>and</strong> your classes fail with our driver, you receive <strong>0</strong> for Correctness;</li>
+      <li><strong>partial credit</strong> may be awarded if your code works with your tests but not with ours.</li>
+    </ul>
+  </div>
+  <p><strong>2. Written report (NOT in the zip):</strong> submit the PDF/Word separately, with the seven items in Part 5.</p>
+
+  <h2>Rubric (20 pts)</h2>
+  <table class="rubric">
+    <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
+    <tr><td><strong>Correctness</strong></td><td>10</td><td>Must compile (<code>g++ -std=c++17</code>). <strong>No compile ⇒ 0 here.</strong> Both classes' public methods correct against our <code>main()</code>. State any special build steps.</td></tr>
+    <tr><td><strong>Memory (Valgrind-clean)</strong></td><td>3</td><td>Rule of Three correct; <strong>no leaks or errors</strong> under Valgrind ⇒ 0 here if any are found.</td></tr>
+    <tr><td><strong>Testing driver(s)</strong></td><td>2</td><td>Your own <code>driver.cpp</code> exercises <strong>all</strong> public methods of <strong>both</strong> classes, <strong>≥2 types</strong>, edge cases.</td></tr>
+    <tr><td><strong>Report — measurement &amp; analysis</strong></td><td>4</td><td>All seven Part-5 items present: doubling table + inferred order of growth, <strong>bytes-per-node</strong> memory analysis, structural explanation, template-compilation discussion, AI disclosure, task log.</td></tr>
+    <tr><td><strong>Coding standards</strong></td><td>1</td><td>File-, function-, and in-code comments; consistent indentation/whitespace; meaningful, consistent names.</td></tr>
+  </table>
+
+  <footer>
+    CSS 343 · Summer 2026 · PA1 (20 pts) · out Tue Jun 30, due Thu Jul 9 11:59 pm · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

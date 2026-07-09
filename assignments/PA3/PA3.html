@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: relative handout links only resolve on the course site; when
+     pasting into Canvas, swap hrefs for the Canvas Handouts URLs. -->
+<!-- CSS 343 · PA3 page. Self-contained, handout visual family. Student-facing. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PA3 — Two Graphs · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+
+
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PA3 — Two Graphs: Representations, Dijkstra &amp; Traversals</h1>
+  <div class="subtitle">CSS 343 · Summer 2026 · Programming Assignment 3</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Out:</b> Tue Jul 21 (S9)</span>
+      <span><b>Due:</b> Tue Aug 4, 11:59 PM (S13)</span>
+      <span><b>Points:</b> 30</span>
+      <span><b>Individual</b></span>
+      <span><b>⚠ Leak-graded</b></span>
+    </div>
+  </div>
+
+  <h2>Purpose</h2>
+  <p>You have already written the algorithms: BFS/DFS in ICA&nbsp;08, heap-based Dijkstra in ICA&nbsp;09. PA3 is about what those exercises hid: <strong>the representation</strong>, and the engineering around it. You build the same graph twice:</p>
+  <ul>
+    <li><strong><code>GraphM</code></strong> — an adjacency <strong>matrix</strong>, running <strong>all-pairs Dijkstra</strong> in the <strong>O(V²) linear-scan</strong> form (no priority queue — deliberately a <em>different algorithm</em> than your ICA&nbsp;09), with full <strong>path reconstruction</strong>;</li>
+    <li><strong><code>GraphL</code></strong> — an adjacency <strong>list</strong> of raw, heap-allocated <code>EdgeNode</code>s, with <strong>iterative</strong> DFS (explicit stack) and BFS (queue), and a destructor that frees every node;</li>
+  </ul>
+  <p>— both built from a real file format with named vertices and multiple graphs per file. Part&nbsp;4 races your two Dijkstras — matrix scan vs your ICA&nbsp;09 heap version — on <strong>dense vs sparse</strong> generated graphs. One of them loses on each family; the asymptotics say which, and your measurements will agree.</p>
+
+  <h2>The file format</h2>
+  <p>First line: the vertex count <em>n</em>. Then <em>n</em> name lines (names contain spaces — <code>getline</code>), then one <code>from to cost</code> triple per line, terminated by a line starting with <code>0</code>. A file may hold <strong>several graphs back-to-back</strong> — <code>buildGraph</code> must consume exactly one and leave the stream ready for the next. Vertices are numbered <strong>1..n</strong> (slot 0 unused). See <code>simple_graph.txt</code> (two graphs) and <code>complex_graph.txt</code> (10 vertices).</p>
+
+  <h2>Part 1 — <code>GraphM</code> (matrix + all-pairs Dijkstra)</h2>
+  <p>Internals (declared in the given <code>graphm.h</code>): <code>vector&lt;string&gt; vertices</code>, <code>vector&lt;vector&lt;int&gt;&gt; adjM</code> (cell = weight, <code>INF</code> = no edge; a repeated edge in the file simply <strong>overwrites</strong> the cell), and <code>vector&lt;vector&lt;TableType&gt;&gt; pathM</code> where <code>TableType { visited, dist, prev_node }</code> — one row of tables per source, because you compute shortest paths <strong>from every vertex</strong>.</p>
+  <p>Required: constructor · <code>buildGraph</code> · <code>insertEdge</code>/<code>removeEdge</code> (validate range, self-loops, negative cost → −1) · <code>findShortestPath()</code> — for each source, repeat V times: <em>linear-scan</em> the nearest unsettled vertex, settle it, relax its out-edges, recording <code>prev_node</code> <strong>only when the distance improves</strong> · <code>getSize</code>/<code>getDist</code>/<code>getPath</code> (your class is a component, not just a printer) · <code>displayAllPaths</code>/<code>displayPath</code> — formats pinned by <code>expected-output.txt</code>.</p>
+  <p>The subtle deliverable is <strong>path reconstruction</strong>: the table stores only each vertex's <em>predecessor</em>; <code>getPath</code> follows <code>prev_node</code> backward and prints forward (recursion makes this pleasant).</p>
+
+  <h2>Part 2 — <code>GraphL</code> (list + iterative traversals)</h2>
+  <p>Raw structures, exactly as declared: each <code>GraphNode</code> heads a singly linked list of heap-allocated <code>EdgeNode</code>s. <strong>Every new edge is inserted at the head</strong> — an O(1) insert whose visible consequence is that each list holds its edges in <em>reverse input order</em>. That is not a bug: it makes every DFS/BFS order deterministic, and <code>expected-output.txt</code> is computed under this rule.</p>
+  <p>Required: constructor/destructor (<strong>every <code>EdgeNode</code> freed</strong> — and <code>buildGraph</code> on an already-built object frees the old graph first) · <code>buildGraph</code> (weights read and <em>ignored</em>) · <code>getSize</code> · <code>displayGraph</code> · <code>edgeList(id)</code> · <code>DFSorder(start=1)</code> — <strong>iterative, explicit stack</strong>; recursion is not accepted · <code>BFSorder(start=1)</code> — queue, marking visited <strong>on enqueue</strong>.</p>
+  <p><em>Copying:</em> the class declares <code>GraphL(const GraphL&amp;) = delete;</code> — with raw pointers, the compiler's copy would double-free. PA1/PA2 answered the Rule of Three by <em>implementing</em> deep copies; <strong>deleting</strong> the operations is the other legitimate answer. Keep the <code>= delete</code> and say why in a comment, or implement a real deep copy — your choice, documented.</p>
+
+  <h2>Part 3 — your own testing (<code>driver.cpp</code>)</h2>
+  <p>The given <code>sample_driver.cpp</code> is the floor: it never feeds a malformed file, never inserts an invalid edge, never starts a traversal anywhere but vertex 1, and never rebuilds an existing object. Your <code>driver.cpp</code> does all of that, on both provided files.</p>
+
+  <div class="def"><span class="tag">Part 4 — the representation race</span>
+    Generate the fixed-seed families with the given <code>gen_graphs.cpp</code>: <code>dense_V.txt</code> (E ≈ V²/2) and <code>sparse_V.txt</code> (E ≈ 4V), V = 200…1600. Time <strong>all-pairs</strong> shortest paths two ways: <code>GraphM::findShortestPath()</code> (O(V³) total) vs your <strong>ICA&nbsp;09 heap Dijkstra looped over every source</strong>. Doubling table per family, then the explanation: on which family does the "dumb" linear scan win or tie, and why does the heap pay exactly there? <em>This is the rare experiment where the asymptotically worse-looking code wins a fair race.</em>
+  </div>
+
+  <h2>Verify as you go</h2>
+  <pre>g++ -std=c++17 -g graphm.cpp graphl.cpp sample_driver.cpp -o pa3
+./pa3 &gt; myoutput.txt &amp;&amp; diff myoutput.txt expected-output.txt   # no output = exact match
+valgrind --leak-check=full ./pa3                                 # on the CSS lab</pre>
+
+  <div class="aside"><span class="tag">Memory is graded</span>
+    <code>GraphL</code> owns real heap memory — the destructor and the rebuild path are where leaks hide. Grading requires
+    <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
+    See the <a href="../../handouts/valgrind.html"><strong>Valgrind</strong></a> and
+    <a href="../../handouts/computing-environment.html"><strong>Computing Environment</strong></a> handouts.
+  </div>
+
+  <h2>What to submit</h2>
+  <ol>
+    <li><strong>One zip</strong>: <code>graphm.h/.cpp</code>, <code>graphl.h/.cpp</code> (graded against <strong>our</strong> driver), and your <code>driver.cpp</code>.</li>
+    <li><strong>Report, submitted separately</strong> (PDF, ≤ 3 pages): work summary · manual trace of one provided graph (shortest-path table + DFS/BFS orders) vs program output · the <strong>Part-4 race</strong> (tables + the crossover explanation) · AI-use disclosure per the syllabus · the task log.</li>
+  </ol>
+  <p><em>Grading policy:</em> we first compile <strong>only your four class files against our own <code>main()</code></strong>. Failing that, correctness falls back to your drivers for partial credit. Doesn't compile at all ⇒ 0 for correctness.</p>
+
+  <h2>Grading (30 pts)</h2>
+  <table>
+    <tr><th>Criterion</th><th>Pts</th></tr>
+    <tr><td>Correctness (GraphM 9: build/validation, all-pairs distances, walked paths, recompute · GraphL 6: lists, DFS, BFS, rebuild)</td><td>15</td></tr>
+    <tr><td><strong>Memory</strong> — Valgrind: 0 leaks and 0 errors (all-or-nothing)</td><td>5</td></tr>
+    <tr><td>Your testing (<code>driver.cpp</code>: every method, bad files, invalid edges, all starts, both files)</td><td>3</td></tr>
+    <tr><td>Report (manual trace 2 · the dense/sparse race with a correct reading 3)</td><td>5</td></tr>
+    <tr><td>Coding standards (incl. the documented <code>= delete</code> / deep-copy decision)</td><td>2</td></tr>
+    <tr><td><em>EC:</em> <code>findMST()</code> — <strong>Prim's</strong> on the matrix: your Dijkstra with ONE line changed. Report which line.</td><td>+2</td></tr>
+  </table>
+
+  <h2>Starter files</h2>
+  <table>
+    <tr><th>File</th><th>What it is</th></tr>
+    <tr><td><code>graphm.h</code> / <code>graphl.h</code></td><td>Class specifications — public surface fixed, helpers yours</td></tr>
+    <tr><td><code>graphm.cpp</code> / <code>graphl.cpp</code></td><td>Compiling skeletons, every method a <code>TODO</code></td></tr>
+    <tr><td><code>sample_driver.cpp</code></td><td>The given driver (both classes, both graphs in the file)</td></tr>
+    <tr><td><code>simple_graph.txt</code> / <code>complex_graph.txt</code></td><td>The provided inputs (simple holds TWO graphs)</td></tr>
+    <tr><td><code>expected-output.txt</code></td><td>Exact expected output — <code>diff</code> against it</td></tr>
+    <tr><td><code>gen_graphs.cpp</code></td><td>Part-4 generator: fixed-seed dense/sparse families</td></tr>
+  </table>
+
+  <footer>
+    CSS 343 · Summer 2026 · PA3 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

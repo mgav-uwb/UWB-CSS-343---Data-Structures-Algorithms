@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: the <a href="../..…"> handout links below are RELATIVE and only
+     resolve when this page is served with the course site (local server / GitHub
+     Pages). If you paste this page's content into a Canvas page, replace those
+     hrefs with the Canvas Handouts page URLs (or drop the links, keeping the
+     bold handout names). -->
+<!-- CSS 343 · ICA 03 instructions. Self-contained, handout visual family.
+     Student-facing — contains NO solutions. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICA 03 — Tree Recursion · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>ICA 03 — Tree Recursion</h1>
+  <div class="subtitle">CSS 343 · Session 3 (Trees &amp; Binary Search Trees)</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Format:</b> in-class, individual</span>
+      <span><b>Language:</b> C++17</span>
+      <span><b>Starter:</b> <code>ica03.cpp</code></span>
+      <span><b>Submit:</b> your finished <code>ica03.cpp</code></span>
+    </div>
+  </div>
+
+  <p>Every operation on a tree is the same move: <strong>do something with the node, then recurse on its subtrees</strong>. This activity drills that pattern four ways. Start from <code>ica03.cpp</code> — it already defines the node, builds a test tree, and prints your results. You only fill in the function bodies marked <code>TODO</code>.</p>
+
+  <div class="aside"><span class="tag">Check yourself</span>
+    Hand-draw the tree that <code>buildExample()</code> builds (insert <code>50 30 70 20 40 60 80 10 45</code> into an empty BST), then compare your program's numbers against your drawing.
+  </div>
+
+  <h2>Tasks</h2>
+  <p>Implement each function using recursion. Do <strong>not</strong> change <code>buildExample()</code>, <code>main()</code>, or the provided helpers.</p>
+  <ol>
+    <li><code>int height(Node* t)</code> — the <strong>height</strong> of the tree. An empty tree has height <code>-1</code>; a single node has height <code>0</code>.</li>
+    <li><code>int countLeaves(Node* t)</code> — how many <strong>leaves</strong> (nodes with no children) the tree has.</li>
+    <li><code>int countOneChild(Node* t)</code> — how many nodes have <strong>exactly one</strong> child.</li>
+    <li><code>bool contains(Node* t, int key)</code> — whether <code>key</code> is in the tree. Use the <strong>BST ordering</strong> so you follow only <strong>one</strong> root-to-leaf path (don't scan the whole tree).</li>
+  </ol>
+
+  <h2>Stretch (optional)</h2>
+  <ul>
+    <li><code>bool isValidBST(Node* t)</code> — is the tree a valid BST? For <strong>every</strong> node, its key must be greater than <strong>every</strong> key in its left subtree and less than <strong>every</strong> key in its right subtree.</li>
+  </ul>
+
+  <h2>Extra credit — expression trees</h2>
+  <p>The starter also defines an <strong>expression tree</strong>: each leaf holds an operand (<code>val</code>), each internal node holds a binary operator (<code>op</code> ∈ <code>+ − * /</code>). Implement:</p>
+  <ul>
+    <li><code>int evalExprTree(ExprNode* t)</code> — evaluate the expression. A leaf is its <code>val</code>; an internal node applies its <code>op</code> to the values of its two subtrees.</li>
+  </ul>
+  <p><code>main</code> runs your one function on <strong>several trees of increasing complexity</strong> — from <code>(2 + 3) * 4</code> up to <code>5 * ((3 * 4) + (6 / 2) - (8 + 2))</code>. One correct recursion handles them all; hand-check the small ones.</p>
+
+  <h2>Build &amp; run</h2>
+  <pre>g++ -std=c++17 ica03.cpp -o ica03 &amp;&amp; ./ica03</pre>
+  <p>Work on the CSS Linux lab (see the <a href="../../../handouts/computing-environment.html">Computing Environment</a> handout). Your code uses <code>new</code> to build the tree — memory leaks are <strong>not</strong> checked on this activity, but ICA 04 will be the first leak-checked one, so it's worth skimming the <a href="../../../handouts/valgrind.html">Valgrind</a> handout now.</p>
+
+  <h2>Submit</h2>
+  <p>Your finished <code>ica03.cpp</code> (with all four <code>TODO</code>s implemented; stretch and extra credit optional).</p>
+
+  <footer>
+    CSS 343 · Summer 2026 · ICA 03 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>

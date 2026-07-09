@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS 343 — deck bridge test</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="../core/lib.css">
+<style>
+  .reveal h3 { color: #7c5cff; }
+  .reveal .algo-viz { margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+  <section>
+    <h2>Deck-integration bridge</h2>
+    <p>Lecture slides = the unified lib shown with <b>simplified chrome</b>.</p>
+  </section>
+
+  <section>
+    <h3>BST — insert 35 (mini view, no scrubber, no cost panel)</h3>
+    <div class="algo-viz" data-algo="bst-insert" data-example="50,30,70,20,40,60,80,10,25,65">
+      <pre class="viz-fallback">[ interactive demo ]</pre>
+    </div>
+  </section>
+
+  <section>
+    <h3>AVL — insert 16, one rotation (this slide opts into a focused cost readout)</h3>
+    <div class="algo-viz" data-algo="avl-insert" data-example="8,4,12,2,6,10,14">
+      <pre class="viz-fallback">[ interactive demo ]</pre>
+    </div>
+  </section>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script type="module">
+  import { initDeckDemos, AVL, BST, TreeRenderer } from "../deck.js";
+
+  Reveal.initialize({ hash: true, slideNumber: "c/t", transition: "slide" });
+
+  initDeckDemos({
+    // simplest possible lecture binding — build from data-example, run one op
+    "bst-insert": {
+      make: () => new BST(),
+      renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+      run: (s) => s.insert(35),
+      width: 820, height: 300,
+    },
+    // a slide that DOES want a focused counter — opt back into the cost panel
+    "avl-insert": {
+      make: () => new AVL(),
+      renderer: (c) => new TreeRenderer(c, { labels: "bf" }),
+      run: (s) => s.insert(16),
+      costs: ["compare", "rotation"],
+      chrome: { showCosts: true },
+      width: 820, height: 300,
+    },
+  });
+</script>
+</body>
+</html>

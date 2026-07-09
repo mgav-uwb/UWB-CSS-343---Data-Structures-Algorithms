@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!-- CANVAS NOTE: the handout links below are RELATIVE and only resolve when this
+     page is served with the course site (local server / GitHub Pages). If you
+     paste this page's content into a Canvas page, replace those hrefs with the
+     Canvas Handouts page URLs (or drop the links, keeping the bold names). -->
+<!-- CSS 343 · ICA 04 instructions. Self-contained, handout visual family.
+     Student-facing — contains NO solutions. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICA 04 — AVL Trees · CSS 343</title>
+<style>
+  :root{ --ink:#1a1c22; --dim:#5c6270; --line:#d7dbe3; --bg:#ffffff;
+         --accent:#0a7d4d; --accentbg:#eaf6ef; --box:#f6f8fb; --warn:#9a5b00; --warnbg:#fff5e6; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#eef0f4;color:var(--ink);
+       font:16px/1.62 "Charter","Iowan Old Style","Palatino",Georgia,serif}
+  .page{max-width:820px;margin:28px auto;background:var(--bg);padding:46px clamp(20px,6vw,60px) 60px;
+        box-shadow:0 1px 4px #0002;border-radius:4px}
+  h1{font-size:25px;line-height:1.25;margin:0 0 4px}
+  .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
+  h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
+  p{margin:10px 0} a{color:var(--accent)}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
+  pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
+      padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+  .def,.aside{border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:16px 0;background:var(--box)}
+  .def{border-left:4px solid var(--accent);background:var(--accentbg)}
+  .aside{border-left:4px solid var(--warn);background:var(--warnbg)}
+  .tag{font-variant:small-caps;letter-spacing:.4px;font-weight:700;font-family:system-ui,sans-serif;font-size:13px;margin-right:8px}
+  .def .tag{color:var(--accent)} .aside .tag{color:var(--warn)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-family:system-ui,sans-serif;font-size:15px}
+  .meta b{color:var(--accent)}
+  ol,ul{margin:8px 0;padding-left:24px} li{margin:7px 0}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-family:system-ui,sans-serif;font-size:14px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left} th{background:#f0f2f6}
+  td:nth-child(2){text-align:center;font-weight:700;white-space:nowrap}
+  footer{margin-top:38px;border-top:1px solid var(--line);padding-top:14px;color:var(--dim);font-size:13px;font-family:system-ui,sans-serif}
+  @media print{ body{background:#fff} .page{box-shadow:none;margin:0;max-width:none} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>ICA 04 — AVL Trees</h1>
+  <div class="subtitle">CSS 343 · Session 4 (Balanced Trees I: AVL)</div>
+
+  <div class="def"><span class="tag">At a glance</span>
+    <div class="meta">
+      <span><b>Format:</b> in-class, individual</span>
+      <span><b>Language:</b> C++17</span>
+      <span><b>Starter:</b> <code>ica04.cpp</code></span>
+      <span><b>Submit:</b> your finished <code>ica04.cpp</code></span>
+      <span><b>⚠ First leak-graded ICA</b></span>
+    </div>
+  </div>
+
+  <p>You build the AVL machinery from the lecture: balance factors, the two rotations, the four-case <code>rebalance</code>, and <code>insert</code> — then feed it the input that destroys a plain BST (a sorted stream) and watch the height stay logarithmic. Start from <code>ica04.cpp</code>: the node (with its <code>height</code> field), the helpers, and a <strong>unit-test battery</strong> in <code>main</code> are given. You only fill in the <code>TODO</code> bodies.</p>
+
+  <h2>Tasks</h2>
+  <ol>
+    <li><code>bf</code> / <code>fix</code> — balance factor; recompute a node's stored height.</li>
+    <li><code>rotateRight</code> / <code>rotateLeft</code> — O(1) pointer surgery; <strong>fix heights, child first</strong>.</li>
+    <li><code>rebalance</code> — the four-case dispatch (LL / RR / LR / RL — the double cases convert then rotate).</li>
+    <li><code>insert</code> — plain BST insert (ignore duplicates), then <code>rebalance</code> on the way back up.</li>
+    <li><code>isAVL</code> — |bf| ≤ 1 at <strong>every</strong> node · <code>contains</code> — BST search.</li>
+  </ol>
+  <p><em>Stretch (+1 extra credit):</em> <code>erase</code> with rebalancing on the way up (successor promotion for the two-child case — and don't leak the removed node).</p>
+
+  <h2>The tests run themselves</h2>
+  <p>Build and run — <code>main</code> reports each check as you go, so fill the <code>TODO</code>s top-to-bottom and re-run:</p>
+  <pre>g++ -std=c++17 -g ica04.cpp -o ica04 && ./ica04</pre>
+  <ul>
+    <li><strong>T1</strong> basics — empty height, single node, contains hit/miss</li>
+    <li><strong>T2–T5</strong> one test per rotation case (RR · LL · LR · RL) — 3 keys each, middle key must end at the root</li>
+    <li><strong>T6</strong> duplicates are ignored</li>
+    <li><strong>T7</strong> a shuffled batch — sorted in-order, balanced, height bound</li>
+    <li><strong>T8</strong> <em>the application:</em> a ticket registry hands out <strong>sorted ids 1..1023</strong> — the plain-BST worst case; your AVL must stay ≤ 1.44·log₂N ≈ 14 (a correct AVL lands at 9)</li>
+    <li><strong>T9</strong> the mirror worst case, reverse-sorted</li>
+  </ul>
+
+  <div class="aside"><span class="tag">Memory is graded — first time</span>
+    Every <code>new</code> must be freed. When all tests pass, run
+    <code>valgrind --leak-check=full ./ica04</code> on the CSS Linux lab —
+    grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
+    See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> and
+    <a href="../../../handouts/computing-environment.html"><strong>Computing Environment</strong></a> handouts.
+  </div>
+
+  <h2>Grading (10 pts, +1 EC)</h2>
+  <table>
+    <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
+    <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
+    <tr><td>AVL mechanics (bf/fix, rotations, 4 cases, insert)</td><td>5</td><td>checked against our own test harness</td></tr>
+    <tr><td>Your test battery passes (T1–T9)</td><td>2</td><td>all 26 ⇒ 2 · most ⇒ 1</td></tr>
+    <tr><td><code>isAVL</code> + <code>contains</code> correct</td><td>1</td><td><code>isAVL</code> must reject an unbalanced tree, not just accept balanced ones</td></tr>
+    <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+    <tr><td><em>EC:</em> <code>erase</code> with rebalancing</td><td>+1</td><td>stays AVL after deletions; no leaks</td></tr>
+  </table>
+
+  <h2>Submit</h2>
+  <p>Your finished <code>ica04.cpp</code> in the Canvas ICA 04 quiz (single file upload; you may resubmit).</p>
+
+  <footer>
+    CSS 343 · Summer 2026 · ICA 04 · prepared by Dr. Marcel Gavriliu.
+  </footer>
+
+</div>
+</body>
+</html>
