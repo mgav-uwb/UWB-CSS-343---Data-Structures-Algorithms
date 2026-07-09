@@ -60,7 +60,7 @@
       "heap-ops": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "90,80,70,30,60,50,40,20",
+        initial: "1..24:1:ZIG",
         renderer: dualRenderer(),
         buildStep: (s, k) => s.insert(k),
         ops: [
@@ -68,27 +68,27 @@
           { name: "Delete Max", run: (s) => s.delMax() },
         ],
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 860, height: [110, 260],
+        width: 1000, height: [110, 780],
       },
       "heap-build": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "30,60,50,90,85,40,70,45,20,95,10,15",
+        initial: "1..36:1:RAND",
         renderer: dualRenderer(),
         buildAll: (s, keys) => s.heapify(keys),
         stateMsg: () => "raw array — press Build to heapify in Θ(n)",
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 860, height: [110, 280],
+        width: 1000, height: [110, 840],
       },
       "heap-sort": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "30,60,50,90,85,40,70,45,20,95,10,15",
+        initial: "1..36:1:RAND",
         renderer: dualRenderer(),
         buildAll: (s, keys) => s.heapsort(keys),
         stateMsg: () => "raw array — press Build to heapsort in place",
         costs: ["compare", "swap"], chrome: { showCosts: true },
-        width: 860, height: [110, 280],
+        width: 1000, height: [110, 840],
       },
     });
   </script>
