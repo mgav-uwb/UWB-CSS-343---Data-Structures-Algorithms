@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>heap-tree.js renderer smoke test</title>
+<style>
+  body { font: 14px system-ui, sans-serif; background: #f6f7fb; padding: 20px; }
+  canvas { background: #fff; border: 1px solid #ddd; display: block; margin-bottom: 20px; }
+  h3 { margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<h3 id="s1">7-node heap, no highlights</h3>
+<canvas id="c1" width="600" height="220"></canvas>
+<h3 id="s2">12-node heap, all highlight kinds + a pointer</h3>
+<canvas id="c2" width="820" height="280"></canvas>
+
+<script type="module">
+  import { HeapTreeRenderer } from "./heap-tree.js";
+
+  const small = [95, 85, 90, 70, 60, 45, 50];
+  const r1 = new HeapTreeRenderer(document.getElementById("c1"));
+  r1.draw(small, {});
+
+  const big = [30, 60, 50, 90, 85, 40, 70, 45, 20, 95, 10, 15];
+  const r2 = new HeapTreeRenderer(document.getElementById("c2"));
+  r2.draw(big, {
+    active: [0], compare: [1, 2], done: [11], danger: [4],
+    pointers: { k: 4 },
+  });
+
+  window.__renderDone = true;
+</script>
+</body>
+</html>

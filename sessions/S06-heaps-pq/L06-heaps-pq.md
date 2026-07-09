@@ -309,17 +309,17 @@ Into the heap `a = [ 90 80 70 30 60 50 ]`, **insert 85**. Where does it land?
 
 ## 🎬 Demo — insert (swim)
 
-<div class="algo-viz" data-algo="heap-swim" data-example="90,80,70,30,60,50,40,20">
+<div class="algo-viz" data-algo="heap-ops">
 <pre class="viz-fallback">
   a: [ 90 80 70 30 60 50 40 20 ]   (a max-heap)
-  insert 95 → append at the end → swim up:
-     95 vs parent → swap while larger → 95 reaches the root.
-  the swapped cells light up; array indices shown below.
+  press Insert and type a key → append at the end → swim up:
+     new key vs parent → swap while larger → it stops when a parent dominates.
+  the array view (top) and the tree view (bottom) update together.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>The heap lives in the **array** (indices below each cell). **insert** appends, then **swims**: each **compare** is a parent–child check, each **swap** lifts the key one level — at most **log n** of them.</small>
+<small>The heap lives in the **array** (top) — the tree (bottom) is the exact same data, same indices, no pointers. **Insert** appends, then **swims**: each **compare** is a parent–child check, each **swap** lifts the key one level — at most **log n** of them. Edit the build sequence and press Build to try your own starting heap.</small>
 
 ---
 
@@ -395,17 +395,18 @@ Two mirror-image primitives — **every** heap operation is built from these two
 
 ## 🎬 Demo — delMax (sink)
 
-<div class="algo-viz" data-algo="heap-sink" data-example="95,90,70,80,60,50,40,30,20">
+<div class="algo-viz" data-algo="heap-ops">
 <pre class="viz-fallback">
-  delMax: a[1] (95) is the answer.
-   1) swap a[1] with the last element → shrink
+  press Delete Max: a[0] is the answer.
+   1) swap a[0] with the last element → shrink
    2) sink the new root: swap with the LARGER child
       while smaller → it settles at its level.
+  the array view (top) and the tree view (bottom) update together.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**delMax** returns the root, moves the last key up, then **sinks** it — each step compares **both children** and swaps with the **larger**. One root-to-leaf path, **log n** work.</small>
+<small>**Delete Max** returns the root, moves the last key up, then **sinks** it — each step compares **both children** and swaps with the **larger**. One root-to-leaf path, **log n** work. Same sandbox as the insert slide — press Delete Max this time.</small>
 
 --
 
@@ -519,32 +520,59 @@ Same skeleton, a heap for the bookkeeping.
 
 --
 
-## The swap-sum, explicitly (optional)
+## The swap-sum, explicitly
 
-Let `S = Σ_{i=0}^{h} 2^i (h − i)` — nodes at each level × swaps:
+Let `S = Σ_{i=0}^{h} 2^i (h − i)` — nodes at level `i` (there are `2^i` of them) times their sink cost (`h−i`, since the root is level 0 and sits at height `h`):
 
 ```text
-   2S − S = S            (subtract shifted copies)
-   S  = 2^{h+1} − h − 2  ≈  2n     →   Θ(n)
+   S  =         h·2^0 + (h−1)·2^1 + (h−2)·2^2 + … + 1·2^{h−1} + 0·2^h
+   2S =         h·2^1 + (h−1)·2^2 + (h−2)·2^3 + … + 1·2^h
 ```
 
-Same result, counted level by level from the top.
+--
+
+## Subtract: 2S − S
+
+Shift `2S` one column right and subtract; every middle term cancels, leaving only a geometric run of powers of two:
+
+```text
+   2S − S = 2^1 + 2^2 + 2^3 + … + 2^h  −  h
+          = (2^{h+1} − 2)  −  h
+```
+
+```text
+   S = 2^{h+1} − h − 2
+```
+
+--
+
+## Substitute n for h — the punchline
+
+A complete tree of height `h` has between `2^h` and `2^{h+1}-1` nodes — using the same `n ≈ 2^h` shorthand as two slides back, `2^{h+1} = 2n` and `h = log₂ n`:
+
+```text
+   S = 2^{h+1} − h − 2
+     = 2n − log₂ n − 2
+     ≈ 2n − log₂ n          →   Θ(n)
+```
+
+Building a heap costs at most **two comparisons per node**, minus a `log₂ n` correction — linear, not `n log n`.
 
 --
 
 ## 🎬 Demo — build a heap (heapify)
 
-<div class="algo-viz" data-algo="heap-build" data-example="30,60,50,90,85,40,70,45,20,95,10,15">
+<div class="algo-viz" data-algo="heap-build">
 <pre class="viz-fallback">
    start: arbitrary array (a complete tree, not yet a heap)
-   sink node n/2, n/2−1, …, 1  (bottom-up)
+   press Build: sink node n/2, n/2−1, …, 1  (bottom-up)
    each sink swaps down with the larger child
    → a valid max-heap, in Θ(n) total.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Bottom-up **heapify**: sink each internal node from `n/2` to `1`. Watch the swaps cluster **near the bottom** (cheap) — total work is **Θ(n)**, not n·log n.</small>
+<small>Bottom-up **heapify**: sink each internal node from `n/2` to `1`. Watch the swaps cluster **near the bottom** (cheap) — total work is **Θ(n)**, not n·log n. Edit the array and press Build to try your own input.</small>
 
 ---
 
@@ -621,17 +649,17 @@ The only `Θ(n log n)` sort that is **both** guaranteed-`n log n` **and** in-pla
 
 ## 🎬 Demo — heapsort
 
-<div class="algo-viz" data-algo="heap-sort" data-example="30,60,50,90,85,40,70,45,20,95,10,15">
+<div class="algo-viz" data-algo="heap-sort">
 <pre class="viz-fallback">
    phase 1: heapify (bottom-up sinks) → a max-heap
-   phase 2: repeatedly swap a[1] to the end, shrink,
+   phase 2: repeatedly swap a[0] to the end, shrink,
             sink → the sorted tail grows from the right.
    final: the whole array is sorted ascending, in place.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Heapify**, then **sort down**: each round parks the max at the right and re-sinks. The **green** tail is the finished, sorted part; everything is in the **one** array.</small>
+<small>**Heapify**, then **sort down**: each round parks the max at the right and re-sinks. The **green** tail is the finished, sorted part; everything is in the **one** array. Edit the array and press Build to sort your own input.</small>
 
 ---
 
