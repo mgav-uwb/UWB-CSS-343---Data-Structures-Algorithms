@@ -15,10 +15,15 @@
 
   Covered in Spring-26 (Kim, Tree deck): Huffman coding (frequencies, tree build,
   codes) lived in the trees module. The GREEDY-method generalization is new
-  (Erickson Ch 4). The Huffman demo reuses the L06 heap + the tree renderer.
+  (Erickson Ch 4). The Huffman demos are INTERACTIVE (editable frequencies map
+  to symbols a, b, c, …; the CLRS sample is "5, 9, 12, 13, 16, 45" → total 224;
+  equal frequencies show the no-skew-no-win balanced tree; the codes demo has
+  an Encode op for arbitrary text over a..f). Optimality is PROVED in two
+  lemma slides (exchange Δcost algebra + the cost(T) = cost(T′) + fx + fy
+  substructure identity), not postulated.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 22 0:26 P2 when-optimal
-  20 0:46 BREAK 10 0:56 P3 Huffman build 30 1:26 P4 prefix codes 24 1:50 P5 wrap 14
+  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 20 0:24 P2 when-optimal
+  20 0:44 BREAK 10 0:54 P3 Huffman build 30 1:24 P4 prefix codes 26 1:50 P5 wrap 14
   2:04 ICA 2:30 end.
 -->
 
@@ -64,17 +69,6 @@ No backtracking, no lookahead. Fast and simple — **when** it's correct.
 
 --
 
-## Tonight's plan
-
-1. **the greedy method** — what it is, when it works
-2. **the exchange argument** — how to prove it correct
-3. **when it fails** — counterexamples & 0/1 knapsack
-4. **Huffman coding** — the optimal-greedy poster child
-
-The recurring theme: **new algorithms from familiar structures** (Huffman reuses the L06 heap).
-
---
-
 ## The greedy template
 
 ```text
@@ -100,19 +94,6 @@ Every greedy algorithm is this loop — the art is the **choice rule** and its *
 | **Kruskal** | take the **cheapest** edge that avoids a cycle |
 
 Tonight: the general pattern, and **Huffman**.
-
---
-
-## Greedy is a strategy
-
-"Greedy" names an **approach**, not one algorithm:
-
-```text
-   coin change · activity selection · Dijkstra
-   Prim · Kruskal · Huffman · …
-```
-
-Each applies the same idea — **locally-best + never reconsider** — to a different problem. The skill is spotting when the strategy is **valid**.
 
 --
 
@@ -155,29 +136,16 @@ Greedy sweep, O(n log n) — provably minimal.
 
 --
 
-## …but "obvious" isn't a proof
+## The SAME rule FAILS: coins {1, 3, 4}
 
-Greedy *feels* right here — yet the very same "take the biggest" rule fails on other coin sets (next slide).
-
-```text
-   the denominations {1,5,10,25} have special structure;
-   greedy optimality is a property of the COIN SET, not the rule
-```
-
-Never trust "obviously greedy" — the rule and the input must match.
-
---
-
-## A greedy algorithm that FAILS: coins
-
-With denominations **{1, 3, 4}**, make **6¢**:
+Same "take the biggest" rule, denominations **{1, 3, 4}**, make **6¢**:
 
 ```text
    greedy: 4 + 1 + 1        = 3 coins
    optimal: 3 + 3           = 2 coins   ✗ greedy loses!
 ```
 
-Locally best (grab the 4) ≠ globally best. **Greedy needs justification.**
+Greedy optimality is a property of the **problem**, not the rule. **Every greedy needs a proof — or a counterexample kills it.**
 
 --
 
@@ -251,27 +219,14 @@ The **fractional** knapsack (take fractions) *is* greedy-solvable.
 
 --
 
-## How to tell if greedy works
+## Prove it — or break it
 
-Ask:
+The checklist for any proposed greedy rule:
 
-- can I **prove** the greedy choice is safe (exchange argument)?
-- does making it leave a **smaller same problem** (optimal substructure)?
-- can I find a **counterexample**?
-
-If you can't prove it and can't break it, **test hard** — or use DP.
-
---
-
-## Recognizing greedy problems
-
-Signs a problem may be greedy-solvable:
-
-- a clear "**best next choice**" (smallest, earliest, cheapest…)
-- a natural **ordering** to process items in
-- picking the best now doesn't **block** a better whole
-
-If it *can* block a better whole → likely **DP**.
+- **break it** — hunt a small counterexample ({1,3,4} took one line)
+- **prove it** — exchange argument + substructure
+- good sign: a clear sort key, no **blocking**
+- can block a better whole → likely **DP**
 
 --
 
@@ -440,7 +395,7 @@ Every internal node has **exactly two** children — a **full** binary tree.
 </pre>
 </div>
 
-<small>Merge the **two smallest** roots each step (freq = sum) until one tree remains. Rare symbols (a, b) sink **deep** → long codes; frequent `f` stays **shallow** → the 1-bit code `0`. Full sandbox: the **Explore** page.</small>
+<small>**Build** merges the **two smallest** roots each step — rare a, b sink deep; `f` gets 1 bit. Editable: try `10, 10, 10, 10` → a balanced tree, **no win**.</small>
 
 --
 
@@ -539,7 +494,7 @@ Replace each symbol with its code; **concatenate** the bits:
 ```text
    text  "face"
    f→0  a→1100  c→100  e→111
-   bits  0 1100 100 111  =  0110010 0111   (11 bits)
+   bits  0·1100·100·111  →  01100100111   (11 bits)
 ```
 
 No separators needed — the prefix-free property makes the boundaries unambiguous.
@@ -551,9 +506,10 @@ No separators needed — the prefix-free property makes the boundaries unambiguo
 **Walk the trie** from the root, one bit at a time; emit a symbol at each **leaf**, then restart:
 
 ```text
-   bits 0110010...       0 → leaf f ✓        emit f
-                         1,1,0,0 → leaf a ✓  emit a
-                         1,0,0 → leaf c ✓    emit c …
+   bits 01100100111      0 → leaf f ✓          emit f
+                         1,1,0,0 → leaf a ✓    emit a
+                         1,0,0 → leaf c ✓      emit c
+                         1,1,1 → leaf e ✓      emit e
 ```
 
 The prefix-free property guarantees you always know when a symbol ends.
@@ -565,7 +521,7 @@ The prefix-free property guarantees you always know when a symbol ends.
 A prefix-free code needs **no delimiter** between symbols:
 
 ```text
-   0 1100 100 111   stored as   0110010 0111
+   0·1100·100·111   stored as   01100100111
    the decoder finds the boundaries FROM THE TREE
 ```
 
@@ -586,7 +542,19 @@ The tree overhead is tiny (fixed alphabet) and amortized over the whole file.
 
 --
 
-## 🎬 Encode / decode (walk the trie)
+## Your turn — decode
+
+Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
+
+```text
+   decode the bits:  1010
+```
+
+<small>Walk from the root: `1,0,1` hits leaf **d**; restart; `0` hits leaf **f** — the bits decode to **"df"**. Four bits, two symbols, no separators.</small>
+
+--
+
+## 🎬 Encode / decode
 
 <div class="algo-viz" data-algo="huffman-codes">
 <pre class="viz-fallback">
@@ -597,7 +565,7 @@ The tree overhead is tiny (fixed alphabet) and amortized over the whole file.
 </pre>
 </div>
 
-<small>Encode = look up each symbol's path; decode = walk the bits from the root, emit at each **leaf**. Prefix-free ⇒ decoding is never ambiguous.</small>
+<small>**Build**, then type text over `a…f` and **Encode** — the walks append bits; the last step **decodes** them back. Try `face` (11 bits).</small>
 
 --
 
@@ -625,12 +593,30 @@ Real compressors **combine** them (e.g. RLE/LZ **then** Huffman).
 
 --
 
-## Why Huffman is optimal
+## Proof 1 — the two rarest go deepest
 
-Among **all** prefix-free codes, Huffman's minimizes Σ freq·len.
+**Exchange:** in any optimal tree `T`, let `a, b` = sibling leaves at **max depth**. Swap the rarest symbol `x` with `a`:
 
-- proved by an **exchange argument**: the two rarest symbols can be made **deepest siblings** without increasing cost
-- then **optimal substructure**: merging them leaves a smaller optimal problem
+```text
+   Δcost = (fx·da + fa·dx) − (fx·dx + fa·da)
+         = (fa − fx) · (dx − da)
+             ≥ 0     ·   ≤ 0        →  Δcost ≤ 0
+```
+
+Same for `y`↔`b` → **some optimal tree has x, y as deepest siblings** — exactly Huffman's first merge. ∎
+
+--
+
+## Proof 2 — merging shrinks the problem
+
+Merge `x, y` into one symbol `z` with `fz = fx + fy`. For any tree `T` where x, y are siblings under `z`'s spot:
+
+```text
+   cost(T)  =  cost(T′)  +  fx + fy
+   (every x- or y-bit is a z-bit PLUS one extra level)
+```
+
+The `fx + fy` term is a **constant** → optimal `T′` ⟺ optimal `T`. Induction on n−1 symbols finishes it. ∎
 
 --
 
@@ -648,10 +634,10 @@ Huffman gets **within 1 bit** of H per symbol — optimal among **integer-length
 
 ## Huffman's limits & successors
 
-- needs the **frequencies up front** (two passes, or send the table)
-- integer bits/symbol → up to ~1 bit of slack vs entropy
-- **adaptive Huffman** updates the tree as it reads (one pass)
-- modern codecs pair it with **LZ77** (DEFLATE) or use **arithmetic / ANS** coding
+- needs **frequencies up front** (two passes / send the table)
+- integer bits/symbol → up to ~1 bit slack vs entropy
+- **adaptive Huffman** builds the tree as it reads
+- modern: **LZ77 + Huffman** (DEFLATE) · arithmetic / ANS
 
 --
 
@@ -686,11 +672,11 @@ A 1952 student's term paper, still everywhere.
 - greedy: **merge the two least-frequent** (a min-heap) until one tree
 - **optimal** prefix code — minimizes Σ freq·len
 
-> Frequent symbols get short codes; Huffman's greedy merge makes that assignment provably optimal.
+> Frequent → short, rare → deep; the greedy merge is provably optimal.
 
 --
 
-## The greedy algorithms we've met
+## The greedy quartet
 
 | algorithm | greedy choice | proof |
 |---|---|---|
@@ -699,7 +685,7 @@ A 1952 student's term paper, still everywhere.
 | **Kruskal** | cheapest safe edge | cut property |
 | **Huffman** | merge two rarest | exchange |
 
-One pattern, four classic algorithms — all proved the same way.
+One pattern, four classics — all built from structures you already had.
 
 --
 
@@ -710,31 +696,7 @@ One pattern, four classic algorithms — all proved the same way.
    DP:      TRY all choices, keep the best subproblem solutions
 ```
 
-Greedy is DP with the **luxury of one choice**. When greedy's proof fails → **DP** (next week).
-
---
-
-## When to reach for greedy
-
-- you can **prove** the greedy choice is safe (exchange argument), **or**
-- speed matters and you've **stress-tested** against counterexamples
-- the problem has **optimal substructure**
-
-Otherwise → **dynamic programming**.
-
---
-
-## The back-half theme
-
-Sessions 9–12 share one shape:
-
-- a **greedy** choice, proved safe by an **exchange argument**
-- built on a **structure you already have** (the heap, union-find)
-
-```text
-   Dijkstra · Prim · Kruskal · Huffman
-   one idea, four classic algorithms
-```
+Greedy is DP with the **luxury of one choice** — earn it with a proof, or fall back to **DP** (next week).
 
 --
 

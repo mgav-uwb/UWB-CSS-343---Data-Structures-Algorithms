@@ -45,25 +45,32 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — stage-scoped interactive Huffman demos. The initial
+       box holds FREQUENCIES; they become symbols a, b, c, … in order:
+         huffman-build (Part 3)  editable frequencies (CLRS sample
+                                 "5, 9, 12, 13, 16, 45" = a..f); Build
+                                 animates the merges. Equal frequencies
+                                 ("10, 10, 10, 10") → a balanced tree =
+                                 no win over fixed-length.
+         huffman-codes (Part 4)  same engine + an Encode op: type any text
+                                 over a..f and watch the root-to-leaf walks
+                                 assemble the bits, then decode back. -->
   <script type="module">
     import { initDeckDemos, Huffman, TreeRenderer } from "../../lib/deck.js";
+    const CLRS = "5, 9, 12, 13, 16, 45"; // a:5 b:9 c:12 d:13 e:16 f:45 → weighted total 224
+    const base = () => ({
+      make: () => new Huffman(),
+      initial: CLRS,
+      buildAll: (s, keys) => s.build(keys),        // Build = ONE animated merge-by-merge trace
+      renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+      stateMsg: (s) => `Huffman trie — ${s.inorder()}; the numbers in the box are frequencies for a, b, c, …`,
+      chrome: { showCosts: true },
+      width: 820, height: 205,
+    });
     initDeckDemos({
-      // build() with no args uses the CLRS sample a:5 b:9 c:12 d:13 e:16 f:45 → total 224
-      // walk each symbol's root-to-leaf path for "cab", assemble the bits, decode back
-      "huffman-codes": {
-        make: () => { const h = new Huffman(); h.build(); return h; },   // tree pre-built silently
-        renderer: (c) => new TreeRenderer(c, { labels: "size" }),
-        run: (s) => s.codesWalk("cab"),
-        costs: ["compare", "write"], chrome: { showCosts: true },
-        width: 820, height: 232,
-      },
-      "huffman-build": {
-        make: () => new Huffman(),
-        renderer: (c) => new TreeRenderer(c, { labels: "size" }),
-        run: (s) => s.build(),
-        costs: ["compare", "link", "alloc"], chrome: { showCosts: true },
-        width: 820, height: 260,
-      },
+      "huffman-build": { ...base(), costs: ["compare", "link", "alloc"] },
+      "huffman-codes": { ...base(), height: 195, costs: ["compare", "write"],
+        ops: [{ name: "Encode", arg: "string", run: (s, v) => s.codesWalk(v) }] },
     });
   </script>
 </body>
