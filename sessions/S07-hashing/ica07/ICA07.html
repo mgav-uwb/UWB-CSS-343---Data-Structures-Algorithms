@@ -56,10 +56,11 @@
     </div>
   </div>
 
-  <p>You implement the probe loops from the lecture: <code>insert</code> (probe forward, stop on a duplicate, place in the first empty slot, resize at load factor ½) and <code>search</code> (probe until the key or an empty slot). <code>hashCode</code> and <code>resize</code> are given.</p>
+  <p>You implement the probe loops from the lecture: <code>resize</code> (double the table, rehash every key), <code>insert</code> (probe forward, stop on a duplicate, place in the first empty slot, resize at load factor ½), and <code>search</code> (probe until the key or an empty slot). <code>hashCode</code> and the test battery are given.</p>
 
   <h2>Tasks</h2>
   <ol>
+    <li><code>resize</code> — copy the slots aside, double <code>M</code>, re-probe every key into the new table with its <em>own</em> probe loop. Do <strong>not</strong> call <code>insert</code> from here — <code>insert</code> calls <code>resize</code>, and you'd recurse.</li>
     <li><code>insert</code> — home slot via <code>hashCode</code>; linear-probe forward with wraparound; no duplicates; bump <code>n</code>; call <code>resize</code> when <code>2·n ≥ M</code>.</li>
     <li><code>search</code> — probe forward from the home slot; <strong>true</strong> on the key, <strong>false</strong> at the first <code>EMPTY</code> (the chain ends there).</li>
   </ol>

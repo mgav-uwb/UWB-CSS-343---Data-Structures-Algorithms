@@ -45,19 +45,80 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — hashing lecture demos via the bridge. ONE engine per
+       scheme; each slide's spec exposes only the operations the lecture has
+       introduced by that point:
+         hash-chain  (Part 3)  separate chaining — Insert/Search/Delete on the
+                               ChainRenderer (chains hang below the buckets)
+         hash-probe  (Part 4)  linear probing — Insert/Search, FIXED size
+                               (resizeAt: Infinity; a full table refuses keys)
+         hash-delete (Part 4)  linear probing — adds Delete (Sedgewick's
+                               cluster re-insert), still fixed size
+         hash-resize (Part 5)  linear probing — Insert with the 0.5 threshold
+                               live: cross it and watch the double + rehash -->
   <script type="module">
-    import { initDeckDemos, LinearProbing, SeparateChaining, ArrayRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, LinearProbing, SeparateChaining, ArrayRenderer, ChainRenderer } from "../../lib/deck.js";
     const arr = (c) => new ArrayRenderer(c, { mode: "cells" });
+    const probeCosts = ["hash", "compare", "write"];
     initDeckDemos({
-      // build [23,14,9,6] into M=11 (slots 1,3,9,6); insert 25 collides at 3 (14) → probes to 4
-      // buckets [8→15] [23] [11→18] [20→27] per the slide; search 18 = hash to 4, scan 11 then 18 ✓
-      "hash-chain":  { make: () => new SeparateChaining(7), renderer: arr, run: (s) => s.search(18),
-                       costs: ["hash", "compare"], chrome: { showCosts: true }, width: 880, height: 150 },
-      "hash-probe":  { make: () => new LinearProbing(11), renderer: arr, run: (s) => s.insert(25),
-                       costs: ["hash", "compare", "write"], chrome: { showCosts: true }, width: 880, height: 150 },
-      // build [9,17,6] into M=8; insert 25 probes 1→2→3, then load factor hits 0.5 → double to 16 + rehash
-      "hash-resize": { make: () => new LinearProbing(8), renderer: arr, run: (s) => s.insert(25),
-                       costs: ["hash", "compare", "write"], chrome: { showCosts: true }, width: 880, height: 150 },
+      // buckets: [·][8,15][23][·][11,18][·][20,27] — matches the slide's picture
+      "hash-chain": {
+        title: "chaining table (M = 7)",
+        make: () => new SeparateChaining(7),
+        initial: "8,23,11,20,15,18,27",
+        renderer: (c) => new ChainRenderer(c),
+        stateMsg: (s) => `M = 7, h(k) = k mod 7 — ${s.n} keys, α = ${s.alpha()}`,
+        ops: [
+          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
+          { name: "Search", arg: "number", run: (s, v) => s.search(v) },
+          { name: "Delete", arg: "number", run: (s, v) => s.remove(v) },
+        ],
+        costs: ["hash", "compare"], chrome: { showCosts: true },
+        width: 1000, height: 240,
+      },
+      // 23→1, 14→3, 9→9, 6→6; try inserting 25: home 3 is taken → probes to 4
+      "hash-probe": {
+        title: "probing table (M = 11, fixed)",
+        make: () => new LinearProbing(11, { resizeAt: Infinity }),
+        initial: "23,14,9,6",
+        renderer: arr,
+        stateMsg: (s) => `M = ${s.M}, h(k) = k mod ${s.M} — ${s.n} keys, no lists: colliders probe forward`,
+        ops: [
+          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
+          { name: "Search", arg: "number", run: (s, v) => s.search(v) },
+        ],
+        costs: probeCosts, chrome: { showCosts: true },
+        width: 1000, height: 150,
+      },
+      // the cluster from the slides: 25,36,14 all home to 3 → occupy 3,4,5
+      "hash-delete": {
+        title: "probing table (M = 11, fixed)",
+        make: () => new LinearProbing(11, { resizeAt: Infinity }),
+        initial: "25,36,14",
+        renderer: arr,
+        stateMsg: (s) => `the cluster from the slides: 25, 36, 14 all home to slot 3 — now Delete 25`,
+        ops: [
+          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
+          { name: "Search", arg: "number", run: (s, v) => s.search(v) },
+          { name: "Delete", arg: "number", run: (s, v) => s.remove(v) },
+        ],
+        costs: probeCosts, chrome: { showCosts: true },
+        width: 1000, height: 150,
+      },
+      // 9→1, 17→2, 6→6 at M=8 (α = 0.375); one more insert crosses 0.5 → double + rehash
+      "hash-resize": {
+        title: "probing table (resizes at α = ½)",
+        make: () => new LinearProbing(8),
+        initial: "9,17,6",
+        renderer: arr,
+        stateMsg: (s) => `M = ${s.M}, ${s.n} keys — α = ${(s.n / s.M).toFixed(2)}; one more insert crosses ½`,
+        ops: [
+          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
+          { name: "Search", arg: "number", run: (s, v) => s.search(v) },
+        ],
+        costs: probeCosts, chrome: { showCosts: true },
+        width: 1000, height: 150,
+      },
     });
   </script>
 </body>
