@@ -1,11 +1,11 @@
 ---
 title: "CSS 343 — Final Study Guide"
-version: "1.0"
-status: draft
+version: "1.1"
+status: review
 created_by: "Claude"
 created_at: "2026-07-04T12:00"
 last_modified_by: "Claude"
-last_modified_at: "2026-07-05T13:00"
+last_modified_at: "2026-07-11T20:00"
 contributors:
   - "Dr. Marcel Gavriliu"
   - "Claude"
@@ -14,6 +14,8 @@ tags:
   - "exam"
   - "study-guide"
 related:
+  - path: "./practice-final.md"
+    desc: "Practice final (same blueprint as the real final, full worked key)"
   - path: "../S10-midterm/study-guide-s10.md"
     desc: "Midterm study guide (S1–S9) — the first-half companion"
   - path: "../S17-regex-automata/L17-regex-automata.md"
@@ -24,7 +26,9 @@ related:
 
 **Session 18 (Thu Aug 20, 2026) — Review + Final Exam.** **Comprehensive**, covering **Sessions 1–17**, with emphasis on the **post-midterm** material (S11–S17): union-find & MST, greedy & Huffman, sorting & divide-and-conquer, dynamic programming, strings, and regular expressions.
 
-> **Format:** duration, open/closed book, and calculator policy are set by the instructor — confirm on Canvas. For the first half (S1–S9), review the [midterm guide](../S10-midterm/study-guide-s10.md); this guide summarizes it and goes deep on S11–S17.
+> **Format:** **110 points, 140 minutes**, one sitting, closed book, **one page of double-sided handwritten notes** allowed. Answer-entry conventions match the ICAs and the midterm: orders and arrays **comma-separated, no spaces** (example: `1,2,3`); where a choice exists, ties break **alphabetically / in ascending order**; any question-specific determinism rule (union tie-breaking, Huffman tie-breaking, `<=` in merge) is stated inside the question. Expect: a complexity bank, tracing on given input (union-find + Kruskal, articulation points, Huffman, master theorem, merge, LCS, knapsack, KMP + trie, hashing, a heap, Dijkstra), regex writing, a DFA, and one design question. Roughly **two-thirds post-midterm**; for the first half (S1–S9), review the [midterm guide](../S10-midterm/study-guide-s10.md).
+>
+> **Rehearse the format:** the [practice final](./practice-final.md) has the identical structure with a full worked key — work it **cold, on paper, under time** before checking.
 
 ## 1 · Master reference table
 
@@ -85,7 +89,7 @@ related:
 
 ## 5 · Practice questions (S11–S17)
 
-1. **Union-find.** Run weighted quick-union on `union(1,2), union(3,4), union(2,4), union(5,6)`. How many components remain, and what is the tree height? Why does path compression not change the *answer*, only the *speed*?
+1. **Union-find.** On elements 1..6, run weighted quick-union on `union(1,2), union(3,4), union(2,4), union(5,6)`. How many components remain, and what is the tallest tree's height? Why does path compression not change the *answer*, only the *speed*?
 2. **MST.** On a small weighted graph, run Kruskal and Prim. Do they always produce the same tree? The same total weight? When can the trees differ?
 3. **Cut property.** State it, and use an exchange argument to explain why Kruskal never adds a cycle-closing edge.
 4. **Greedy vs DP.** For each, say greedy or DP and why: (a) fractional knapsack, (b) 0/1 knapsack, (c) making change with US coins, (d) making change with {1,3,4}.
@@ -96,8 +100,8 @@ related:
 9. **DP — LCS.** Fill the LCS table for `A="ABCB"`, `B="BDCB"`. Give the length and one LCS. What are the three cells each interior cell reads?
 10. **DP — knapsack.** Items (value, weight) `(3,2),(4,3),(5,4)`, W=6. Give the optimal value and the items taken. Why can't greedy-by-ratio be trusted here?
 11. **DP — edit distance.** Compute `edit("cat","cart")` and give the edit script. Why is edit distance a metric?
-12. **Strings.** For pattern `"AABAA"`, give the KMP failure function. On a mismatch at pattern index 4, to what index does j reset? Why does this beat brute force?
-13. **Trie.** Insert `{bat, bath, bad, bed}` into a trie. How many nodes? What does `longestPrefixOf("bathing")` return? Why is trie search independent of the number of keys?
+12. **Strings.** For pattern `"AABAA"`, give the KMP failure function (one value per position). After matching the first 4 pattern chars, a mismatch occurs at index 4 — to what value does the failure function reset j (i.e., f[3])? Why does this beat brute force?
+13. **Trie.** Insert `{bat, bath, bad, bed}` into a trie. How many nodes (not counting the root)? What does `longestPrefixOf("bathing")` return? Why is trie search independent of the number of keys?
 14. **Regex/NFA.** Give three strings matched by `(A|B)*C` and two that aren't. Sketch the NFA. Why does NFA *simulation* track a *set* of states?
 15. **Choose a structure.** Best structure for: (a) autocomplete on a prefix, (b) cheapest network wiring, (c) fewest coins for an odd denomination set, (d) the 90th-percentile latency, (e) "have I seen this URL?".
 
@@ -107,5 +111,6 @@ related:
 
 | Version | Date | Author | Summary |
 | ------- | ---------------- | ------ | ------------- |
+| 1.1 | 2026-07-11T20:00 | Claude | Format finalized to match the built exam kit (110 pts, 140 min, closed book + 1 note page, comma/alphabetical conventions, in-question determinism rules, ~2/3 post-midterm); pointed students at the practice final ("work it cold, under time"). Practice-question precision: union-find universe pinned to 1..6, KMP reset phrased as f[3], trie count excludes the root — matching the practice-final conventions. |
 | 1.0 | 2026-07-05T13:00 | Claude | Fleshed out from scaffold: master table (S1–S17), post-midterm key ideas (S11–S17), cross-cutting themes, pitfalls, and 15 practice questions. Format left to the instructor; first-half detail deferred to the midterm guide. |
 | 0.1 | 2026-07-04T12:00 | Claude | Scaffold: covered-topics list (S1–S17) from schedule, format + TODO placeholders. |

@@ -12,10 +12,22 @@
   O(mn). KLEENE'S THEOREM: regexes and finite automata describe exactly the same
   class, the REGULAR languages. This closes the course: pattern → machine.
 
+  WORKED MACHINES (all hand-verified, and identical to the ICA's buildExample/
+  buildExample2, which drop the implicit outer wrap):
+    A*B (unwrapped):  states 0'A' 1'*' 2'B' 3=accept
+                      ε: 0→1 (skip A), 1→0 (repeat A), 1→2 (fall through '*')
+                      match: 0─A→1, 2─B→3
+                      ε-closure({0}) = {0,1,2}
+                      "AAB": {0,1,2} →A {0,1,2} →A {0,1,2} →B {3} ACCEPT
+                      "B" ACCEPT (zero A's) · "BA","AC" REJECT (empty set)
+    the demo wraps: (A*B) has 6 states (letters shift +1, ε (0,1) and (4,5) added)
+    ((A*B|AC)D) wrapped: 12 states, 9 ε-edges, 5 char edges;
+                      "AAABD" ✓ (left branch) · "ACD" ✓ (right) · "AAD" ✗
+
   Covered in Spring-26 (Kim): Module 7 (Languages/Grammar) + Module 8 (FSM) — so
   languages, grammars, and finite-state machines ARE prior-offering material; the
   RE→NFA construction + simulation is the Sedgewick §5.4 addition. Demos: nfa-build
-  + nfa-sim (GraphRenderer).
+  + nfa-sim (GraphRenderer, editable regex/text).
 
   Session plan (150 min). 0:00 intro 0:04 P1 regex+languages 22 0:26 P2 NFAs 26
   0:52 BREAK 10 1:02 P3 RE→NFA 26 1:28 P4 simulate+Kleene 26 1:54 P5 wrap 10
@@ -66,32 +78,6 @@ You use them daily: **grep**, search-and-replace, input validation.
 
 --
 
-## Tonight's plan
-
-1. **regexes** — patterns that describe **languages**
-2. **NFAs** — finite-state machines that recognize them
-3. **RE → NFA** — Thompson's construction
-4. **simulate** the NFA — track a **set** of states
-
-The finale: **pattern → machine** (Kleene's theorem).
-
---
-
-## The shorthands
-
-Everything else is **sugar** over the four operations:
-
-```text
-   A+     = A A*          (one or more)
-   A?     = (A|ε)         (optional)
-   [abc]  = (a|b|c)       (character class)
-   .      = any character
-```
-
-The engine only really knows **concat, `|`, `*`, `()`**.
-
---
-
 ## The four operations
 
 | operation | regex | meaning |
@@ -101,20 +87,7 @@ The engine only really knows **concat, `|`, `*`, `()`**.
 | **closure (star)** | `A*` | zero or more A |
 | **grouping** | `(…)` | precedence |
 
-Everything else (`+`, `?`, `[…]`, `.`) is shorthand built from these.
-
---
-
-## The operations as gadgets — preview
-
-Each operation will become a small **NFA gadget** in Part 3:
-
-```text
-   char  → one transition        A|B   → ε-branch
-   AB    → ε-concatenation        A*    → ε-loop
-```
-
-Four operations, four gadgets — the regex's structure *is* the automaton's structure.
+Everything else is **sugar**: `A+ = AA*` · `A? = (A|ε)` · `[abc] = (a|b|c)` · `.` = any char.
 
 --
 
@@ -153,6 +126,14 @@ Read a regex by breaking it at the **top-level** `|` and `*`.
 
 --
 
+## Your turn — write the regex
+
+Over the alphabet {A, B}: all strings that **end in B**.
+
+<small>**`(A|B)*B`** — anything, then one final B. Check: "B" ✓ (star = zero), "AB" ✓, "AABB" ✓; "BA" ✗ (ends in A), "" ✗ (needs at least the B). A common wrong answer is `A*B` — it rejects "BAB", which does end in B.</small>
+
+--
+
 ## Precedence
 
 Binding tightest to loosest: **`*`** > **concatenation** > **`|`**
@@ -166,22 +147,16 @@ Use `()` to override — the #1 source of regex bugs.
 
 --
 
-## Regexes in practice
-
-- **search** — grep, editor find, log analysis
-- **validation** — emails, phone numbers, dates
-- **lexing** — the first phase of every compiler
-- **find & replace** with capture groups
-
---
-
-## Regex in code
+## Regexes in code & in practice
 
 ```text
    std::regex re("(a|b)*c");                // C++ <regex>
    if (std::regex_match(s, re)) …           // whole-string match
-   std::regex_search / regex_replace        // find / substitute
 ```
+
+- **search** — grep, editor find, log analysis
+- **validation** — emails, phone numbers, dates
+- **lexing** — the first phase of every compiler
 
 Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
 
@@ -271,6 +246,18 @@ Exactly one arrow per (state, char) — just follow it, O(n).
 
 --
 
+## Your turn — run the DFA
+
+Same machine. Which of these does it accept?
+
+```text
+   "0110"        "111"        ""
+```
+
+<small>**"0110"**: A →0 B →1 A →1 A →0 **B → ACCEPT** (ends in 0). **"111"**: A →1 A →1 A →1 **A → reject**. **""**: never leaves A — **reject** (the empty string doesn't end in 0). The state always equals "did the string so far end in 0?" — that's the machine's whole memory.</small>
+
+--
+
 ## Nondeterminism
 
 An NFA may face **several** choices — imagine it explores **all** of them at once:
@@ -321,18 +308,6 @@ It's just a **digraph of states** plus a match rule per state:
 ```
 
 Simulation = **graph reachability** (ε-closure) + one match step per input char.
-
---
-
-## When does an NFA accept?
-
-```text
-   start in the ε-closure of the start state
-   for each input char c:
-       from the current SET of states, take every c-transition,
-       then their ε-closure → the new set of states
-   accept iff the accept state is in the final set
-```
 
 --
 
@@ -424,29 +399,49 @@ One gadget per operator, each with **one start / one accept** → they compose f
 
 --
 
-## One detail: the outer wrap
+## Sedgewick's encoding — one state per char
 
-Sedgewick wraps the whole regex in **implicit parentheses**:
+The invariant that makes it implementable in a page:
 
 ```text
-   "A|B"   →   "(A|B)"   internally
+   regex re of length m  →  states 0..m  (state m = accept)
+   state i "is" re[i]:
+     a LETTER state consumes its char:  i ──re[i]──► i+1
+     a META state ( ) | * has only ε-edges
 ```
 
-This gives a top-level `|` or `*` an anchor to attach to — otherwise the outermost operator has no enclosing group to bind.
+**The only way to consume input is i → i+1.** Everything else is ε.
 
 --
 
-## Build `(A|B)*` — worked
+## Build `A*B` — worked
 
 ```text
-   1. atoms:   ──A──►     ──B──►
-   2. A|B:     new start ε-branches to both,
-               both ε-merge to a new accept
-   3. (A|B)*:  ε skip start→accept (match ""),
-               ε loop accept→start (repeat)
+   re:  A   *   B         states 0 1 2 3   (3 = accept)
+
+   i=0 'A', next is '*' →  ε 0→1 (skip the A)
+                           ε 1→0 (repeat the A)
+                           match edge 0 ──A──► 1
+   i=1 '*'              →  ε 1→2 (fall through)
+   i=2 'B'              →  match edge 2 ──B──► 3
+
+   ε: 0→1, 1→0, 1→2      match: 0─A→1, 2─B→3
 ```
 
-Result: a small NFA accepting **any** string of A's and B's (including `""`).
+--
+
+## Parsing with a stack (+ the outer wrap)
+
+Scan left-to-right; a **stack** matches `(`…`)` and wires `|`:
+
+```text
+   '('  → push its index          ')' → pop; wire the '|' ε-edges
+   '*'  → ε-skip + ε-loop around the previous atom/group
+   first: wrap the regex in implicit parens — "A|B" → "(A|B)"
+   (a top-level | or * needs a '(' to anchor its ε-edges)
+```
+
+Same stack-based operator parsing as **expression trees** (L03).
 
 --
 
@@ -454,39 +449,29 @@ Result: a small NFA accepting **any** string of A's and B's (including `""`).
 
 <div class="algo-viz" data-algo="nfa-build">
 <pre class="viz-fallback">
-   build the NFA for (A*B|AC)D by Thompson's construction:
-   char gadgets, then closure (A*), or (|), concatenation,
-   wired with ε-transitions. states along a row; ε-arcs
-   overhead; char-transitions labeled. one start, one accept.
+   Sedgewick's construction of A*B, edge by edge: one state
+   per char of "(A*B)" (the implicit wrap), ε-edges for skip/
+   repeat/fall-through, match edges on the letters.
+   then try (A*B|AC)D: 12 states, 9 ε-edges, 5 match edges.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Thompson's construction assembles the NFA for `(A*B|AC)D` — character gadgets joined by **ε-transitions** for closure, or, and concatenation. One **start**, one **accept**. Full sandbox: the **Explore** page.</small>
+<small>**Build** replays the construction edge by edge — the worked `A*B` plus the **outer wrap** (letters shift +1, ε at each end). Type your own: `(A*B|AC)D`, `(A|B)*B`, … (letters and `( ) | *`).</small>
 
 --
 
 ## The construction is linear
 
-```text
-   regex of length m  →  NFA with O(m) states and O(m) ε-transitions
-```
-
-Built in **Θ(m)**, in one pass over the (parsed) regex.
-
---
-
-## Parsing the regex (a stack)
-
-Scan the regex left-to-right, using a **stack** to match `(` … `)` and wire `|`:
+Count the edges per character of the (wrapped) regex:
 
 ```text
-   '('  → push this index
-   ')'  → pop; wire the alternation ε-edges for any '|'
-   '*'  → add closure ε-edges around the previous atom/group
+   each LETTER:   exactly 1 match edge
+   each ( ) * :   1 fall-through ε          each '*': +2 (skip, repeat)
+   each '|' :     +2 (branch-in, skip-out)
+   → ≤ 3 ε-edges per char:  O(m) states, O(m) edges, built in Θ(m)
+   check — ((A*B|AC)D): 12 states, 9 ε (5 fall + 2 star + 2 or), 5 match ✓
 ```
-
-Same operator-precedence, stack-based parsing as **expression trees** (L03).
 
 ---
 
@@ -503,24 +488,9 @@ Run the NFA deterministically by keeping the **set** of all states it could be i
 ```text
    states = ε-closure({ start })
    for each char c in the text:
-       next = { states reachable from `states` on c }
+       next = { i+1 : i ∈ states and re[i] == c }
        states = ε-closure(next)
    accept iff accept-state ∈ states
-```
-
---
-
-## Simulation — worked
-
-NFA for `A*B` on input `"AAB"`:
-
-```text
-   start:  ε-closure → {A-loop entry, and via ε the B-transition's tail}
-   read A: advance on A → back in the A-loop
-   read A: same
-   read B: advance on B → the ACCEPT state
-   → ACCEPT "AAB" ✓
-   "AC": read A (A-loop), read C → no C-transition → set empties → REJECT ✗
 ```
 
 --
@@ -538,16 +508,41 @@ The **ε-closure** of a set of states = all states reachable via ε-transitions 
 
 ## ε-closure — worked
 
-ε-edges `2→3, 3→7, 5→6`; start set `{2, 5}`:
+On the `A*B` machine (ε: 0→1, 1→0, 1→2):
 
 ```text
-   ε-closure({2,5}):
-     from 2: 2 → 3 → 7      add 3, 7
-     from 5: 5 → 6          add 6
-   → {2, 3, 5, 6, 7}
+   ε-closure({0}):
+     expand 0:  0→1     add 1
+     expand 1:  1→0 (seen),  1→2     add 2
+     expand 2:  no ε-edges
+   → {0, 1, 2}    (ready to match A at 0 — or B at 2 already!)
 ```
 
-It's a **DFS/BFS over ε-edges only** — the L08 graph search, reused on the automaton.
+A **DFS over ε-edges** — the L08 graph search, reused on the automaton.
+
+--
+
+## Simulation — worked
+
+`A*B` on `"AAB"` (match edges 0─A→1, 2─B→3; accept = 3):
+
+```text
+   start:    ε-closure({0})            = {0,1,2}
+   read A:   0 matches A → {1};  close = {0,1,2}
+   read A:   0 matches A → {1};  close = {0,1,2}
+   read B:   2 matches B → {3};  close = {3}
+   3 = accept  →  ACCEPT ✓
+```
+
+`"AC"`: after A, `{0,1,2}`; read C → **{ } — dead, REJECT** ✗
+
+--
+
+## Your turn — simulate
+
+Same `A*B` machine. Trace `"B"` and `"BA"`:
+
+<small>**"B"**: start {0,1,2}; read B: 2 matches → {3} = accept → **ACCEPT** (zero A's — the ε-skip at work). **"BA"**: after B, {3}; read A: state 3 is the accept state, it matches nothing → **{ } → REJECT**. The accept state has no outgoing edges — reaching it early only helps if the input *ends* there.</small>
 
 --
 
@@ -555,15 +550,15 @@ It's a **DFS/BFS over ε-edges only** — the L08 graph search, reused on the au
 
 <div class="algo-viz" data-algo="nfa-sim">
 <pre class="viz-fallback">
-   simulate (A*B|AC)D on a string, e.g. "AAABD":
-   the set of ACTIVE states (highlighted) advances one input
-   char at a time, taking char-transitions then ε-closure.
-   accept iff the accept state is active at the end.
+   simulate (A*B|AC)D on typed strings — the set of ACTIVE
+   states (highlighted) advances one char at a time: match
+   edges, then ε-closure.  "AAABD" ✓ (left branch A*B),
+   "ACD" ✓ (right branch AC), "AAD" ✗ (set goes empty).
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Watch the **set of active states** move through the NFA one character at a time — char-transitions then **ε-closure**. **Accept** iff the accept state is active at the end. Full sandbox: the **Explore** page.</small>
+<small>**Match** drives the **set of active states** one char at a time — match edges, then **ε-closure**. Try `AAABD` ✓, `ACD` ✓ (the other branch), `AAD` ✗ (watch the set die). **Build** swaps in your own regex first.</small>
 
 --
 
@@ -587,12 +582,26 @@ Two phases per character: **advance** on the char, then **ε-close**.
 ## Simulation — the cost
 
 ```text
-   |text| = n,  |regex| = m  →  NFA has O(m) states
-   each char: advance + ε-closure over O(m) states/edges → O(m)
+   |text| = n,  |regex| = m  →  NFA has O(m) states, O(m) ε-edges
+   each char: advance ≤ m states + ε-closure (DFS, O(m) edges) → O(m)
    total: O(m · n)
 ```
 
 Linear in the text, linear in the regex — no catastrophic blow-up.
+
+--
+
+## Why the simulation is correct
+
+**Invariant:** after reading `text[0..i)`, the set = **exactly** the states reachable from start by consuming `text[0..i)`.
+
+```text
+   base:  ε-closure({start}) = reachable on ""            ✓
+   step:  reachable on t[0..i+1) = ε-closure( advance of
+          reachable on t[0..i) by t[i] )                  ✓
+   end:   accept ∈ set  ⟺  some path consumes the whole
+          string and ends at accept  ⟺  the NFA accepts
+```
 
 --
 
@@ -677,22 +686,14 @@ Build cost vs run cost — the same trade as always.
 
 --
 
-## Recap — regexes & automata
+## Recap — pattern → machine
 
 - a **regex** describes a **language** via concat, `|`, `*`, `()`
-- a **finite automaton** recognizes that language
-- **Thompson's construction**: regex → NFA (ε-transitions), O(m) states
-- **simulate** by tracking the **set** of reachable states (ε-closure) — O(mn)
+- an **NFA** decides membership: one state per char, ε-digraph, match = i→i+1
+- **build** in Θ(m) (stack + gadgets) · **simulate** in O(mn) (set + ε-closure = DFS)
+- **Kleene:** regexes ↔ automata — the **regular** languages; beyond them → grammars
 
---
-
-## Recap — the big idea
-
-- **Kleene's theorem:** regexes ↔ finite automata — the **regular languages**
-- some languages are **beyond** regular (balanced parens → grammars)
-- nondeterminism = explore **all paths at once** (track a set)
-
-> A regex is a pattern; an automaton is the machine that runs it — same power.
+> Nondeterminism = explore **all paths at once** — a set, not a guess.
 
 --
 
@@ -710,12 +711,12 @@ Each rung adds power by adding **memory**.
 
 --
 
-## Automata & regex in practice
+## Automata in practice
 
-- **grep / RE2** — NFA simulation (no catastrophic backtracking)
-- **lexers** — every compiler tokenizes with automata (`flex`)
-- **protocol / input validation**, log parsing
-- **string algorithms** — KMP's DFA (L16) is a finite automaton!
+- **grep / RE2** — NFA set-simulation (immune to ReDoS)
+- **lexers** — every compiler tokenizes with a DFA (`flex`)
+- **protocol & input validation** — automata over streams
+- **KMP (L16)** — its failure-function machine **is a DFA** for one pattern
 
 --
 
@@ -734,7 +735,7 @@ And **reuse**: KMP's DFA, ε-closure = DFS, Dijkstra/Prim/Huffman = the heap.
 
 ## ICA 17 — your turn
 
-In `ica17/ica17.cpp`, given a small NFA (states, ε- and char-transitions) as an adjacency list:
+In `ica17/ica17.cpp`, given the two NFAs from tonight's slides (`A*B` and `(A*B|AC)D`, hand-built, unwrapped) as ε-adjacency lists:
 
 - implement **ε-closure** (graph reachability)
 - implement **NFA simulation** — advance the state set per character

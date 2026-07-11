@@ -45,17 +45,49 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — stage-scoped interactive demos:
+         nfa-build (P3)  starts on A*B (the worked slide's machine, +2 states
+                         for the implicit outer wrap); type any regex over
+                         letters and ( ) | * and press Build to watch
+                         Sedgewick's construction add the edges one by one
+         nfa-sim   (P4)  starts on the built (A*B|AC)D; Match runs the
+                         set-of-states simulation on a typed string
+                         ("AAABD" ✓ left branch, "ACD" ✓ right, "AAD" ✗);
+                         Build swaps in a different regex first -->
   <script type="module">
     import { initDeckDemos, NFA, GraphRenderer } from "../../lib/deck.js";
     const RE = "(A*B|AC)D";
+    // sanitize a typed regex: letters + ( ) | * only, balanced parens, ≤ 9
+    // chars (the wrapped machine stays readable at 12 states); else default
+    const cleanRe = (v, dflt) => {
+      const s = String(v ?? "").toUpperCase().replace(/[^A-Z()|*]/g, "").slice(0, 9);
+      let bal = 0;
+      for (const c of s) { if (c === "(") bal++; if (c === ")") bal--; if (bal < 0) return dflt; }
+      return s.length && bal === 0 ? s : dflt;
+    };
+    const cleanText = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 12);
     const graph = () => ({ renderer: (c) => new GraphRenderer(c, { directed: true }),
-                           costs: ["visit", "compare"], chrome: { showCosts: true }, width: 820, height: 250 });
+                           costs: ["visit", "compare", "link"], chrome: { showCosts: true }, width: 820, height: 250 });
     initDeckDemos({
-      // Thompson's construction of (A*B|AC)D — ε and char gadgets wired together
-      "nfa-build": { ...graph(), make: () => new NFA(), run: (s) => s.buildTraced(RE) },
-      // simulate on "AAABD" (matches: A* B → AAAB, then D); active state-SET advances
-      "nfa-sim":   { ...graph(), make: () => { const n = new NFA(); n.build(RE); return n; },
-                     run: (s) => s.simulate("AAABD") },
+      // P3 — Thompson/Sedgewick construction, edge by edge, of a typed regex
+      "nfa-build": {
+        ...graph(),
+        make: () => { const n = new NFA(); n.build("A*B"); return n; },
+        noBuild: true,
+        stateMsg: (s) => `${s.inorder()} — type a regex (letters, ( ) | * ) and press Build`,
+        ops: [{ name: "Build", arg: "string", run: (s, v) => s.buildTraced(cleanRe(v, "A*B")) }],
+      },
+      // P4 — set-of-states simulation on a typed string (Build swaps the regex)
+      "nfa-sim": {
+        ...graph(),
+        make: () => { const n = new NFA(); n.build(RE); return n; },
+        noBuild: true,
+        stateMsg: (s) => `${s.inorder()} — Match a string (try AAABD, ACD, AAD), or Build a new regex`,
+        ops: [
+          { name: "Match", arg: "string", run: (s, v) => s.simulate(cleanText(v)) },
+          { name: "Build", arg: "string", run: (s, v) => s.buildTraced(cleanRe(v, RE)) },
+        ],
+      },
     });
   </script>
 </body>
