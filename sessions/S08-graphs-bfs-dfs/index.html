@@ -45,18 +45,41 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — ONE Graph engine (fixed vertices 0–7, editable edge
+       list "u v, u v, …"); each slide's spec exposes only the operations the
+       lecture has introduced by that point:
+         graph-tour (Part 1)  static picture of tonight's DAG (no ops)
+         graph-dfs  (Part 2)  DFS from any start (tree edges, backtracking,
+                              back-edge = cycle detection)
+         graph-bfs  (Part 3)  adds BFS — run both from the same start and
+                              compare orders; BFS labels = fewest-edge distances
+         graph-topo (Part 4)  adds Topo sort (Kahn) — add edge 6 2 to close a
+                              cycle: Kahn strands red vertices, DFS flags the
+                              back edge -->
   <script type="module">
     import { initDeckDemos, Graph, GraphRenderer } from "../../lib/deck.js";
-    // build() ignores input and installs the fixed sample DAG, so build it here in make()
-    const graphView = () => ({
-      make: () => { const g = new Graph(); g.build(); return g; },
+    const DAG = "0 1, 0 2, 1 3, 1 4, 2 3, 2 4, 3 5, 4 5, 4 7, 5 6"; // tonight's DAG (slide "The graph for tonight")
+    const base = () => ({
+      make: () => new Graph(),
+      initial: DAG,
+      buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: true }),
-      costs: ["visit", "compare"], chrome: { showCosts: true }, width: 800, height: 250,
+      stateMsg: (g) => `directed graph — ${g.inorder()}; pairs "u v" in the box are the edges`,
+      costs: ["visit", "compare"], chrome: { showCosts: true },
+      width: 960, height: 240,
     });
+    const dfsOp = { name: "DFS from", arg: "number", run: (s, v) => s.dfs(v) };
+    const bfsOp = { name: "BFS from", arg: "number", run: (s, v) => s.bfs(v) };
     initDeckDemos({
-      "graph-dfs":  { ...graphView(), run: (s) => s.dfs(0) },   // dive along tree edges, backtrack
-      "graph-bfs":  { ...graphView(), run: (s) => s.bfs(0) },   // expand in layers; distance labels
-      "graph-topo": { ...graphView(), run: (s) => s.topo() },   // Kahn: peel in-degree-0 vertices
+      "graph-tour": { // static view of tonight's DAG for Part 1 (no ops yet)
+        make: () => { const g = new Graph(); g.build(); return g; },
+        renderer: (c) => new GraphRenderer(c, { directed: true }),
+        label: "tonight's graph — a DAG on 8 vertices, 10 directed edges",
+        width: 900, height: 230,
+      },
+      "graph-dfs":  { ...base(), ops: [dfsOp] },
+      "graph-bfs":  { ...base(), ops: [dfsOp, bfsOp] },
+      "graph-topo": { ...base(), height: 215, ops: [dfsOp, bfsOp, { name: "Topo sort", run: (s) => s.topo() }] },
     });
   </script>
 </body>

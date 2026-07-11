@@ -7,18 +7,29 @@
   Reading (pre): Sedgewick & Wayne §4.1 (Undirected Graphs) + §4.2 (Directed
   Graphs) + ODS Ch 12.
   THROUGH-LINE: a graph is vertices + edges — the most general structure we've
-  met (trees are graphs with no cycles). Store it as an ADJACENCY LIST. Two
-  searches explore it: DFS (go deep, a stack/recursion) and BFS (go wide, a
-  queue → fewest-edge paths). Both are Θ(V+E). Post-order DFS on a DAG yields a
-  TOPOLOGICAL order — the schedule that respects all dependencies.
+  met (trees are the acyclic special case). Store it as an ADJACENCY LIST. One
+  generic loop explores it; the FRONTIER container decides everything: stack →
+  DFS (reachability, cycles, topo), queue → BFS (fewest-edge paths), and a PQ →
+  Dijkstra (next session). Both searches are Θ(V+E), PROVEN via the handshake
+  lemma. Topological sort = Kahn's peeling (with the source-lemma proof) or
+  reverse DFS post-order (with the 3-case proof).
+
+  Worked examples: ONE 4-vertex diamond DAG (0→1, 0→2, 1→3, 2→3) carries every
+  hand trace (DFS order 0 1 3 2, BFS dists 0 1 1 2, Kahn 0 1 2 3, post-order
+  3 1 2 0 → reversed 0 2 1 3). The DEMOS run on the lib's 8-vertex DAG
+  (0→1,2 · 1→3,4 · 2→3,4 · 3→5 · 4→5,7 · 5→6) — mirrored on the "graph for
+  tonight" slide and in the your-turn answers (DFS 0 1 3 5 6 4 7 2, BFS layers
+  {0}{1,2}{3,4}{5,7}{6}, Kahn 0 1 2 3 4 5 6 7). Demo build string is the edge
+  list "0 1, 0 2, 1 3, 1 4, 2 3, 2 4, 3 5, 4 5, 4 7, 5 6"; adding "6 2" closes
+  the cycle 2→3→5→6→2 for the cycle-detection beats.
 
   Covered in Spring-26 (Kim, Graph deck; Carrano 20, Cusack 10): graph ADT,
   adjacency matrix vs list, DFS (recursive + iterative stack), BFS, connectivity,
   topological sort (DFS + stack). [Dijkstra → L09; MST/articulation → L11.]
 
-  Session plan (150 min). 0:00 intro 0:04 P1 vocab+repr 20 0:24 P2 DFS 26
-  0:50 BREAK 10 1:00 P3 BFS 24 1:24 P4 digraphs+topo 30 1:54 P5 wrap 10
-  2:04 ICA 2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 vocab+repr 22 0:26 P2 DFS 28
+  0:54 BREAK 10 1:04 P3 BFS 24 1:28 P4 digraphs+topo 32 2:00 P5 wrap 6
+  2:06 ICA 2:30 end.
 -->
 
 ## CSS 343
@@ -46,42 +57,22 @@ _Secondary:_ ODS Ch 12. Reading quiz due before class.
 
 ### Part 1 · Vocabulary & representation
 
-<small>(~20 min)</small>
+<small>(~22 min)</small>
 
 --
 
 ## What is a graph?
 
-A **graph** `G = (V, E)`: a set of **vertices** V and a set of **edges** E connecting them.
+A **graph** `G = (V, E)`: a set of **vertices** V and a set of **edges** E connecting pairs of them.
 
 ```text
-     0 —— 1        V = {0,1,2,3}
-     |  / |        E = {(0,1),(0,2),(1,2),(1,3)}
-     2 —— 3? no… 2—0, 2—1, 1—3
+   0 —— 1       V = { 0, 1, 2, 3 }
+   |  / |       E = { 0–1, 0–2, 1–2, 1–3 }
+   | /  |
+   2    3       4 vertices, 4 edges, a cycle 0–1–2–0
 ```
 
-The most general structure we've seen — trees are just graphs with **no cycles**.
-
---
-
-## Graphs are everywhere
-
-- **maps** — intersections (V) and roads (E)
-- **social networks** — people and friendships
-- **the web** — pages and hyperlinks
-- **dependencies** — tasks and "must-come-before"
-- **networks** — routers and links
-
---
-
-## Tonight's plan
-
-1. **represent** a graph — the adjacency list
-2. **DFS** — depth-first (a stack): reachability, cycles
-3. **BFS** — breadth-first (a queue): fewest-edge paths
-4. **topological sort** — scheduling a DAG
-
-All in **Θ(V + E)** — linear in the size of the graph.
+The most general structure we've seen — and the data model for maps, social networks, the web, dependencies, circuits…
 
 --
 
@@ -107,26 +98,44 @@ All in **Θ(V + E)** — linear in the size of the graph.
 
 --
 
-## Degree & the handshake lemma
+## The handshake lemma
 
-Sum of all degrees counts **each edge twice** (once at each endpoint):
+Each edge has exactly **2 endpoints**, so summing all degrees counts every edge **exactly twice**:
 
 ```text
-   Σ deg(v) = 2·|E|
+   Σ deg(v) = 2·E
+
+   our graph: degrees 2, 3, 2, 1 → sum 8 = 2·4 ✓
 ```
 
-So the average degree is `2E/V`. In a **digraph**, in-degree + out-degree, and `Σ in = Σ out = |E|`.
+In a **digraph**: Σ in-deg = Σ out-deg = E. <br><small>Remember this — it's the engine of tonight's Θ(V + E) proofs.</small>
 
 --
 
-## How do we store a graph?
+## How many edges can there be?
 
-Two standard representations:
+Simple undirected graph (no self-loops, no repeats):
 
-1. **adjacency matrix** — an `n × n` grid of 0/1
-2. **adjacency list** — one list of neighbors per vertex
+```text
+   0  ≤  E  ≤  V(V−1)/2 = Θ(V²)      (every pair)
+```
 
-The choice drives the cost of every graph operation. Let's compare.
+- **sparse** — E = O(V): roads, social networks, the web
+- **dense** — E = Θ(V²): an all-pairs mesh
+
+Real graphs are almost always **sparse** — that fact will pick our representation.
+
+--
+
+## Trees are the sparsest graphs
+
+A **tree** = a connected graph with **no cycles**:
+
+- every tree on V vertices has **exactly V − 1** edges
+- two of {connected, acyclic, E = V−1} force the third
+- +1 edge → a cycle · −1 edge → disconnected
+
+All our tree structures were special-case graphs — tonight removes the restrictions.
 
 --
 
@@ -170,18 +179,7 @@ One list of neighbors per vertex:
 | iterate neighbors | O(V) | **O(deg u)** |
 | best for | **dense** | **sparse** |
 
-Real graphs are usually **sparse** (E ≪ V²) → **adjacency list**.
-
---
-
-## Sparse vs dense
-
-```text
-   sparse:  E = O(V)      e.g. road maps, social graphs
-   dense:   E = Θ(V²)     e.g. a fully-connected mesh
-```
-
-Most real graphs are **sparse** — that's why Θ(V + E) (list) beats Θ(V²) (matrix) in practice.
+Real graphs are sparse → **adjacency list** tonight. <small>(A third form — a plain list of edges — returns for Kruskal's MST in L11.)</small>
 
 --
 
@@ -202,21 +200,27 @@ struct Graph {
 
 --
 
-## The graph we'll trace
+## The graph for tonight
 
 ```text
-   0 → 1, 2       3 → 5         6 → (none)
-   1 → 3          4 → 5, 7      7 → (none)
-   2 → 3, 4       5 → 6
+   0 → 1, 2      2 → 3, 4      4 → 5, 7      6 → —
+   1 → 3, 4      3 → 5         5 → 6         7 → —
 ```
 
-A small **DAG** — the interactive DFS / BFS / topological-sort demos all run on a graph like this. Keep the adjacency list in mind as we trace each algorithm.
+<div class="algo-viz" data-algo="graph-tour">
+<pre class="viz-fallback">
+   V = 8, E = 10, no directed cycle — a DAG.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>V = 8, E = 10, edges only "forward" — a **DAG**. All three demos run on this graph; keep the adjacency list in mind.</small>
 
 ---
 
 ### Part 2 · Depth-first search
 
-<small>(~26 min)</small>
+<small>(~28 min)</small>
 
 --
 
@@ -263,15 +267,75 @@ Mark, then recurse into each unvisited neighbor. The **call stack** does the bac
 ## DFS — a worked trace
 
 ```text
-   0 → [1,2]   1 → [3]   2 → [3]   3 → []
+   0 → 1        adj:  0 → [1,2]   1 → [3]
+   ↓   ↓              2 → [3]     3 → []
+   2 → 3
 
-   dfs(0): visit 0 → dfs(1): visit 1 → dfs(3): visit 3  (dead end)
+   dfs(0): visit 0 → dfs(1): visit 1 → dfs(3): visit 3
            back to 1 (done) → back to 0
            → dfs(2): visit 2 → 3 already seen, SKIP
    visit order: 0  1  3  2
 ```
 
-The dive `0→1→3`, backtrack, then `0→2`; edge `2→3` is skipped (3 seen).
+--
+
+## Your turn — order matters
+
+Same diamond, but vertex 0 stores its list as `[2, 1]`:
+
+```text
+   0 → [2,1]   1 → [3]   2 → [3]   3 → []
+
+   what is the DFS visit order now?
+```
+
+<small>Answer: dive 0 → 2 → 3, backtrack, then 1 (its edge to 3 is skipped) — order **0 2 3 1**. The **set** of visited vertices never changes; the **order** depends on how each adjacency list is stored.</small>
+
+--
+
+## DFS visits exactly the reachable set
+
+```text
+   claim: dfs(s) marks v  ⟺  a path s ⇝ v exists
+
+   (⇒) DFS only ever moves along edges out of marked
+       vertices — every mark is genuinely reached
+   (⇐) suppose some reachable w is missed. On a path
+       s ⇝ w, let q be the FIRST missed vertex, and
+       p the vertex before it (p was visited).
+       dfs(p) scanned every out-edge of p — including
+       p → q  →  q got visited. Contradiction. ∎
+```
+
+--
+
+## DFS cost — cashing in the handshake lemma
+
+Each vertex is visited once, and its **whole list** is scanned once:
+
+```text
+   work = Σ over v of ( 1  +  deg(v) )
+        = Σ 1    +    Σ deg(v)
+        =  V     +    2·E            ← handshake lemma
+        = Θ(V + E)
+```
+
+Linear in the size of the graph — optimal: you must at least **look** at every vertex and edge.
+
+--
+
+## 🎬 Demo — DFS
+
+<div class="algo-viz" data-algo="graph-dfs">
+<pre class="viz-fallback">
+   DFS on tonight's DAG: dive along tree edges (bold),
+   mark each vertex, BACK UP at a dead end. edges into
+   already-visited vertices are skipped.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Predict first: DFS from 0 — the first four vertices? Then **DFS from 2**: 0 and 1 stay unreached. The edge pairs are editable; **Build** replays the construction.</small>
 
 --
 
@@ -291,7 +355,7 @@ void dfs(Graph& g, int s) {
 }
 ```
 
-Same order, an **explicit stack** instead of recursion.
+Same idea, an **explicit stack** instead of recursion.
 
 --
 
@@ -300,37 +364,10 @@ Same order, an **explicit stack** instead of recursion.
 Recursive DFS uses the **call stack** — its depth = the longest path explored.
 
 ```text
-   a 1,000,000-vertex path → 1,000,000 stack frames → 💥 overflow
+   a 1,000,000-vertex path → 1,000,000 stack frames → 💥
 ```
 
 The **iterative** version keeps the stack on the **heap** — no such limit. Prefer it for very deep graphs.
-
---
-
-## 🎬 Demo — DFS
-
-<div class="algo-viz" data-algo="graph-dfs">
-<pre class="viz-fallback">
-   DFS from vertex 0: dive along tree edges (bold), mark
-   each vertex visited, and BACK UP at a dead end. non-tree
-   edges to already-visited vertices are skipped.
-[ interactive demo — open this deck on the course site ]
-</pre>
-</div>
-
-<small>Watch DFS **dive** along tree edges and **back up** at dead ends. Visited vertices stay marked; edges to already-seen vertices are **skipped** (that's the cycle guard). The **post-order** finish times drive topological sort in Part 4.</small>
-
---
-
-## DFS cost
-
-Each vertex is visited **once**; each edge is examined **once** (twice for undirected).
-
-```text
-   total work = Θ(V + E)
-```
-
-Linear in the size of the graph — you can't do better; you must at least look at every vertex and edge.
 
 --
 
@@ -362,16 +399,6 @@ Counts components; labels which vertices are mutually reachable.
 
 --
 
-## What DFS is good for
-
-- **connectivity** — which vertices are reachable
-- **cycle detection** — a back edge to an ancestor = a cycle
-- **path finding** — is there a route from a to b?
-- **topological sort** — via post-order (Part 4)
-- **connected components** — restart DFS from each unvisited vertex
-
---
-
 ## DFS in action: is t reachable?
 
 ```text
@@ -397,7 +424,7 @@ A tiny tweak to DFS answers "is there a path from s to t?"
 
 ## BFS: go wide, layer by layer
 
-**Breadth-first search** visits all vertices at distance 1, then all at distance 2, and so on — expanding in **rings** from the start.
+**Breadth-first search** visits all vertices at distance 1, then all at distance 2, … — expanding in **rings** from the start.
 
 ```text
    layer 0: {start}
@@ -432,14 +459,16 @@ void bfs(Graph& g, int s) {
 ## BFS — a worked trace
 
 ```text
-   0 → [1,2]   1 → [3]   2 → [3]   3 → []
+   0 → 1        adj:  0 → [1,2]   1 → [3]
+   ↓   ↓              2 → [3]     3 → []
+   2 → 3
 
-   queue [0]           dist: 0→0
-   pop 0 → enqueue 1,2   queue [1,2]   dist: 1→1, 2→1
-   pop 1 → enqueue 3     queue [2,3]   dist: 3→2
+   queue [0]             dist: 0→0
+   pop 0 → enq 1, 2      queue [1,2]   dist: 1→1, 2→1
+   pop 1 → enq 3         queue [2,3]   dist: 3→2
    pop 2 → 3 seen, skip  queue [3]
    pop 3 → done
-   visit order: 0 1 2 3   distances: 0 1 1 2
+   visit order: 0 1 2 3     distances: 0 1 1 2
 ```
 
 --
@@ -452,43 +481,60 @@ Mark the instant you **enqueue** → each vertex enters the queue **once** → �
 
 --
 
-## BFS finds shortest paths (unweighted)
+## Lemma — the queue is sorted by distance
 
-Because BFS reaches vertices in **distance order**, the first time it sees a vertex is by a **fewest-edge** path:
+While distance-d vertices are dequeued, only distance-(d+1) vertices are **enqueued**:
 
 ```text
-   dist[s] = 0
-   dist[v] = dist[u] + 1   when v is discovered from u
+   queue:  [ d  d  …  d | d+1  d+1  …  d+1 ]
 ```
 
-For **unweighted** graphs, BFS = single-source shortest paths.
+At most **two** values, never out of order → vertices are dequeued in **non-decreasing distance** order.
 
 --
 
-## Practice — BFS distances
+## Theorem — BFS distances are shortest
 
 ```text
-   0 → 1, 2      1 → 3      2 → 3, 4      3 → 5      4 → 5
+   claim:  dist[v] = δ(v), the true fewest-edge distance
 
-   BFS from 0 — what is dist[5]?
+   ≥  BFS reached v along REAL edges — a path with
+      dist[v] edges exists, and none is shorter than δ ✓
+
+   ≤  take a shortest path  s = v0 → v1 → … → vk = v.
+      induction: each vi is discovered by the time
+      v(i−1) is dequeued → dist[vi] ≤ dist[v(i−1)] + 1 ≤ i ✓
 ```
 
-<small>Layer 0: {0}. Layer 1: {1, 2}. Layer 2: {3, 4}. Layer 3: {5}. So **dist[5] = 3** — the fewest edges from 0 to 5, via 0→1→3→5 (or 0→2→4→5).</small>
+Both directions → **dist[v] = δ(v)**. ∎
 
 --
 
-## 🎬 Demo — BFS
+## Your turn — BFS on tonight's DAG
+
+```text
+   0 → 1, 2      2 → 3, 4      4 → 5, 7
+   1 → 3, 4      3 → 5         5 → 6
+
+   BFS from 0 — what is dist[6]?
+```
+
+<small>Layers: {0} → {1, 2} → {3, 4} → {5, 7} → {6}. So **dist[6] = 4** (e.g. 0→1→3→5→6). Vertex 7 sits at distance 3 — closer than 6, found a full layer earlier.</small>
+
+--
+
+## 🎬 Demo — BFS vs DFS
 
 <div class="algo-viz" data-algo="graph-bfs">
 <pre class="viz-fallback">
    BFS from vertex 0: expand in LAYERS via a queue. each
    vertex gets a distance label = fewest edges from 0.
-   tree edges (bold) form the shortest-path tree.
+   then run DFS from the same start and compare orders.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>BFS expands in **rings**; each vertex's label is its **distance** (fewest edges) from vertex 0. The bold **tree edges** form the shortest-path tree. Compare the exploration order with DFS's dive-and-backtrack.</small>
+<small>Run **BFS from 0** and read the distance labels ring by ring — then **DFS from 0** on the same graph: 0 1 2 3 4 5 7 6 vs 0 1 3 5 6 4 7 2. Same edges, different frontier.</small>
 
 --
 
@@ -499,17 +545,17 @@ For **unweighted** graphs, BFS = single-source shortest paths.
 | frontier | **stack** / recursion | **queue** |
 | shape | deep, then backtrack | wide, in layers |
 | finds | reachability, cycles, topo | **shortest (unweighted)** |
-| memory | O(path length) | O(width) |
+| memory | O(longest path) | O(widest layer) |
 | cost | Θ(V+E) | Θ(V+E) |
 
 Same cost, one data-structure apart — different questions.
 
 --
 
-## Same loop, different container
+## One loop, four algorithms
 
 ```text
-   FRONTIER f;  f.add(start);  seen[start] = true;
+   FRONTIER f;  f.add(start);
    while (!f.empty()) {
        u = f.remove();                 // visit u
        for (v : adj[u])
@@ -517,22 +563,18 @@ Same cost, one data-structure apart — different questions.
    }
 ```
 
-`f` a **stack** → DFS.  `f` a **queue** → BFS.  **One algorithm.**
-
---
-
-## What BFS is good for
-
-- **shortest path** in an unweighted graph (fewest edges)
-- **levels / distances** from a source (e.g. "degrees of separation")
-- **is v reachable from s?** (like DFS, wider)
-- **nearest** matching vertex — BFS finds the closest first
+| frontier | explores | you get |
+|---|---|---|
+| stack (LIFO) | deepest first | **DFS** |
+| queue (FIFO) | oldest first | **BFS** |
+| PQ by path cost | cheapest first | **Dijkstra** (L09) |
+| PQ by "looks close" | most promising | **A\*** (games/AI) |
 
 --
 
 ## BFS beyond graphs: grids
 
-A grid or maze is an **implicit** graph — each cell is a vertex, edges to its 4 (or 8) neighbors:
+A grid or maze is an **implicit** graph — each cell a vertex, edges to its 4 neighbors:
 
 ```text
    . . # .        BFS from S → fewest moves to every
@@ -540,13 +582,13 @@ A grid or maze is an **implicit** graph — each cell is a vertex, edges to its 
    . . . E
 ```
 
-Same BFS code — just compute neighbors `(r±1,c), (r,c±1)` on the fly.
+Same BFS code — just compute neighbors `(r±1, c), (r, c±1)` on the fly.
 
 ---
 
 ### Part 4 · Digraphs & topological sort
 
-<small>(~30 min)</small>
+<small>(~32 min)</small>
 
 --
 
@@ -559,7 +601,7 @@ A **DAG** is a directed graph with **no cycles**:
    0 → 2 → 3       (no way to loop back)
 ```
 
-DAGs model **dependencies**: prerequisites, build order, task scheduling.
+DAGs model **dependencies**: course prerequisites, build order, spreadsheet formulas, package installs.
 
 --
 
@@ -572,105 +614,91 @@ A **topological order** lists the vertices so that **every edge points forward**
    valid orders:  0 1 2 3   or   0 2 1 3
 ```
 
-It's a schedule that **respects all dependencies**. Exists **iff** the graph is a DAG.
+A schedule that **respects all dependencies**. When does one exist?
 
 --
 
-## Topological sort via DFS
-
-Run DFS; record each vertex's **post-order** (finish) time; the topological order is the **reverse** of post-order.
+## A cycle kills it
 
 ```text
-   dfs(u): ... recurse into neighbors ...
-           on finishing u, push u onto a stack
-   answer = pop the stack until empty (reverse post-order)
+   a cycle  a → b → … → a  demands:
+      a before b,  b before …,  … before a
+   — no linear order can satisfy that
 ```
 
-A vertex finishes only **after** all its descendants → it belongs **before** them.
+So: topological order exists **⟹** the graph is a DAG.
+
+The converse — every DAG **has** one — needs an algorithm. First, a lemma.
 
 --
 
-## DFS post-order — worked
+## Lemma — every DAG has a source
+
+A **source** = a vertex with in-degree 0. Proof it exists:
 
 ```text
-   0→1  0→2  1→3  2→3
+   start anywhere; while the current vertex has ANY
+   incoming edge, step BACKWARD along one:
+        … → u → v      (v current → step to u)
 
-   dfs(0) → dfs(1) → dfs(3): 3 finishes   (post #1)
-            1 finishes                     (post #2)
-            dfs(2): 3 seen → 2 finishes    (post #3)
-            0 finishes                     (post #4)
-   post-order: 3 1 2 0
-   REVERSE →   0 2 1 3   ✓ a topological order
+   if you could always step, after V steps you'd have
+   listed V+1 vertices → one REPEATS → a cycle. ✗ DAG!
 ```
 
---
-
-## Strongly connected (preview)
-
-In a **digraph**, *connected* splits into two ideas:
-
-- **weakly connected** — connected if you ignore directions
-- **strongly connected** — a directed path **both ways** between every pair
-
-Finding strongly-connected components is another DFS application (Kosaraju / Tarjan) — beyond tonight.
+So the walk gets stuck — at a vertex with **no incoming edge**. ∎
 
 --
 
-## Topological sort via Kahn (in-degree)
+## Kahn's algorithm
 
-An alternative, BFS-flavored:
+Repeatedly output a **source**, delete it, repeat:
 
 ```text
    compute in-degree of every vertex
    queue all vertices with in-degree 0
-   repeat: dequeue u, output u,
-           decrement in-degree of each neighbor;
-           enqueue any that hit 0
+   repeat: dequeue u → OUTPUT u
+           for each edge u → v: in-degree(v)--
+                if v hits 0 → enqueue v
 ```
 
-Output order = a topological order. Leftover vertices ⇒ a **cycle**.
+Output order = a topological order. Θ(V + E).
+
+--
+
+## Why Kahn works
+
+- a DAG **always has a source** (the lemma) — no early stall
+- deleting a vertex → still a DAG → **induction** to the end
+- u → v is deleted only when u is **output** → u before v ✓
+- a cycle waits on itself → output stops **short** (< V)
 
 --
 
 ## Kahn — a worked run
 
 ```text
-   0→1  0→2  1→3  2→3      in-degree: 0:0 1:1 2:1 3:2
+   0 → 1  0 → 2  1 → 3  2 → 3    in-deg: 0:0 1:1 2:1 3:2
 
-   queue [0]                (only 0 has in-degree 0)
-   out 0 → dec 1,2 → both hit 0 → queue [1,2]
+   queue [0]                 (only source: 0)
+   out 0 → dec 1, 2 → both hit 0 → queue [1,2]
    out 1 → dec 3 → 3:1
    out 2 → dec 3 → 3:0 → queue [3]
    out 3
-   order: 0  1  2  3   ✓  (all 4 output → no cycle)
+   order: 0 1 2 3   ✓  (all 4 output → no cycle)
 ```
 
 --
 
-## Many valid orders
-
-Independent tasks can go in **either** order:
+## Your turn — Kahn on tonight's DAG
 
 ```text
-   0→1  0→2  1→3  2→3
-   valid:  0 1 2 3   AND   0 2 1 3
+   0 → 1, 2      2 → 3, 4      4 → 5, 7
+   1 → 3, 4      3 → 5         5 → 6
+
+   in-degrees?  first three vertices output?
 ```
 
-1 and 2 don't depend on each other, so both orders respect every edge. Topological order is **not unique** (unless the DAG is a single chain).
-
---
-
-## Practice — is it a DAG?
-
-```text
-   A → B → C → A          B → C → D
-        (has A→B→C→A)          A → B, A → C
-
-   left: a CYCLE → no topo order
-   right: acyclic → e.g. A B C D
-```
-
-If Kahn can't output all vertices (or DFS finds a back edge) → **not a DAG**.
+<small>In-degrees: 0:0 · 1:1 · 2:1 · 3:2 · 4:2 · 5:2 · 6:1 · 7:1. Only source: 0. Output 0 frees 1 and 2; taking the smaller first: **0, 1, 2** — and the full run continues 3, 4, 5, 6, 7.</small>
 
 --
 
@@ -679,22 +707,84 @@ If Kahn can't output all vertices (or DFS finds a back edge) → **not a DAG**.
 <div class="algo-viz" data-algo="graph-topo">
 <pre class="viz-fallback">
    Kahn's algorithm: repeatedly remove a vertex with
-   in-degree 0 (no unmet prerequisites), output it, and
-   decrement its neighbors. the output is a valid schedule.
+   in-degree 0, output it, decrement its neighbors.
+   add edge "6 2" and rebuild → a cycle → stuck vertices.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Repeatedly take a vertex with **in-degree 0** (all prerequisites done), output it, and relax its out-edges. The emitted sequence is a **topological order** — a schedule where every edge points forward.</small>
+<small>Run **Topo sort** (labels = live in-degrees). Then append `6 2`, **Build**, re-run: the cycle 2→3→5→6→2 strands six vertices in **red**. **DFS from 0** flags the back edge.</small>
 
 --
 
-## Cycle detection
+## Cycle detection — two free detectors
 
-A digraph has a topological order **iff** it has **no cycle**. Both methods detect cycles for free:
+A digraph has a topological order **iff** it has no cycle. Both methods report cycles:
 
-- **DFS** — an edge to a vertex still **on the recursion stack** = a back edge = a cycle
-- **Kahn** — if fewer than V vertices are output, the rest form a cycle
+- **Kahn** — fewer than V vertices come out; the leftovers contain the cycle
+- **DFS** — an edge to a vertex **still on the recursion stack** = a back edge = a cycle
+
+--
+
+## Topological sort via DFS
+
+Run DFS; record each vertex's **post-order** (finish time); the answer is the **reverse** of post-order.
+
+```text
+   dfs(u): … recurse into all of u's neighbors …
+           on FINISHING u, push u onto a stack
+   answer = pop the stack (reverse finish order)
+```
+
+A vertex finishes only **after** everything reachable from it → it belongs **before** all of that.
+
+--
+
+## DFS post-order — worked
+
+```text
+   0 → 1  0 → 2  1 → 3  2 → 3
+
+   dfs(0) → dfs(1) → dfs(3): 3 finishes   (post #1)
+            1 finishes                    (post #2)
+            dfs(2): 3 seen → 2 finishes   (post #3)
+            0 finishes                    (post #4)
+
+   post-order: 3 1 2 0
+   REVERSE →   0 2 1 3   ✓ a topological order
+```
+
+--
+
+## Proof — why reverse post-order works
+
+```text
+   claim: in a DAG, for EVERY edge u → v,
+          v finishes BEFORE u
+
+   when dfs(u) examines the edge u → v, v is either
+   1. unvisited    → dfs(v) runs INSIDE dfs(u)
+                     → v finishes first            ✓
+   2. finished     → v already done                ✓
+   3. on the stack → v is an ancestor: v ⇝ u exists,
+                     plus u → v  ⇒ a CYCLE — not a DAG ✗
+```
+
+Reverse finish order ⇒ u before v, for every edge. ∎
+
+--
+
+## Many valid orders
+
+Independent tasks can go in **either** order:
+
+```text
+   0 → 1  0 → 2  1 → 3  2 → 3
+   Kahn:              0 1 2 3
+   reverse post-order: 0 2 1 3     — both valid
+```
+
+Unless the DAG is a single chain, the topological order is **not unique**.
 
 --
 
@@ -702,11 +792,11 @@ A digraph has a topological order **iff** it has **no cycle**. Both methods dete
 
 | | Kahn (BFS-like) | DFS post-order |
 |---|---|---|
-| frontier | queue of in-degree-0 | recursion / stack |
-| detects a cycle | queue empties early | finds a back edge |
+| frontier | queue of sources | recursion / stack |
+| detects a cycle | output stops short | back edge |
 | feel | "peel off ready tasks" | "finish deep, reverse" |
 
-Both are **Θ(V + E)** and both detect cycles — pick by taste.
+Both **Θ(V + E)**, both detect cycles — pick by taste.
 
 --
 
@@ -714,48 +804,36 @@ Both are **Θ(V + E)** and both detect cycles — pick by taste.
 
 - **build systems** (Make, compilers) — compile in dependency order
 - **course prerequisites** — a valid class schedule
-- **spreadsheet** recalculation — evaluate cells in order
+- **spreadsheets** — recompute cells in formula order
 - **package managers** — install dependencies first
 - **task scheduling** with precedence constraints
+
+--
+
+## Strongly connected (preview)
+
+In a **digraph**, *connected* splits in two:
+
+- **weakly** — connected once you ignore directions
+- **strongly** — directed paths **both ways**, every pair
+
+Kosaraju / Tarjan find the strong components — built on tonight's DFS post-order.
 
 ---
 
 ### Part 5 · Wrap & ICA 08
 
-<small>(~10 min)</small>
-
---
-
-## Recap — representation & search
-
-- a graph is `(V, E)`; store it as an **adjacency list** — Θ(V + E)
-- **DFS** — stack/recursion, go deep, backtrack; connectivity, cycles, topo
-- **BFS** — queue, go wide in layers; **fewest-edge** shortest paths
-- both are **Θ(V + E)** — one data structure apart
-
---
-
-## Recap — DFS, BFS, topo
-
-| tool | frontier | answers |
-|---|---|---|
-| **DFS** | stack | reachable? cycle? topo order |
-| **BFS** | queue | fewest-edge shortest path |
-| **topo sort** | DFS post-order / Kahn | a dependency-respecting schedule |
-
-> DFS and BFS differ only by stack vs queue — deep vs wide — yet answer different questions.
+<small>(~6 min)</small>
 
 --
 
 ## The graph toolkit
 
-One representation, two searches, a handful of applications:
-
 - **represent** — adjacency list, Θ(V + E)
-- **explore** — DFS (deep, stack) · BFS (wide, queue)
-- **shortest (unweighted)** — BFS distance labels
-- **schedule / order** — topological sort (DAG only)
-- **detect cycles** — DFS back edge · Kahn leftover
+- **explore** — stack = **DFS**, queue = **BFS**, PQ = Dijkstra (next)
+- **shortest, unweighted** — BFS labels (proven)
+- **schedule a DAG** — Kahn or reverse post-order (proven)
+- **detect cycles** — DFS back edge, Kahn stopping short
 
 --
 
@@ -763,9 +841,9 @@ One representation, two searches, a handful of applications:
 
 In `ica08/ica08.cpp`, on an **adjacency-list** `Graph`:
 
-- implement **DFS** (recursive) and **BFS** (queue)
-- implement **topological sort** (Kahn or DFS post-order)
-- self-tests check reachability, BFS distances, a valid topo order
+- implement **DFS** (`dfsVisit`) and **BFS** (mark on enqueue)
+- **stretch (extra credit):** `topoSort` — Kahn
+- core tests: T1–T3, T6; **T4–T5 test the stretch**
 
-Build `-g`, run the self-tests, Valgrind-clean.
+Build `-g`, run the tests, **Valgrind-clean** (leak-graded).
 

@@ -56,13 +56,13 @@
     </div>
   </div>
 
-  <p>You implement the three traversals of the lecture on a directed adjacency list: the DFS recursion, BFS with a queue, and Kahn's topological sort. The <code>Graph</code> struct and the DFS wrapper are given; every test graph sorts its adjacency lists so your output order is deterministic.</p>
+  <p>You implement the lecture's two traversals on a directed adjacency list — the DFS recursion and BFS with a queue — plus Kahn's topological sort as an optional stretch. The <code>Graph</code> struct and the DFS wrapper are given; every test graph sorts its adjacency lists so your output order is deterministic.</p>
 
   <h2>Tasks</h2>
   <ol>
     <li><code>dfsVisit</code> — mark, record, recurse into each unvisited neighbor.</li>
     <li><code>bfs</code> — queue-driven; mark a vertex seen when you <strong>enqueue</strong> it (not when you dequeue).</li>
-    <li><code>topoSort</code> — Kahn's algorithm: in-degrees, a queue of zero-in-degree vertices, pop-append-decrement. A cycle leaves the output short.</li>
+    <li><code>topoSort</code> — <strong>stretch (extra credit; do it if you finish early)</strong>: Kahn's algorithm — in-degrees, a queue of zero-in-degree vertices, pop-append-decrement. A cycle leaves the output short.</li>
   </ol>
 
   <h2>The tests run themselves</h2>
@@ -71,10 +71,11 @@
   <ul>
     <li><strong>T1–T2</strong> DFS — reaches everything reachable, in depth-first order</li>
     <li><strong>T3</strong> BFS — visits by layer (fewest edges first)</li>
-    <li><strong>T4</strong> a valid topological order of the deck's DAG</li>
-    <li><strong>T5</strong> a cycle has <em>no</em> topological order (short output)</li>
-    <li><strong>T6</strong> a second graph — a chain — sanity-checks all three</li>
+    <li><strong>T4</strong> a valid topological order (<em>stretch</em>)</li>
+    <li><strong>T5</strong> a cycle has <em>no</em> topological order (short output — <em>stretch</em>)</li>
+    <li><strong>T6</strong> a second graph — a chain — sanity-checks everything you wrote</li>
   </ul>
+  <p>T4, T5, and T6's topo check report <code>[FAIL]</code> until you attempt the stretch — that costs you nothing; the core is DFS + BFS.</p>
 
   <div class="aside"><span class="tag">Memory is graded</span>
     When all tests pass, run
@@ -88,8 +89,9 @@
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
-    <tr><td>Mechanics (dfsVisit, bfs, topoSort)</td><td>6</td><td>checked against our own test harness</td></tr>
-    <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
+    <tr><td>Mechanics (dfsVisit 3 + bfs 3)</td><td>6</td><td>checked against our own test harness</td></tr>
+    <tr><td><code>topoSort</code> stretch</td><td>+EC</td><td>extra credit — any valid order passes</td></tr>
+    <tr><td>Your test battery passes (core checks: T1–T3, T6 DFS/BFS)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1 · stretch checks don't count against you</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
   </table>
 
