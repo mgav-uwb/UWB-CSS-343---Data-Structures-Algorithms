@@ -47,9 +47,13 @@
     });
   </script>
 
-  <!-- Unified library — heap lecture demos (insert/delMax sandbox, heapify, heapsort)
-       via the bridge. Every demo shows the SAME array in two synced views: the
-       raw array cells, and the array read as a complete binary tree. -->
+  <!-- Unified library — heap lecture demos via the bridge. ONE engine (MaxHeap +
+       synced array/tree views); each slide's spec exposes only the operations
+       the lecture has introduced by that point:
+         heap-insert  (Part 4)  Insert only — swim
+         heap-ops     (Part 5)  Insert + Delete Max — the live PQ
+         heap-heapify (Part 6)  raw array + Heapify only
+         heap-sort    (Part 8)  Heapify / Sort Down / Heapsort -->
   <script type="module">
     import { initDeckDemos, MaxHeap, ArrayRenderer, HeapTreeRenderer } from "../../lib/deck.js";
     const dualRenderer = () => [
@@ -57,6 +61,18 @@
       (c) => new HeapTreeRenderer(c),
     ];
     initDeckDemos({
+      "heap-insert": {
+        title: "heap",
+        make: () => new MaxHeap(),
+        initial: "1..15:1:ZIG",
+        renderer: dualRenderer(),
+        buildStep: (s, k) => s.insert(k),
+        ops: [
+          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
+        ],
+        costs: ["compare", "swap"], chrome: { showCosts: true },
+        width: 1000, height: [75, 130],
+      },
       "heap-ops": {
         title: "heap",
         make: () => new MaxHeap(),
@@ -70,10 +86,23 @@
         costs: ["compare", "swap"], chrome: { showCosts: true },
         width: 1000, height: [75, 130],
       },
-      "heap-build": {
+      "heap-heapify": {
         title: "heap",
         make: () => new MaxHeap(),
         initial: "1..36:1:RAND",
+        renderer: dualRenderer(),
+        loadRaw: true,
+        stateMsg: () => "raw array — press Heapify",
+        ops: [
+          { name: "Heapify", run: (s) => s.heapify() },
+        ],
+        costs: ["compare", "swap"], chrome: { showCosts: true },
+        width: 1000, height: [75, 130],
+      },
+      "heap-sort": {
+        title: "heap",
+        make: () => new MaxHeap(),
+        initial: "1..16:1:RAND",
         renderer: dualRenderer(),
         loadRaw: true,
         stateMsg: () => "raw array — press Heapify, then Sort Down (or Heapsort for both at once)",
