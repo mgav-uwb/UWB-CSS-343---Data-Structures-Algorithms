@@ -45,16 +45,30 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — interactive DP-table demos:
+         knapsack      (P1)  items A 3/2, B 4/3, C 5/4, D 6/5; type a capacity
+                             W (1..12) and watch the optimal subset change
+         edit-distance (P2)  type two words ("kitten sitting" is the classic)
+                             — table fill + edit-script traceback -->
   <script type="module">
     import { initDeckDemos, DP, MatrixRenderer } from "../../lib/deck.js";
     const table = () => ({
       make: () => new DP(),
       renderer: (c) => new MatrixRenderer(c, {}),
-      costs: ["compare", "write"], chrome: { showCosts: true }, width: 520, height: 176,
+      costs: ["compare", "write"], chrome: { showCosts: true }, width: 560, height: 150,
     });
     initDeckDemos({
-      "knapsack":      { ...table(), run: (s) => s.knapsack() },     // items A/B/C/D, W=5 → 7 (A+B)
-      "edit-distance": { ...table(), run: (s) => s.editDistance(), width: 620, height: 132 }, // kitten→sitting → 3 (7 rows)
+      "knapsack": { ...table(),
+        stateMsg: () => "items A 3/2 · B 4/3 · C 5/4 · D 6/5 — type a capacity W and press Knapsack",
+        ops: [{ name: "Knapsack W", arg: "number", run: (s, v) => s.knapsack(undefined, v) }],
+      },
+      "edit-distance": { ...table(), width: 620, height: 118,
+        stateMsg: () => 'type two words (e.g. "kitten sitting") and press Edit distance',
+        ops: [{ name: "Edit distance", arg: "string", run: (s, v) => {
+          const w = String(v).trim().split(/[\s,;]+/);
+          return s.editDistance(w[0], w[1]);
+        } }],
+      },
     });
   </script>
 </body>

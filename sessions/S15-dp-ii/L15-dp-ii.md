@@ -61,26 +61,18 @@ Which subset fits and is worth the most?
 
 --
 
-## Tonight's plan
-
-1. **0/1 knapsack** — take/skip (greedy failed)
-2. **edit distance** — insert / delete / replace
-3. **grid & interval** DP
-4. **traceback** + **space-saving**
-
-Same recipe as L14: **state → transition → fill → trace back**.
-
---
-
 ## Greedy fails (recall L12)
 
 ```text
-   by value/weight ratio: A=1.5  B=1.33  C=1.25  D=1.2
-   greedy takes A (2), then B (3) → weight 5, value 7
-   … here that's optimal — but shift the weights and it isn't
+   W = 6:   P (value 5, weight 4)   ratio 1.25  ← best
+            Q (value 3, weight 3)   ratio 1.00
+            R (value 3, weight 3)   ratio 1.00
+
+   greedy: take P → 2 capacity left, nothing fits → value 5
+   optimal: Q + R → weight 6, value 6              ✗ greedy loses
 ```
 
-One heavy high-value item can **block** two better light ones. **Try all → DP.**
+One high-ratio item **blocks** two better ones. **Try all → DP.**
 
 --
 
@@ -154,6 +146,20 @@ Fill row by row; each cell is max(skip, take).
 
 --
 
+## Your turn — one cell
+
+Compute `K[3][4]` (items A, B, C available; capacity 4). C = value 5, weight 4:
+
+```text
+   skip C:  K[2][4] = ?
+   take C:  5 + K[2][4 − 4] = ?
+   K[3][4] = ?
+```
+
+<small>skip = `K[2][4]` = **4** (B alone — A+B weigh 5, too much for capacity 4) · take = 5 + `K[2][0]` = 5 + 0 = **5** → `K[3][4]` = **5**: C alone beats B alone at capacity 4, matching the table's +C row.</small>
+
+--
+
 ## Knapsack — the code
 
 ```text
@@ -183,7 +189,7 @@ Two loops, the recurrence in the body — the standard 2-D DP shape.
 </pre>
 </div>
 
-<small>Each cell is `max(skip = above, take = value + K[i−1][w − wt])`. The bottom-right is the **optimal value**; the **traceback** marks which items were taken (**A + B → 7**). Full sandbox: the **Explore** page.</small>
+<small>Each cell = `max(skip = above, take = value + K[i−1][w − wt])`; the **traceback** marks the items taken. Type a different **W** and re-run: at 5 → **A+B (7)**; try 9, 12, 14.</small>
 
 --
 
@@ -315,6 +321,20 @@ The cheapest of the three operations wins — here, replace.
 
 --
 
+## Your turn — one more cell
+
+`D[2][1]`: turning `"ki"` into `"s"`:
+
+```text
+   'i' != 's' → 1 + min( D[1][1],   // delete 'i'
+                         D[2][0],   // insert 's'
+                         D[1][0] )  // replace i→s
+```
+
+<small>= 1 + min(**1**, **2**, **1**) = **2** — e.g. replace k→s then delete i. Check it against the table slide: row `i`, column `s` = 2. ✓</small>
+
+--
+
 ## Edit distance is a metric
 
 With unit costs, edit distance obeys the **metric** axioms:
@@ -329,7 +349,7 @@ So strings live in a **metric space** — you can cluster and nearest-neighbor t
 
 --
 
-## 🎬 Demo — edit-distance table
+## 🎬 Demo — edit distance
 
 <div class="algo-viz" data-algo="edit-distance">
 <pre class="viz-fallback">
@@ -341,7 +361,7 @@ So strings live in a **metric space** — you can cluster and nearest-neighbor t
 </pre>
 </div>
 
-<small>Match → inherit the **diagonal** (free); else **1 + min(up, left, diagonal)** = delete / insert / replace. Bottom-right = the distance (**3**); the **traceback** recovers the edit script.</small>
+<small>Match → **diagonal**; else **1 + min(up, left, diag)**. Type two words (`kitten sitting` → **3**) — the traceback recovers the **edit script**.</small>
 
 --
 
@@ -535,19 +555,6 @@ Coins `{1, 3, 4}`, fill `dp[0..6]`:
    dp[5]=min(1+dp[4], 1+dp[2], 1+dp[1]) = 2
    dp[6]=min(1+dp[5], 1+dp[3], 1+dp[2]) = 2   ← 3+3, greedy said 3
 ```
-
---
-
-## Grid DP — counting paths
-
-Swap `min` for **sum** to count the ways to reach each cell:
-
-```text
-   dp[i][j] = dp[i-1][j] + dp[i][j-1]      (paths from up + from left)
-   dp[0][*] = dp[*][0] = 1                 (one way along an edge)
-```
-
-An m×n grid has `C(m+n, m)` monotone paths — a DP that computes a binomial.
 
 --
 
@@ -757,25 +764,13 @@ You now hold the full toolkit — try them in this order:
 
 --
 
-## DP: worth the effort
-
-Once mastered, DP is a **superpower**:
-
-- turns exponential brute force into polynomial
-- solves optimization, counting, and feasibility problems alike
-- underlies **spell-check, diff, alignment, routing, scheduling, ML** (Viterbi, CTC)
-
-The hard part is the **state**; everything else is mechanical.
-
---
-
 ## ICA 15 — your turn
 
 In `ica15/ica15.cpp`:
 
-- implement **0/1 knapsack** (max value) with a 2-D table
-- implement **edit distance** (Levenshtein) with a 2-D table
-- add **traceback** for one of them (items taken / edit script)
+- **0/1 knapsack** (max value) — a 2-D table
+- **edit distance** (Levenshtein) — a 2-D table
+- **knapsackItems** — the traceback (items taken)
 
 Build `-g`, run the self-tests, Valgrind-clean.
 

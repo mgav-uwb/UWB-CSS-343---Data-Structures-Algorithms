@@ -321,8 +321,10 @@ Put symbols at the **leaves** of a binary tree; the path (**left=0, right=1**) i
         ( )
        0/  \1
       f    ( )        f = 0
-          0/  \1      c = 100  (down-down... )
-        ( )   ...     leaves only → prefix-free!
+          0/  \1      c = 100
+        ( )   ...
+       0/ \1
+      c    ...        leaves only → prefix-free!
 ```
 
 Since symbols are only at **leaves**, no code is a prefix of another.
