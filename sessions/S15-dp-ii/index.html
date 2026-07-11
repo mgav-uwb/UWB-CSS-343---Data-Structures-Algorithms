@@ -59,10 +59,12 @@
     });
     initDeckDemos({
       "knapsack": { ...table(),
+        noBuild: true,
         stateMsg: () => "items A 3/2 · B 4/3 · C 5/4 · D 6/5 — type a capacity W and press Knapsack",
         ops: [{ name: "Knapsack W", arg: "number", run: (s, v) => s.knapsack(undefined, v) }],
       },
       "edit-distance": { ...table(), width: 620, height: 118,
+        noBuild: true,
         stateMsg: () => 'type two words (e.g. "kitten sitting") and press Edit distance',
         ops: [{ name: "Edit distance", arg: "string", run: (s, v) => {
           const w = String(v).trim().split(/[\s,;]+/);

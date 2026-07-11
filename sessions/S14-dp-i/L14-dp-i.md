@@ -274,14 +274,14 @@ From a **billion** calls to **fifty** additions — the DP payoff in one table.
    fib(6) WITHOUT memo — every node recomputed:
               fib(6)
           fib(5)      fib(4)      ← fib(4) appears again below fib(5)
-       fib(4) fib(3) fib(3) fib(2)   … 15 calls
+       fib(4) fib(3) fib(3) fib(2)   … 25 calls in all
 
-   fib(6) WITH memo — each fib(k) computed ONCE (6 values), the
-   rest are cache hits. exponential tree → linear chain.
+   fib(6) WITH memo — each fib(k) computed ONCE, the rest are
+   cache hits. exponential tree → a linear memo row.
 </pre>
 </div>
 
-<small>The naive tree recomputes shared nodes exponentially; a **memo** computes each `fib(k)` **once** and reads the rest from the cache — the tree collapses to a linear chain of `n` values.</small>
+<small>Type `n`, press **Memo fib**: the recursion replays over the **memo row** — each `fib(k)` computed **once**, every repeat a **cache hit** that skips a whole subtree. For n = 10: **19 calls vs 177** naive.</small>
 
 --
 

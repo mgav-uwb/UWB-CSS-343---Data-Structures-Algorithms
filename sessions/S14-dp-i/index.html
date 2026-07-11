@@ -56,6 +56,7 @@
     initDeckDemos({
       "fib-memo": {
         make: () => new DP(),
+        noBuild: true,
         renderer: (c) => new MatrixRenderer(c, {}),
         stateMsg: () => "type n (2–20) and press Memo fib — each cell is computed ONCE",
         ops: [{ name: "Memo fib", arg: "number", run: (s, v) => s.fib(v) }],
@@ -64,6 +65,7 @@
       },
       "lcs": {
         make: () => new DP(),
+        noBuild: true,
         renderer: (c) => new MatrixRenderer(c, {}),
         stateMsg: () => 'type two words (e.g. "SUNDAY SATURDAY") and press LCS',
         ops: [{ name: "LCS", arg: "string", run: (s, v) => {
