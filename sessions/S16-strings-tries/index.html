@@ -45,17 +45,44 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — stage-scoped interactive demos:
+         trie          (P1/P2)  starts with {she, sells, sea, shells, shell};
+                                Insert / Search / Prefix ops take a word in the
+                                value box (Prefix = keysWithPrefix walk)
+         string-search (P4)     value box takes "TEXT PATTERN" (one word ⇒
+                                pattern over the default text); run Brute
+                                force, then KMP on the same pair and compare
+                                the compare counters -->
   <script type="module">
     import { initDeckDemos, Trie, StringSearch, TreeRenderer, ArrayRenderer } from "../../lib/deck.js";
+    const pair = (s, v) => {   // "TEXT PATTERN" | "PATTERN" → set text/pattern
+      const w = String(v).trim().toUpperCase().split(/\s+/);
+      s.build(w.length >= 2 ? [w[0], w[1]] : ["", w[0]]);
+    };
     initDeckDemos({
-      // build the sample {she,sells,sea,shells,shell}, then search "shells" (walk the shared path)
-      "trie": { make: () => { const t = new Trie(); t.build([]); return t; },
-                renderer: (c) => new TreeRenderer(c, {}), run: (s) => s.search("shells"),
-                costs: ["read"], chrome: { showCosts: true }, width: 840, height: 262 },
-      // default text/pattern (ABABABCABABABCAB / ABABC): KMP never backs up → first match at index 2
-      "string-search": { make: () => { const s = new StringSearch(); s.build([]); return s; },
-                renderer: (c) => new ArrayRenderer(c, { mode: "cells" }), run: (s) => s.kmp(),
-                costs: ["compare"], chrome: { showCosts: true }, width: 880, height: 170 },
+      "trie": {
+        make: () => { const t = new Trie(); t.build([]); return t; },
+        noBuild: true,
+        renderer: (c) => new TreeRenderer(c, {}),
+        stateMsg: (t) => `${t.inorder()} — type a word: Insert / Search / Prefix`,
+        ops: [
+          { name: "Insert", arg: "string", run: (s, v) => s.insert(String(v).trim().toLowerCase()) },
+          { name: "Search", arg: "string", run: (s, v) => s.search(String(v).trim().toLowerCase()) },
+          { name: "Prefix", arg: "string", run: (s, v) => s.prefix(String(v).trim().toLowerCase()) },
+        ],
+        costs: ["read", "compare"], chrome: { showCosts: true }, width: 840, height: 195,
+      },
+      "string-search": {
+        make: () => { const s = new StringSearch(); s.build([]); return s; },
+        noBuild: true,
+        renderer: (c) => new ArrayRenderer(c, { mode: "cells" }),
+        stateMsg: (s) => `${s.inorder()} — type "TEXT PATTERN" (or just a pattern), then pick an algorithm`,
+        ops: [
+          { name: "Brute force", arg: "string", run: (s, v) => { pair(s, v); return s.bruteForce(); } },
+          { name: "KMP", arg: "string", run: (s, v) => { pair(s, v); return s.kmp(); } },
+        ],
+        costs: ["compare"], chrome: { showCosts: true }, width: 900, height: 150,
+      },
     });
   </script>
 </body>

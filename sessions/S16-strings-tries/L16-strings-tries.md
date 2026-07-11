@@ -61,33 +61,24 @@ Exploit the **characters** → a trie: **O(L)**, independent of n, with prefix q
 
 --
 
-## Tonight's plan
-
-1. **tries** — string symbol tables keyed by character path
-2. **prefix operations** — autocomplete, longest-prefix
-3. **brute-force** substring search
-4. **KMP** & Boyer-Moore — search without re-reading
-
-The theme: **strings aren't opaque — exploit their character structure.**
-
---
-
 ## The trie idea
 
 Store keys along **paths of characters** from the root; each edge is one character:
 
 ```text
-   keys: she, sea, sells
-              root
-             /    \
-            s      …
+   keys: she, sea, sells      ● = a word ends here
+         (root)
             |
-      e ── h        (path s-h-e = "she")
-      |
-     (a)…
+            s                she   = s-h-e
+          /   \              sea   = s-e-a
+         e     h             sells = s-e-l-l-s
+        / \     \
+       a●  l     e●
+           |
+           l
+           |
+           s●
 ```
-
-A key ends at a node marked as a **word**.
 
 --
 
@@ -157,13 +148,27 @@ Cost = 5 character steps — regardless of how many keys the trie holds.
 Insert `"sea"` into a trie holding `{she, shell}`:
 
 ```text
-   s → (exists, shared with she/shell)
-   e → NO 'a'… wait: s has child h (she), need child e? 
-   's' node: add child 'e' (new) → 'a' (new) → mark word
-   → "she" and "sea" now share only the 's' node
+   s:  exists (shared with she/shell)     → follow it
+   e:  's' has no 'e' child               → CREATE it
+   a:  create, and mark it as a word ●
+
+   "sea" and "she" now share exactly one node: 's'
 ```
 
 Insert creates only the **missing** suffix; shared prefixes are reused.
+
+--
+
+## Your turn — draw the trie
+
+Insert `to, tea, ten` into an empty trie:
+
+```text
+   how many nodes (besides the root)?
+   which nodes are word-marked?
+```
+
+<small>Five: `t` → `o●` and `t` → `e` → `a●`, `n●`. The three ● word-ends are o, a, n; `t` and `e` are shared, unmarked path nodes. Searching "te" walks a valid path but `e` isn't a word → NOT found.</small>
 
 --
 
@@ -179,7 +184,7 @@ Insert creates only the **missing** suffix; shared prefixes are reused.
 </pre>
 </div>
 
-<small>Insert words sharing prefixes; each step follows **one character** down the tree. Search stops at a missing child (**absent**) or checks the **word-end** flag. Cost = the **key length**. Full sandbox: the **Explore** page.</small>
+<small>Type a word: **Insert** (only the missing suffix appears), **Search** (`shells` ✓ vs `shel` ✗), **Prefix** (`sh` → the subtree). Starts with the five sample words.</small>
 
 --
 
@@ -248,7 +253,7 @@ Three links per node: `left` (< c), `mid` (== c → next char), `right` (> c).
 | **prefix** queries | **yes** | no | no |
 | space | high (R-way) | moderate | moderate |
 
-Tries win when you need **prefixes** or key-length-bounded time.
+Tries win when **prefixes** matter.
 
 --
 
@@ -282,7 +287,7 @@ Find all keys starting with a prefix:
 ```
 
 ```text
-   prefix "sh" → she? no… shell, shells   (autocomplete!)
+   prefix "sh" → she, shell, shells   (autocomplete!)
 ```
 
 --
@@ -383,8 +388,6 @@ One structure, in Θ(L), answers:
 - **longestPrefixOf(q)** — IP routing, word segmentation
 - **wildcard / fuzzy** — spell-check, "did you mean?"
 
-The character tree **is** the prefix index — no extra structures.
-
 ---
 
 ### Part 3 · Brute-force substring search
@@ -399,8 +402,8 @@ Find the first occurrence of a **pattern** (length m) inside a **text** (length 
 
 ```text
    text:    A B A B A B C A B A B A B C A B
-   pattern:         A B A B C
-   → first match at index 8
+   pattern:     A B A B C
+   → first match at index 2   (text[2..6] = ABABC)
 ```
 
 `text.indexOf(pattern)`, `grep`, "find" in an editor — all this.
@@ -536,6 +539,20 @@ Pattern `"AABAA"`:
 
 --
 
+## Your turn — failure function
+
+Pattern `"ABABAC"` — fill the table:
+
+```text
+   j:      0  1  2  3  4  5
+   P:      A  B  A  B  A  C
+   fail:   ?  ?  ?  ?  ?  ?
+```
+
+<small>`fail = [0, 0, 1, 2, 3, 0]` — the ABAB self-overlap grows (A, AB, ABA…), and the C at the end matches no prefix, so it resets to 0. A mismatch at `j=5` falls back to `j = fail[4] = 3`.</small>
+
+--
+
 ## The failure function / DFA
 
 Precompute, for the **pattern**, how far to fall back on a mismatch:
@@ -608,7 +625,7 @@ int kmp(const string& t, const string& p, vector<int>& fail) {
 </pre>
 </div>
 
-<small>**Brute force** slides by one and re-scans; **KMP** jumps the pattern via the failure table and **never backs up the text**. Compare the **compare counts**. Full sandbox: the **Explore** page.</small>
+<small>Run **Brute force**, then **KMP** on the same pair and compare the **compare counters**. The default is the intro example; try `AAAAAAAAAAAB AAAB` — brute force's worst case, KMP unbothered.</small>
 
 --
 
