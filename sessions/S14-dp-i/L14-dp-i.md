@@ -267,21 +267,21 @@ From a **billion** calls to **fifty** additions — the DP payoff in one table.
 
 --
 
-## 🎬 Memoization collapses the tree
+## 🎬 The race — the whole arc
 
-<div class="algo-viz" data-algo="fib-memo">
+<div class="algo-viz" data-algo="fib-race">
 <pre class="viz-fallback">
-   fib(6) WITHOUT memo — every node recomputed:
-              fib(6)
-          fib(5)      fib(4)      ← fib(4) appears again below fib(5)
-       fib(4) fib(3) fib(3) fib(2)   … 25 calls in all
-
-   fib(6) WITH memo — each fib(k) computed ONCE, the rest are
-   cache hits. exponential tree → a linear memo row.
+   the SAME fib(10), one basic step per tick, in lockstep:
+   naive:      177 calls  ...still expanding the tree
+   memoized:    19 calls  ✓ done
+   2 vars:      10 adds   ✓ done (only ever TWO cells)
+   the linear versions finish and freeze; naive keeps
+   recomputing values it already knew.
+[ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Type `n`, press **Memo fib**: the recursion replays over the **memo row** — each `fib(k)` computed **once**, every repeat a **cache hit** that skips a whole subtree. For n = 10: **19 calls vs 177** naive.</small>
+<small>**One step per tick**: **2 vars** done first (two cells — **Θ(1) space**), **memoized** next; naive crawls — **⏩ 1024×**. **10 · 19 · 177** steps (n = 10).</small>
 
 --
 

@@ -46,22 +46,32 @@
     });
   </script>
   <!-- Unified library — interactive DP demos:
-         fib-memo (P2)  Memo fib n (n clamped 2..20): the memo row fills once
-                        per value; the call counter vs 2·fib(n+1)−1 naive calls
-                        IS the exponential-vs-linear story
+         fib-race (P2)  naive vs memoized vs 2-variable fib n (clamped 2..16),
+                        one basic step per tick in LOCKSTEP (speed select) —
+                        the linear versions finish and freeze (2-var: n adds,
+                        memo: 2n−1 calls) while naive crawls toward
+                        2·fib(n+1)−1; ⏩ 1024× sweeps the exponential tail
          lcs      (P3)  LCS of any two words (type "SUNDAY SATURDAY" in the
                         value box) — table fill + traceback -->
   <script type="module">
     import { initDeckDemos, DP, MatrixRenderer } from "../../lib/deck.js";
+    const clampN = (v) => Math.max(2, Math.min(16, Math.trunc(v) || 10)); // all racers must solve the SAME n
     initDeckDemos({
-      "fib-memo": {
-        make: () => new DP(),
-        noBuild: true,
-        renderer: (c) => new MatrixRenderer(c, {}),
-        stateMsg: () => "type n (2–20) and press Memo fib — each cell is computed ONCE",
-        ops: [{ name: "Memo fib", arg: "number", run: (s, v) => s.fib(v) }],
-        costs: ["call", "cache-hit", "write"], chrome: { showCosts: true },
-        width: 900, height: 120,
+      "fib-race": {
+        stacked: true, columns: "3.2fr 1fr", // naive spans the top row; memo + 2-var share the second
+        panels: [
+          { title: "naive (no memo)", make: () => new DP(), renderer: (c) => new MatrixRenderer(c, {}),
+            op: (s, v) => s.fibNaive(clampN(v)), width: 900, height: 130, fullRow: true,
+            stat: (s, f) => `${f.counters["call"] || 0} calls · ${f.counters["recompute"] || 0} recomputes` },
+          { title: "memoized", make: () => new DP(), renderer: (c) => new MatrixRenderer(c, {}),
+            op: (s, v) => s.fib(clampN(v)), width: 660, height: 90,
+            stat: (s, f) => `${f.counters["call"] || 0} calls · ${f.counters["cache-hit"] || 0} cache hits` },
+          { title: "2 vars", make: () => new DP(), renderer: (c) => new MatrixRenderer(c, {}),
+            op: (s, v) => s.fibTwoVar(clampN(v)), width: 200, height: 90,
+            stat: (s, f) => `${f.counters["add"] || 0} adds · 2 cells` },
+        ],
+        opLabel: "Race fib", valLabel: "n (2–16)", placeholder: "10", initialValue: 10,
+        speed: 300, speedControl: true, finishButton: true,
       },
       "lcs": {
         make: () => new DP(),
