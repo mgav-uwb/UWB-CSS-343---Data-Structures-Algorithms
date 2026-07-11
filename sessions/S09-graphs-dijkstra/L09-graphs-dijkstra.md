@@ -5,20 +5,30 @@
   KaTeX: never two "_" on one line. Verify at 1280×620; code/ASCII lines ≤ ~56 chars.
 
   Reading (pre): Sedgewick & Wayne §4.4 (Shortest Paths) + ODS Ch 12.
-  THROUGH-LINE: BFS found FEWEST-EDGE paths. Add edge WEIGHTS (miles, cost) and
-  "shortest" means least total weight — BFS no longer works. The core operation
-  is edge RELAXATION (found a cheaper way to v? lower dist[v]). Dijkstra relaxes
-  greedily: repeatedly SETTLE the nearest unsettled vertex and relax its edges.
-  Correct for NONNEGATIVE weights; a priority queue makes it O(E log V). It's
-  BFS with a priority queue instead of a plain queue.
+  THROUGH-LINE: BFS found FEWEST-EDGE paths. Add edge WEIGHTS and "shortest"
+  means least total weight — BFS breaks. The core operation is edge RELAXATION
+  (found a cheaper way to v? lower dist[v]); every SP algorithm is relaxation in
+  some order. Dijkstra's order is greedy — settle the nearest unsettled vertex —
+  PROVEN correct for nonnegative weights by the leave-the-settled-set chain, and
+  made fast (O(E log V)) by the L06 heap. Dijkstra = BFS + a priority queue.
+
+  Worked examples: the 4-vertex graph 0→1(2) 0→2(5) 1→2(1) 1→3(7) 2→3(3) is the
+  main trace (dist 0 2 3 6) — IT IS ICA 09's test T1. The practice graph
+  0→1(4) 0→2(1) 2→1(2) 1→3(3) is ICA T2 (detour beats direct, dist[1]=3).
+  The DEMOS run on the lib's 8-vertex weighted digraph (triples
+  "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1,
+  4 7 7") — mirrored on the "graph for tonight" slide and the your-turn
+  (settle order 0 2 1 3 4 5 6 7; final dist 0 3 2 8 10 13 14 17; improving
+  relaxations 2→1, 1→3, 3→4, 4→5). Appending "7 1 -20" is the Part-4 beat:
+  the post-run edge re-check flags dist[1] as broken (17−20 = −3 < 3).
 
   Covered in Spring-26 (Kim, Graph deck): Dijkstra single-source shortest path,
   pseudocode, undirected note, O(V²) analysis. Sedgewick §4.4 adds the PQ
   implementation (O(E log V)), the relaxation framing, and negative-weight limits.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 weighted+SP 22 0:26 P2 relaxation 20
-  0:46 BREAK 10 0:56 P3 Dijkstra+PQ 34 1:30 P4 correctness+variants 24
-  1:54 P5 wrap 10 2:04 ICA 2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 weighted+SP 20 0:24 P2 relaxation 18
+  0:42 BREAK 10 0:52 P3 Dijkstra+PQ 32 1:24 P4 correctness+limits 28
+  1:52 P5 wrap 6 1:58 ICA 2:30 end.
 -->
 
 ## CSS 343
@@ -44,15 +54,15 @@ _Secondary:_ ODS Ch 12. Reading quiz due before class.
 
 ---
 
-### Part 1 · Weighted graphs & the shortest-path problem
+### Part 1 · Weighted graphs & shortest paths
 
-<small>(~22 min)</small>
+<small>(~20 min)</small>
 
 --
 
 ## Recall: BFS shortest paths
 
-BFS found the path with the **fewest edges** — because every edge counted the same (1 step).
+BFS found the path with the **fewest edges** — and we proved it, because every edge counted the same (1 step).
 
 ```text
    0 —— 1 —— 3      BFS: 0→3 in 2 edges
@@ -62,20 +72,9 @@ But what if edges have **different costs**?
 
 --
 
-## Tonight's plan
-
-1. **weighted graphs** — edges carry costs; "shortest" = least total weight
-2. **relaxation** — the one operation every SP algorithm uses
-3. **Dijkstra** — greedy: settle the nearest, relax its edges
-4. **limits** — nonnegative only; Bellman-Ford otherwise
-
-The one-liner: **Dijkstra = BFS with a priority queue.**
-
---
-
 ## Weighted graphs
 
-Each edge carries a **weight** (a nonnegative number):
+Each edge carries a **weight**:
 
 ```text
    0 —2— 1        weights = distance, time,
@@ -85,7 +84,7 @@ Each edge carries a **weight** (a nonnegative number):
    2 —8— 3
 ```
 
-Now the **cost of a path** is the **sum** of its edge weights.
+The **cost of a path** is now the **sum** of its edge weights.
 
 --
 
@@ -97,7 +96,7 @@ Now the **cost of a path** is the **sum** of its edge weights.
    cost = 4 + 2 + 3 = 9
 ```
 
-Among all s→t paths, the **shortest** is the one with the **minimum sum**. There may be several paths — we want the cheapest.
+Among all s→t paths, the **shortest** is the one with the **minimum sum**. There may be many routes — we want the cheapest.
 
 --
 
@@ -140,7 +139,7 @@ A graph can have **exponentially many** s → t paths — listing them is hopele
    even a modest grid has millions of routes
 ```
 
-Dijkstra finds shortest distances to **all V** vertices in **O(E log V)** — **without** enumerating a single path, by building them up through relaxation.
+Dijkstra finds shortest distances to **all V** vertices in **O(E log V)** — **without** enumerating a single path.
 
 --
 
@@ -162,16 +161,17 @@ Store one **parent[v]** (the edge used to reach v) → reconstruct any path.
 
 ## Optimal substructure
 
-Shortest paths have a key property:
-
 > Any **sub-path** of a shortest path is itself a **shortest path**.
 
 ```text
-   if s → … → u → … → t is shortest,
-   then s → … → u is the shortest route to u
+   if  s → … → u → … → t  is shortest,
+   then  s → … → u  is the shortest route to u
+
+   why: a cheaper s ⇝ u prefix could be swapped in,
+        beating the "shortest" path — contradiction
 ```
 
-This is *why* relaxation works — building shortest paths from shorter ones.
+This is *why* building paths from shorter ones can work at all.
 
 --
 
@@ -211,13 +211,31 @@ Dijkstra requires **all weights ≥ 0**.
    distances, times, costs, capacities → naturally ≥ 0
 ```
 
-Negative weights break the greedy logic (Part 4). For negatives, use **Bellman-Ford** instead.
+Negative weights break the greedy logic — Part 4 shows the **exact line of the proof** that fails.
+
+--
+
+## The graph for tonight
+
+```text
+   0→1(4)  0→2(2)  2→1(1)  1→3(5)   2→3(8)  2→4(10)
+   3→4(2)  3→5(6)  4→5(3)  5→6(1)   4→7(7)
+```
+
+<div class="algo-viz" data-algo="wgraph-tour">
+<pre class="viz-fallback">
+   8 vertices, 11 weighted directed edges.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Same 8 vertices as L08, now with **weights**. The demos run on this graph — the triples above are its build string.</small>
 
 ---
 
 ### Part 2 · Edge relaxation
 
-<small>(~20 min)</small>
+<small>(~18 min)</small>
 
 --
 
@@ -262,35 +280,39 @@ Next time, if some path gives `dist[v] = 6`, we'd relax again to 6. `dist[v]` on
 
 --
 
+## The invariant: dist never lies low
+
+`dist[v]` is always the length of **some real path** s → v (or ∞):
+
+```text
+   δ(v) = the TRUE shortest distance
+
+   δ(v)  ≤  dist[v]        a real path can't beat the best
+   and relaxation keeps it that way:
+   dist[u] + w  ≥  δ(u) + w  ≥  δ(v)
+```
+
+When **no edge relaxes** any more, every `dist[v] = δ(v)`.
+
+--
+
 ## One primitive, many algorithms
 
 All shortest-path algorithms just relax edges — differing only in the **order**:
 
-| algorithm | relaxation order |
-|---|---|
-| **BFS** | by layer (unit weights) |
-| **Dijkstra** | nearest-first (greedy) |
-| **Bellman-Ford** | all edges, V−1 times |
-| **DAG-SP** | topological order |
-
---
-
-## The relaxation invariant
-
-At all times: `dist[v]` is the length of **some** path s → v (or ∞).
-
-- so `dist[v]` is always an **upper bound** on the true shortest distance
-- relaxation only **tightens** it
-- when no edge can be relaxed, every `dist[v]` is **exact**
+| algorithm | relaxation order | cost |
+|---|---|---|
+| **BFS** | by layer (unit weights) | Θ(V+E) |
+| **DAG-SP** | topological order (L08!) | Θ(V+E) |
+| **Dijkstra** | nearest-first (greedy) | O(E log V) |
+| **Bellman-Ford** | all edges, V−1 rounds | O(V·E) |
 
 --
 
 ## The order of relaxation matters
 
-Every shortest-path algorithm relaxes edges — they differ in the **order**:
-
-- **bad order** → the same edge relaxes many times (Bellman-Ford: V−1 rounds)
-- **right order** — process vertices **nearest-first** → each edge relaxes **once**
+- **bad order** → the same edge must relax **many times** (Bellman-Ford: V−1 full rounds)
+- **right order** → process vertices **nearest-first**: each vertex is finished when its turn comes, each edge relaxes **once**
 
 That "nearest-first" ordering **is Dijkstra**.
 
@@ -322,13 +344,13 @@ Relaxation records **`parent[v]`** — the edge that gave v its best distance. T
 </pre>
 </div>
 
-<small>Each relaxation lowers a tentative label when a cheaper route appears. The full **Dijkstra** demo in Part 3 shows relaxation happening in the right order.</small>
+<small>Watch each relaxation lower a label — including one that **fails** (13 ≥ 3: no improvement). Part 3's demo runs the full algorithm on tonight's graph.</small>
 
 ---
 
 ### Part 3 · Dijkstra's algorithm
 
-<small>(~34 min)</small>
+<small>(~32 min)</small>
 
 --
 
@@ -343,16 +365,17 @@ Repeatedly pick the **unsettled vertex with the smallest tentative distance**, d
 
 --
 
-## Why greedy works (nonnegative)
+## Why the nearest is safe — intuition
 
 When you settle the **nearest** unsettled vertex u, no other route to u can be shorter:
 
 ```text
-   any other path to u must go through a vertex that is
-   ALREADY farther away — and edges only ADD weight (≥0)
+   any other route must first EXIT the settled region
+   through some other unsettled vertex — already as far
+   as u — and then edges only ADD weight (≥ 0)
 ```
 
-So `dist[u]` is already final. **This is where nonnegativity is essential.**
+Part 4 turns this into a real proof. **Nonnegativity is doing the work.**
 
 --
 
@@ -361,10 +384,10 @@ So `dist[u]` is already final. **This is where nonnegativity is essential.**
 Because settling the nearest vertex makes its distance **final**:
 
 - each vertex is **settled exactly once**
-- we never reprocess it (skip stale PQ entries)
-- so we make **one pass**, not V−1
+- stale PQ entries are **skipped**, never reprocessed
+- one pass — not Bellman-Ford's V−1 rounds
 
-That's why Dijkstra is **O(E log V)** and Bellman-Ford is **O(V·E)**.
+Correctness of the greedy step is what **buys the speed**.
 
 --
 
@@ -374,7 +397,7 @@ That's why Dijkstra is **O(E log V)** and Bellman-Ford is **O(V·E)**.
 dist[s] = 0;  all others ∞;  PQ = { (0, s) }
 while (PQ not empty) {
     u = PQ.extractMin();          // nearest unsettled
-    if (settled[u]) continue;
+    if (settled[u]) continue;     // stale entry — skip
     settled[u] = true;
     for (Edge e : adj[u])         // relax out-edges
         if (dist[u] + e.w < dist[e.to]) {
@@ -398,33 +421,19 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
 
 --
 
-## 🎬 Demo — Dijkstra
-
-<div class="algo-viz" data-algo="dijkstra">
-<pre class="viz-fallback">
-   Dijkstra from vertex 0 on a weighted digraph: repeatedly
-   SETTLE the nearest unsettled vertex (its label is now
-   final) and RELAX its out-edges (lower a neighbor's label
-   if cheaper). accent edges form the shortest-paths tree.
-[ interactive demo — open this deck on the course site ]
-</pre>
-</div>
-
-<small>Watch the **settle → relax** loop: the smallest tentative label becomes **final**, then its out-edges relax its neighbors. Labels are running **shortest distances**; the bold **tree edges** are the shortest-paths tree. Full sandbox: the **Explore** page.</small>
-
---
-
 ## Dijkstra — a worked example
 
 ```text
    0→1(2)  0→2(5)  1→2(1)  1→3(7)  2→3(3)
 
    settle 0 (0): relax → dist 1=2, 2=5
-   settle 1 (2): relax → 2: 2+1=3 < 5 ✓; 3: 2+7=9
+   settle 1 (2): relax → 2: 2+1=3 < 5 ✓;  3: 2+7=9
    settle 2 (3): relax → 3: 3+3=6 < 9 ✓
    settle 3 (6): done
    dist: 0 2 3 6
 ```
+
+<small>This exact graph is **ICA 09's test T1**.</small>
 
 --
 
@@ -436,45 +445,61 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
    from 0: which vertex settles 2nd?  what is dist[1]?
 ```
 
-<small>Settle 0 (0) → relax: 1=4, 2=1. Nearest unsettled is **2** (dist 1) → **settles 2nd**; relax 2→1: 1+2=3 < 4 → **dist[1]=3**. Then settle 1 (3), then 3 (6).</small>
+<small>Settle 0 (0) → relax: 1=4, 2=1. Nearest unsettled is **2** (dist 1) → **settles 2nd**; relax 2→1: 1+2=3 &lt; 4 → **dist[1]=3**. Then settle 1 (3), then 3 (6). This graph is **ICA test T2**.</small>
 
 --
 
-## Finding the min: a priority queue
-
-The bottleneck is "which unsettled vertex is nearest?" A **priority queue** (min-heap) answers it fast:
+## Your turn — tonight's graph
 
 ```text
-   PQ.push({dist, vertex})     — on each relaxation
-   PQ.extractMin()             — the nearest unsettled
+   0→1(4)  0→2(2)  2→1(1)  1→3(5)   2→3(8)  2→4(10)
+   3→4(2)  3→5(6)  4→5(3)  5→6(1)   4→7(7)
+
+   from 0: which vertex settles 3rd?  what is dist[5]?
 ```
 
-The **binary heap** from L06 is exactly this PQ.
+<small>Settle order starts 0 (0), 2 (2), **1 (3)** — the detour 0→2→1 beats the direct 4. And **dist[5] = 13** via 0→2→1→3→4→5 = 2+1+5+2+3: every hop an improving relaxation.</small>
 
 --
 
-## Dijkstra uses the L06 heap
+## 🎬 Demo — Dijkstra
 
-The priority queue is exactly the **binary heap** we built in Session 6:
+<div class="algo-viz" data-algo="dijkstra">
+<pre class="viz-fallback">
+   Dijkstra on tonight's weighted digraph: repeatedly
+   SETTLE the nearest unsettled vertex (label now final)
+   and RELAX its out-edges. accent edges = the
+   shortest-paths tree.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Run **Dijkstra from 0** — the settle → relax rhythm, four improving relaxations. Then **from 2**: vertex 0 stays **∞**. The `u v w` triples are editable.</small>
+
+--
+
+## Finding the min: the L06 heap
+
+The bottleneck is "which unsettled vertex is nearest?" — a **min-heap priority queue**:
 
 ```text
    push({dist, v})    → heap insert  (swim)   O(log V)
    extractMin()       → heap delMin  (sink)   O(log V)
 ```
 
-In C++: `priority_queue<pair<int,int>, …, greater<>>` (a min-heap of `{dist, vertex}`).
+In C++: `priority_queue<pair<long,int>, …, greater<>>`. **This is why we built heaps first.**
 
 --
 
 ## Lazy deletion
 
-When we relax v, we **push a new** (smaller) entry — we don't update the old one. Old entries become **stale**:
+When we relax v, we **push a new** (smaller) entry — we don't update the old one. Old entries go **stale**:
 
 ```text
-   pop a vertex → if already settled, SKIP it (stale)
+   pop a vertex → already settled?  SKIP it (stale)
 ```
 
-Simpler than decrease-key, and the extra entries cost only a log factor.
+Simpler than decrease-key; the duplicates cost only a log factor.
 
 --
 
@@ -487,21 +512,22 @@ Simpler than decrease-key, and the extra entries cost only a log factor.
 | PQ needs | plain heap | **indexed** heap |
 | simpler? | **yes** | no |
 
-Both are O(E log V). Lazy is simpler and standard with `std::priority_queue`.
+Both are O(E log V). Lazy is the standard choice with `std::priority_queue`.
 
 --
 
-## Complexity
-
-With a binary-heap PQ:
+## Cost — the aligned count
 
 ```text
-   each edge → at most one push          (E pushes)
-   each push/pop → O(log V)
-   total: O((V + E) log V)  ≈  O(E log V)
-```
+   pushes:      ≤ E   (one per improving relaxation)
+   pops:        ≤ E   (each O(log E))
+   edge scans:  Σ out-deg = E
+   settles:     V
 
-vs the simple array-scan version: **O(V²)** (better for dense graphs).
+   total = O( (V + E) · log V ) = O(E log V)
+
+   log E ≤ log V² = 2·log V   — same order
+```
 
 --
 
@@ -516,13 +542,13 @@ No priority queue — just **scan all vertices** for the nearest unsettled one:
    total: O(V²)
 ```
 
-Simpler; **better for dense graphs** (E ≈ V²). This is Spring-26's version.
+Simpler; **better for dense graphs** (E ≈ V², where V² < E log V).
 
 --
 
 ## Source → target: stop early
 
-If you only need the distance to **one** target t (not all vertices):
+If you only need the distance to **one** target t:
 
 ```text
    as soon as t SETTLES, its dist is final → stop
@@ -534,31 +560,74 @@ No need to settle the rest — a real speedup for point-to-point queries (and th
 
 ## Common Dijkstra bugs
 
-- no **settled check** → reprocessing stale PQ entries (still correct, but slow / infinite if careless)
+- no **stale skip** → reprocessing old PQ entries (slow, or wrong with careless updates)
 - **negative** weights → silently **wrong** answers
-- lowering `dist[v]` but **not pushing** to the PQ → missed relaxations
-- marking settled on **push** instead of **pop** → a vertex may still improve while queued
+- lowering `dist[v]` but **not pushing** → the improvement never propagates
+- settling on **push** instead of **pop** → a vertex is frozen while it could still improve
 
 ---
 
-### Part 4 · Correctness, variants & limits
+### Part 4 · Correctness & limits
 
-<small>(~24 min)</small>
+<small>(~28 min)</small>
 
 --
 
-## Why nonnegative weights matter
+## The proof — setup
+
+Let S = the settled set (labels already final). Dijkstra is about to settle **u**, the nearest unsettled vertex. **Claim: dist[u] = δ(u).**
 
 ```text
-      0 —1—> 1
-      |       |
-      2      −4       greedy settles 1 at dist 1…
-      |       |       …but 0→2→1 costs 2 + (−4) = −2!
-      v       v
-      2 ——————
+   take ANY path P from s to u.
+   P starts inside S (at s) and ends outside (at u)
+   → P crosses the boundary somewhere:
+
+   let  x → y  be P's FIRST edge with  x ∈ S,  y ∉ S
 ```
 
-Greedy settles 1 too early; a later **negative** edge would have beaten it. **Dijkstra fails.**
+--
+
+## The proof — the chain
+
+```text
+   cost(P) =  cost(s ⇝ x)  +  w(x→y)  +  cost(y ⇝ u)
+
+           ≥     δ(x)      +  w(x→y)  +  0      ← weights ≥ 0
+           ≥   dist[y]                 ← y relaxed when x settled
+           ≥   dist[u]                 ← u is the NEAREST unsettled
+
+   every path to u costs ≥ dist[u]  ⇒  dist[u] = δ(u)  ∎
+```
+
+--
+
+## Where negative weights break it
+
+```text
+   s ──1──→ a        greedy settles a at dist 1 — final!
+   │        ↑
+   2       −4        but s→b→a = 2 + (−4) = −2
+   │        │        the cheaper route arrives too late
+   └──→ b ──┘
+```
+
+The proof's `cost(y ⇝ u) ≥ 0` line **fails** — a negative tail CAN undercut a settled label. **Dijkstra silently returns 1, not −2.**
+
+--
+
+## 🎬 Demo — watch it break
+
+<div class="algo-viz" data-algo="dijkstra-neg">
+<pre class="viz-fallback">
+   append "7 1 -20" to the edge triples and rebuild:
+   Dijkstra still reports dist[1] = 3, but the final
+   edge re-check finds 7→1 still relaxes (17−20 = −3):
+   the settled label was WRONG.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Append `7 1 -20`, **Build**, run **Dijkstra from 0**: it happily reports dist[1] = 3 — then the final **edge re-check** flags 7 → 1 in **red**: 17 − 20 = −3 &lt; 3. The greedy guarantee is gone.</small>
 
 --
 
@@ -585,7 +654,7 @@ If a cycle's weights **sum to negative**, "shortest path" is **undefined** — l
    each lap subtracts 2 → no minimum exists
 ```
 
-Bellman-Ford **detects** this: if any edge still relaxes on a **V-th** pass → a negative cycle.
+Bellman-Ford **detects** this: an edge still relaxing on a **V-th** pass → a negative cycle.
 
 --
 
@@ -594,11 +663,11 @@ Bellman-Ford **detects** this: if any edge still relaxes on a **V-th** pass → 
 A surprising asymmetry:
 
 ```text
-   SHORTEST path (nonneg) → easy   (Dijkstra, O(E log V))
-   LONGEST simple path    → NP-hard (no efficient algorithm known)
+   SHORTEST path (nonneg) → easy    (Dijkstra, O(E log V))
+   LONGEST simple path    → NP-hard (no efficient algorithm)
 ```
 
-And you can't just negate weights — that creates negative cycles, which break everything.
+And you can't just negate weights — that **creates negative cycles**, which break everything.
 
 --
 
@@ -619,10 +688,10 @@ Same algorithm; the PQ replaces the plain queue.
 
 ## Dijkstra vs Prim
 
-Both grow a tree by greedily pulling the nearest frontier vertex from a PQ. They differ in the key:
+Both grow a tree by greedily pulling the nearest frontier vertex from a PQ. They differ **only in the key**:
 
 - **Dijkstra** — `dist[u] + w` (distance from the **source**)
-- **Prim (MST)** — `w` (edge weight to the **tree**)
+- **Prim (MST, L11)** — `w` (cheapest edge to the **tree**)
 
 --
 
@@ -631,98 +700,64 @@ Both grow a tree by greedily pulling the nearest frontier vertex from a PQ. They
 | situation | use | cost |
 |---|---|---|
 | unweighted | **BFS** | Θ(V+E) |
-| nonnegative weights, sparse | **Dijkstra + heap** | O(E log V) |
+| DAG (any weights) | **topo-order relax** | Θ(V+E) |
+| nonnegative, sparse | **Dijkstra + heap** | O(E log V) |
 | nonnegative, dense | **Dijkstra + array** | O(V²) |
 | negative weights | **Bellman-Ford** | O(V·E) |
-| one target + a heuristic | **A\*** | ≤ Dijkstra |
 
 --
 
 ## A* — a preview
 
-Dijkstra explores in **all** directions equally. **A\*** adds a **heuristic** estimate of the remaining distance to steer toward the goal:
+Dijkstra explores in **all** directions equally. **A\*** adds a **heuristic** estimate of the remaining distance:
 
 ```text
-   priority = dist[u] + h(u)      h = estimated cost u → goal
+   priority = dist[u] + h(u)      h ≈ cost still to go
 ```
 
-Same relaxation, smarter order — faster for **point-to-point** (e.g. GPS).
+Same relaxation, smarter order — faster **point-to-point** (GPS).
 
 --
 
-## A* — when is it correct?
+## A* — when is it still exact?
 
-A* stays correct if the heuristic `h` is **admissible** — it never **overestimates** the true remaining cost:
+Correct whenever `h` is **admissible** — it never **overestimates** the remaining cost:
 
 ```text
-   straight-line distance ≤ actual road distance   ✓
-   h(u) = 0  →  A* IS Dijkstra
+   straight-line distance ≤ real road distance   ✓
+   h ≡ 0   →   A* IS Dijkstra
 ```
 
 An admissible `h` only **reorders** exploration; it never misses the shortest path.
 
 --
 
-## Where Dijkstra is used
+## Dijkstra in the wild
 
-- **GPS / maps** — shortest driving/walking routes
+- **GPS / maps** — plus A\*, **bidirectional** search, precomputed shortcuts (contraction hierarchies)
 - **network routing** — least-latency paths (OSPF)
-- **flight / transit** planning — cheapest itineraries
+- **flight / transit planning** — cheapest itineraries
 - **games** — pathfinding on weighted terrain
-- any **least-cost path** in a weighted graph
 
---
-
-## In practice: real routers
-
-Plain Dijkstra on a continent of roads, per query, is too slow. Production routers add:
-
-- **A\*** with a straight-line heuristic
-- **bidirectional** search (from both ends, meet in the middle)
-- **precomputed shortcuts** (contraction hierarchies)
-
-All of it still built on Dijkstra's **relaxation** core.
+Every one of them is still the **settle → relax** core.
 
 ---
 
 ### Part 5 · Wrap & ICA 09
 
-<small>(~10 min)</small>
-
---
-
-## Recap — the algorithm
-
-- **weighted** graph: path cost = **sum** of edge weights (BFS's fewest-edges no longer applies)
-- **relaxation** — `if dist[u]+w < dist[v]: lower it` — the one core operation
-- **Dijkstra** — greedily **settle the nearest** unsettled vertex, relax its edges
-
---
-
-## Recap — cost & limits
-
-- a **priority queue** picks the nearest → **O(E log V)** (array scan: O(V²))
-- correct only for **nonnegative** weights (else **Bellman-Ford**, O(V·E))
-- **Dijkstra = BFS + a priority queue**
-
-> Relax every edge; always settle the nearest vertex next — and with no negative weights, each settled distance is final.
+<small>(~6 min)</small>
 
 --
 
 ## The shortest-path toolkit
 
-- **unweighted** → **BFS** (fewest edges)
-- **weighted, nonnegative** → **Dijkstra** (least weight)
-- **negative weights** → **Bellman-Ford**
-- **one target + heuristic** → **A\***
-
-All built on a single operation: **edge relaxation**.
+- **relaxation** — the one operation; done when no edge relaxes
+- **unweighted** → **BFS** · **DAG** → topo-order · **nonneg** → **Dijkstra** · **negatives** → Bellman-Ford
+- **Dijkstra** — settle nearest (proved by the boundary chain), relax out-edges, **O(E log V)** with the L06 heap
 
 --
 
 ## One frontier, three searches
-
-BFS, Dijkstra, and A* are the **same** frontier search — they differ only in the frontier's **priority**:
 
 | algorithm | frontier priority |
 |---|---|
@@ -730,17 +765,16 @@ BFS, Dijkstra, and A* are the **same** frontier search — they differ only in t
 | **Dijkstra** | `dist[u]` |
 | **A\*** | `dist[u] + h(u)` |
 
-Choose the priority → choose the algorithm.
+Choose the priority → choose the algorithm. <small>(And DFS was the same loop with a stack — L08.)</small>
 
 --
 
 ## ICA 09 — your turn
 
-In `ica09/ica09.cpp`, on a **weighted** adjacency list:
+In `ica09/ica09.cpp`, one TODO on the given `WGraph`:
 
-- implement **edge relaxation**
-- implement **Dijkstra** with a `priority_queue` (lazy deletion)
-- return `dist[]` from a source; self-tests check known shortest distances
+- **`dijkstra`** — min-heap; pop, **skip stale**, relax, push
+- **T1 is tonight's worked example**; T2 the practice detour; T8 stress-tests your stale skip
 
-Build `-g`, run the self-tests, Valgrind-clean.
+Build `-g`, run the tests, Valgrind-clean.
 
