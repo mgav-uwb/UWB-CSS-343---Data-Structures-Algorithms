@@ -2,7 +2,7 @@
 
 **100 points · 105 minutes · Session 10.** Closed book. One page of double-sided hand-written notes allowed. No devices other than the Canvas exam page. Where an order is requested, write the items **separated by commas, no spaces** (example: `1,2,3`). Whenever a choice exists (which neighbor to visit first, which zero-in-degree vertex to take), use **alphabetical / ascending** order.
 
-*This practice exam has the same structure, length, and rules as the real midterm — the real one differs only in the data. A full answer key is at the end; do it cold, on paper, in 105 minutes, before you look.*
+*This practice exam has the same structure, length, and rules as the real midterm — the real one differs only in the data. A full answer key is at the end; do it cold, on paper, in 105 minutes, before you look. It is also on Canvas as an ungraded practice quiz with these exact questions — take that version too, to rehearse the answer-format conventions (comma-separated, no spaces) the real exam auto-grades with.*
 
 ## Q1 — Recursion trace (10 pts)
 

@@ -45,20 +45,53 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — stage-scoped interactive demos:
+         union-find (Part 1)  weighted quick-union + path compression on an
+                              editable element count; Union/Connected/Find ops
+         mst-tour   (Part 2)  static picture of tonight's UNDIRECTED weighted
+                              graph (same 8 vertices as L09, arrows dropped)
+         kruskal    (Part 3)  Kruskal on an editable "u v w" edge list
+         prim       (Part 4)  adds Prim from any start + Dijkstra for the
+                              MST-vs-SPT contrast (triangle "0 1 2, 1 2 2,
+                              0 2 3": Prim keeps 1-2, Dijkstra keeps 0-2) -->
   <script type="module">
     import { initDeckDemos, UnionFind, ArrayRenderer, WeightedGraph, GraphRenderer } from "../../lib/deck.js";
-    const mst = () => ({                          // WeightedGraph, undirected, built in make()
-      make: () => { const g = new WeightedGraph(); g.build(); return g; },
+    const WMST = "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1, 4 7 7";
+    const mst = () => ({
+      make: () => new WeightedGraph({ directed: false }),
+      initial: WMST,
+      buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: false }),
-      costs: ["compare", "visit"], chrome: { showCosts: true }, width: 800, height: 250,
+      stateMsg: (g) => `undirected weighted graph — ${g.inorder()}; triples "u v w" in the box are the edges`,
+      costs: ["compare", "visit"], chrome: { showCosts: true },
+      width: 960, height: 230,
     });
     initDeckDemos({
-      // 10 singletons (data-example="10"), then a scripted union sequence + a path-compressing find
-      "union-find": { make: () => new UnionFind(), renderer: (c) => new ArrayRenderer(c, { mode: "cells" }),
-                      run: (s) => s.demo(), costs: ["read", "write", "compare"], chrome: { showCosts: true },
-                      width: 880, height: 160 },
-      "kruskal": { ...mst(), run: (s) => s.kruskal() },   // cheapest-first, skip cycles → MST weight 21
-      "prim":    { ...mst(), run: (s) => s.prim(0) },      // grow one tree from 0 → same MST
+      "union-find": {
+        make: () => new UnionFind(),
+        initial: "10", loadRaw: true,              // Build = n fresh singletons (intentionally instant)
+        renderer: (c) => new ArrayRenderer(c, { mode: "cells" }),
+        stateMsg: (s) => `${s.inorder()} — cell i shows parent[i]; a root points at itself`,
+        ops: [
+          { name: "Union", arg: "pair", run: (s, v) => s.union(v[0], v[1]) },
+          { name: "Connected", arg: "pair", run: (s, v) => s.connected(v[0], v[1]) },
+          { name: "Find", arg: "number", run: (s, v) => s.find(v) },
+        ],
+        costs: ["read", "write", "compare"], chrome: { showCosts: true },
+        width: 960, height: 150,
+      },
+      "mst-tour": { // static view of tonight's undirected graph for Part 2
+        make: () => { const g = new WeightedGraph({ directed: false }); g.build(); return g; },
+        renderer: (c) => new GraphRenderer(c, { directed: false }),
+        label: "tonight's graph — the L09 graph, now undirected: 8 vertices, 11 weighted edges",
+        width: 900, height: 225,
+      },
+      "kruskal": { ...mst(), ops: [{ name: "Kruskal", run: (s) => s.kruskal() }] },
+      "prim": { ...mst(), height: 210, ops: [
+        { name: "Kruskal", run: (s) => s.kruskal() },
+        { name: "Prim from", arg: "number", run: (s, v) => s.prim(v) },
+        { name: "Dijkstra from", arg: "number", run: (s, v) => s.dijkstra(v) },
+      ] },
     });
   </script>
 </body>

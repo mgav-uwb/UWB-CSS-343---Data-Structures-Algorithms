@@ -1,11 +1,11 @@
 ---
 title: "CSS 343 — Midterm Study Guide"
-version: "1.0"
+version: "1.1"
 status: draft
 created_by: "Claude"
 created_at: "2026-07-04T12:00"
 last_modified_by: "Claude"
-last_modified_at: "2026-07-05T12:00"
+last_modified_at: "2026-07-10T14:00"
 contributors:
   - "Dr. Marcel Gavriliu"
   - "Claude"
@@ -14,6 +14,8 @@ tags:
   - "exam"
   - "study-guide"
 related:
+  - path: "./practice-midterm.md"
+    desc: "Practice midterm (same blueprint, worked key; also an ungraded Canvas quiz)"
   - path: "../S01-time-analysis/L01-time-analysis.md"
     desc: "S1 — analysis of algorithms (time)"
   - path: "../S09-graphs-dijkstra/L09-graphs-dijkstra.md"
@@ -24,7 +26,9 @@ related:
 
 **Session 10 (Thu Jul 23, 2026) — Review + Midterm Exam.** Covers **Sessions 1–9**: analysis of algorithms, trees (BST / AVL / 2-3 / B), heaps, hashing, and graphs (DFS/BFS/topo/Dijkstra).
 
-> **Format:** duration, open/closed book, and calculator policy are set by the instructor — confirm on Canvas. Expect a mix of: complexity analysis, tracing an algorithm on given input, short "which structure and why," and one or two short-code / pseudocode items.
+> **Format:** a **Canvas quiz**, taken in class — 100 points, **105 minutes**, one attempt, closed book, **one page of double-sided handwritten notes** allowed. Answers are typed and auto-graded, so the format conventions matter: orders and arrays are entered **comma-separated, no spaces** (example: `1,2,3`), and whenever a choice exists, ties break **alphabetically / in ascending order** — the same conventions as the ICAs. Expect: complexity bounds, tracing algorithms on given input (recursion, heap, BFS/DFS/topo, Dijkstra, hashing, BST/AVL, 2-3), and short concept questions.
+>
+> **Rehearse the format:** the [practice midterm](./practice-midterm.md) has the identical structure with a full worked key — and it is also on Canvas as an **ungraded practice quiz** with unlimited attempts. Take the Canvas version at least once so exam-day answer entry is automatic.
 
 ## 1 · The master reference table
 
@@ -101,5 +105,6 @@ Cost of the core operations. `n` = number of keys/elements; `V, E` = vertices, e
 
 | Version | Date | Author | Summary |
 | ------- | ---------------- | ------ | ------------- |
+| 1.1 | 2026-07-10T14:00 | Claude | Format finalized: in-class Canvas quiz (100 pts, 105 min, 1 attempt, closed book + 1 notes page, auto-graded with the comma/alphabetical conventions); pointed students at the practice midterm md + ungraded Canvas practice quiz. |
 | 1.0 | 2026-07-05T12:00 | Claude | Fleshed out from scaffold: master complexity table, per-session key ideas (S1–S9), common pitfalls, and 12 practice questions. Format details left to the instructor. |
 | 0.1 | 2026-07-04T12:00 | Claude | Scaffold: covered-topics list (S1–S9) from schedule, format + TODO placeholders. |
