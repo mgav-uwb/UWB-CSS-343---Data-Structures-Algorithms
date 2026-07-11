@@ -45,23 +45,32 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — interactive DP demos:
+         fib-memo (P2)  Memo fib n (n clamped 2..20): the memo row fills once
+                        per value; the call counter vs 2·fib(n+1)−1 naive calls
+                        IS the exponential-vs-linear story
+         lcs      (P3)  LCS of any two words (type "SUNDAY SATURDAY" in the
+                        value box) — table fill + traceback -->
   <script type="module">
     import { initDeckDemos, DP, MatrixRenderer } from "../../lib/deck.js";
     initDeckDemos({
-      // fill the LCS table for "AGCAT" × "GAC" (defaults), then traceback → length 2
-      // memoized fib(10): watch cache hits erase whole call subtrees (19 calls vs 177)
       "fib-memo": {
         make: () => new DP(),
         renderer: (c) => new MatrixRenderer(c, {}),
-        run: (s) => s.fib(10),
+        stateMsg: () => "type n (2–20) and press Memo fib — each cell is computed ONCE",
+        ops: [{ name: "Memo fib", arg: "number", run: (s, v) => s.fib(v) }],
         costs: ["call", "cache-hit", "write"], chrome: { showCosts: true },
-        width: 560, height: 120,
+        width: 900, height: 120,
       },
       "lcs": {
         make: () => new DP(),
         renderer: (c) => new MatrixRenderer(c, {}),
-        run: (s) => s.lcs(),
-        costs: ["compare", "write"], chrome: { showCosts: true }, width: 470, height: 176,
+        stateMsg: () => 'type two words (e.g. "SUNDAY SATURDAY") and press LCS',
+        ops: [{ name: "LCS", arg: "string", run: (s, v) => {
+          const w = String(v).trim().split(/[\s,;]+/);
+          return s.lcs(w[0], w[1]);
+        } }],
+        costs: ["compare", "write"], chrome: { showCosts: true }, width: 560, height: 140,
       },
     });
   </script>

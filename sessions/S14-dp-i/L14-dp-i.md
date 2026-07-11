@@ -97,15 +97,6 @@ Same subproblem, **many parents** → compute once, reuse many times.
 
 --
 
-## Tonight's plan
-
-1. **memoization vs tabulation** — the two DP styles
-2. **Fibonacci → rod cutting** — exp → linear
-3. **longest common subsequence** — a 2-D table
-4. **the DP recipe** — subproblem, recurrence, order, base, reconstruct
-
---
-
 ## Memoization (top-down)
 
 Write the **natural recursion**, then add a **cache**:
@@ -171,18 +162,6 @@ Same answers, same asymptotic cost — pick by convenience.
 
 --
 
-## DP vs divide-and-conquer
-
-```text
-   D&C:  subproblems are INDEPENDENT (no overlap) → no caching helps
-         e.g. mergesort's two halves are disjoint
-   DP:   subproblems OVERLAP → caching is the whole point
-```
-
-Overlap is the dividing line.
-
---
-
 ## DP vs greedy
 
 ```text
@@ -239,7 +218,7 @@ Correct — but how many calls?
    fib(3) computed TWICE, fib(2) THREE times …
 ```
 
-**Exponential** — fib(n) makes ≈ φⁿ calls. fib(50) ≈ 10⁹ calls!
+**Exponential** — exactly `calls(n) = 2·fib(n+1) − 1`:<br><small>fib(10) → 177 calls · fib(40) → ≈ 3×10⁸ · fib(50) → ≈ 4×10¹⁰</small>
 
 --
 
@@ -390,6 +369,19 @@ Prices `[_,1,5,8,9]` (length 1..4):
 
 Each cell reuses the smaller `best[]` — that's the overlap DP exploits.
 
+--
+
+## Your turn — rod cutting
+
+Prices `[_, 2, 5, 7, 8]` (lengths 1..4). Fill `best[1..4]`:
+
+```text
+   best[1] = ?     best[2] = ?
+   best[3] = ?     best[4] = ?
+```
+
+<small>`best[1]`=2 · `best[2]`=max(2+2, 5)=**5** · `best[3]`=max(2+5, 5+2, 7)=**7** · `best[4]`=max(2+7, 5+5, 7+2, 8)=**10** — two length-2 pieces again. Every cell reuses the smaller cells.</small>
+
 ---
 
 ### Part 3 · Longest common subsequence
@@ -481,7 +473,7 @@ Two nested loops over the table — **Θ(mn)**, the recurrence line-for-line.
 
 --
 
-## 🎬 Demo — LCS table fill
+## 🎬 Demo — LCS
 
 <div class="algo-viz" data-algo="lcs">
 <pre class="viz-fallback">
@@ -492,7 +484,7 @@ Two nested loops over the table — **Θ(mn)**, the recurrence line-for-line.
 </pre>
 </div>
 
-<small>Each cell reads **up, left, diagonal**: match → diagonal + 1, else max(up, left). Bottom-right = LCS length; the **traceback** highlights one LCS.</small>
+<small>Match → **diagonal + 1**, else max(**up**, **left**); the **traceback** spells an LCS. Type two words (try `SUNDAY SATURDAY`) and press **LCS**.</small>
 
 --
 
@@ -671,27 +663,16 @@ A DP's cost is a simple product:
 
 --
 
-## Step 5 — reconstruct the solution
+## Step 5 — value vs solution
 
-The table gives the **value**; recover the **choices** by tracing back:
-
-```text
-   store the decision at each cell (or recompute it), then
-   walk from the answer cell back to a base case
-```
-
---
-
-## Value vs solution
-
-The table gives the optimal **value**; the **solution** needs a traceback:
+The table stores the optimal **VALUE**; the **choices** need a traceback:
 
 ```text
-   dp[...]    = optimal VALUE     (what the table stores)
-   traceback  = optimal CHOICES   (which cuts / chars / items)
+   store the decision at each cell (or recompute it),
+   then walk from the answer cell back to a base case
 ```
 
-Only need the value? Keep **two rows** (cheap). Need the solution? Keep the **whole table**.
+Only need the value? Keep **two rows**. Need the solution? Keep the **whole table** — the traceback needs it.
 
 ---
 
@@ -719,8 +700,6 @@ Only need the value? Keep **two rows** (cheap). Need the solution? Keep the **wh
 | order | dependencies first |
 | answer | which cell + reconstruct |
 
-> Define the subproblem precisely and the rest follows.
-
 --
 
 ## Common DP mistakes
@@ -732,25 +711,13 @@ Only need the value? Keep **two rows** (cheap). Need the solution? Keep the **wh
 
 --
 
-## DP: the big picture
-
-```text
-   a hard problem  →  define a subproblem  →  a recurrence
-   overlapping subproblems  →  cache them  →  polynomial
-```
-
-DP is how you make an **exponential search** of choices **polynomial** — whenever the choices share subproblems.
-
---
-
 ## Reach for DP when…
 
-- the problem asks for an **optimum** (max / min / count) over many choices
-- the choices form **overlapping** subproblems
-- a **greedy** choice isn't provably safe (L12)
-- brute force is exponential, but subproblems **repeat**
+- an **optimum** over exponentially many choices
+- choices form **overlapping** subproblems
+- **greedy** isn't provably safe (L12)
 
-Then: define the subproblem → recurrence → cache.
+Then: **subproblem → recurrence → cache** — exponential collapses to polynomial.
 
 --
 
