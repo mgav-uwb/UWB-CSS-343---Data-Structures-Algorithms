@@ -337,16 +337,17 @@ Keep **α = O(1)** → every operation is **O(1)** expected.
 
 ## Chaining — your turn
 
-`M = 7`, `h(k) = k mod 7`, buckets currently:
+`M = 7`, `h(k) = k mod 7`, holding the **odd keys 1..21**:
 
 ```text
-   [1] → 8 → 15      [2] → 23      [4] → 11 → 18
-   [6] → 20 → 27     (others empty)
+   [0] → 7 → 21    [1] → 1 → 15    [2] → 9
+   [3] → 3 → 17    [4] → 11        [5] → 5 → 19
+   [6] → 13
 ```
 
 **Insert 50.** Which bucket, how many compares, and what does the chain look like?
 
-<small>h(50) = 50 mod 7 = 1 → walk bucket 1: 8 ≠ 50, 15 ≠ 50 (2 compares) → link 50: [1] → 8 → 15 → 50. Chain length 3; every other bucket untouched.</small>
+<small>h(50) = 50 mod 7 = 1 → walk bucket 1: 1 ≠ 50, 15 ≠ 50 (2 compares) → link 50: [1] → 1 → 15 → 50. Chain length 3; every other bucket untouched.</small>
 
 --
 
@@ -354,15 +355,15 @@ Keep **α = O(1)** → every operation is **O(1)** expected.
 
 <div class="algo-viz" data-algo="hash-chain">
 <pre class="viz-fallback">
-   M = 7, h(k) = k mod 7 — buckets with chains below:
-   [1] → 8 → 15   [2] → 23   [4] → 11 → 18   [6] → 20 → 27
+   M = 7, h(k) = k mod 7 — the odd keys 1..21 (build 1..21:2):
+   [0]→7→21  [1]→1→15  [2]→9  [3]→3→17  [4]→11  [5]→5→19  [6]→13
    Insert / Search / Delete a key: hash to the home bucket,
    walk ONLY that chain; delete just unlinks a node.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>The chains **hang below** their buckets. **Search** walks one chain and never touches the other six. **Delete** unlinks one node — nothing else moves. Insert a few colliders (1, 15, 29…) and watch one chain grow — that's α at work.</small>
+<small>The chains **hang below** their buckets. **Search** walks one chain and never touches the other six. **Delete** unlinks one node — nothing else moves. Insert a few colliders (29, 36, 43 all hash to 1…) and watch one chain grow — that's α at work.</small>
 
 --
 
@@ -401,16 +402,16 @@ Walk forward until an **empty slot**; the key lives where the walk ends.
 ## Linear probing — insert
 
 ```text
-   M = 11,  h(k) = k mod 11.   insert 25, 36, 14:
-   h(25)=3 → slot 3 (empty)              place 25
-   h(36)=3 → 3 taken (25) → 4 (empty)    place 36
-   h(14)=3 → 3, 4 taken → 5 (empty)      place 14
+   M = 11,  h(k) = k mod 11.   insert 14, 25, 36:
+   h(14)=3 → slot 3 (empty)              place 14
+   h(25)=3 → 3 taken (14) → 4 (empty)    place 25
+   h(36)=3 → 3, 4 taken → 5 (empty)      place 36
 
-   [ _ _ _ 25 36 14 _ _ _ _ _ ]
+   [ _ _ _ 14 25 36 _ _ _ _ _ ]
      0 1 2  3  4  5
 ```
 
-Three keys wanted slot 3 → they line up in a **cluster** at 3, 4, 5.
+14, 25, 36 differ by exactly **11** — keys a multiple of `M` apart *always* share a home slot. They line up in a **cluster** at 3, 4, 5.
 
 --
 
@@ -442,11 +443,11 @@ The invariant makes the miss rule sound: **an empty slot proves `k` is absent**.
 ## Worked: search hit vs miss
 
 ```text
-   [ _ _ _ 25 36 14 _ _ _ _ _ ]   (the cluster)
+   [ _ _ _ 14 25 36 _ _ _ _ _ ]   (the cluster)
      0 1 2  3  4  5
 
-   search 14: h=3 → 25≠14 → 36≠14 → 14 ✓   (3 probes, HIT)
-   search 47: h=3 → 25 → 36 → 14 → slot 6
+   search 36: h=3 → 14≠36 → 25≠36 → 36 ✓   (3 probes, HIT)
+   search 47: h=3 → 14 → 25 → 36 → slot 6
               EMPTY → NOT FOUND              (4 probes, MISS)
 ```
 
@@ -458,7 +459,8 @@ A **hit** stops on the key; a **miss** pays the **whole cluster** plus the empty
 
 <div class="algo-viz" data-algo="hash-probe">
 <pre class="viz-fallback">
-   M = 11 (fixed), h(k) = k mod 11, keys 23, 14, 9, 6.
+   M = 11 (fixed), h(k) = k mod 11 — keys 2, 8, 14, 20
+   (build 2..20:6 → slots 2, 8, 3, 9).
    Insert: compute the home slot (marked h), probe forward
    past occupied cells to the first empty one.
    Search: same walk; an empty slot means NOT FOUND.
@@ -472,16 +474,16 @@ A **hit** stops on the key; a **miss** pays the **whole cluster** plus the empty
 
 ## The deletion problem
 
-Delete 25 by **emptying its slot** — and you punch a **hole in the cluster**:
+Delete 14 by **emptying its slot** — and you punch a **hole in the cluster**:
 
 ```text
-   [ _ _ _ 25 36 14 _ … ]      naive delete 25:
-     0 1 2  3  4  5            [ _ _ _ _ 36 14 _ … ]
+   [ _ _ _ 14 25 36 _ … ]      naive delete 14:
+     0 1 2  3  4  5            [ _ _ _ _ 25 36 _ … ]
 
-   search 36: h(36) = 3 → slot 3 EMPTY → "not found"  ✗
+   search 25: h(25) = 3 → slot 3 EMPTY → "not found"  ✗
 ```
 
-36 is **still in the table** — but the hole broke its probe path. The invariant, violated.
+25 is **still in the table** — but the hole broke its probe path. The invariant, violated.
 
 --
 
@@ -491,8 +493,8 @@ Delete 25 by **emptying its slot** — and you punch a **hole in the cluster**:
 2. **Re-insert the cluster** (Sedgewick): empty the slot, then take every key **after the hole** in the cluster and insert it again — the run is rebuilt hole-free.
 
 ```text
-   delete 25:  [ _ _ _ _ 36 14 _ ]  → re-insert 36, 14
-               [ _ _ _ 36 14 _ _ ]  ✓ invariant restored
+   delete 14:  [ _ _ _ _ 25 36 _ ]  → re-insert 25, 36
+               [ _ _ _ 25 36 _ _ ]  ✓ invariant restored
 ```
 
 --
@@ -501,15 +503,16 @@ Delete 25 by **emptying its slot** — and you punch a **hole in the cluster**:
 
 <div class="algo-viz" data-algo="hash-delete">
 <pre class="viz-fallback">
-   the cluster from the slides: 25, 36, 14 → slots 3, 4, 5.
-   Delete 25: the slot empties, then every key after the
-   hole (36, 14) is RE-INSERTED so no probe path breaks.
-   Then Search 36 — still found.
+   the cluster from the slides (build 14..36:11):
+   14, 25, 36 → slots 3, 4, 5.
+   Delete 14: the slot empties, then every key after the
+   hole (25, 36) is RE-INSERTED so no probe path breaks.
+   Then Search 25 — still found.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Delete 25** and watch the repair: the hole opens, then **36 and 14 re-insert** to close the run. Then **Search 36** — still reachable. Compare with the chaining demo's delete: one unlink vs a cluster rebuild.</small>
+<small>**Delete 14** and watch the repair: the hole opens, then **25 and 36 re-insert** to close the run. Then **Search 25** — still reachable. Compare with the chaining demo's delete: one unlink vs a cluster rebuild.</small>
 
 --
 
@@ -688,14 +691,15 @@ Each key gets a **new** `h(k) mod M` — you can't copy slots. A resize is Θ(n)
 
 <div class="algo-viz" data-algo="hash-resize">
 <pre class="viz-fallback">
-   M = 8, keys 9, 17, 6 (α = 0.375). Insert one more key:
+   M = 8, keys 6, 10, 14 (build 6..14:4; α = 0.375 —
+   6 and 14 collide at slot 6). Insert one more key:
    α reaches ½ → the table DOUBLES to M = 16 and every key
    is rehashed to a new h(k) mod 16 — watch them re-scatter.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Insert any key: α crosses **½**, the table **doubles**, and every key **rehashes** — watch 9 and 17 split apart (they collided at M = 8, they don't at M = 16). One Θ(n) rebuild, then α is back at ¼.</small>
+<small>Insert any key: α crosses **½**, the table **doubles**, and every key **rehashes** — watch 6 and 14 split apart (they collided at M = 8, they don't at M = 16). One Θ(n) rebuild, then α is back at ¼.</small>
 
 ---
 
