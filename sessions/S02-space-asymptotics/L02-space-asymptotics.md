@@ -54,18 +54,7 @@ We measured and modeled **running time**:
 - **order of growth** — drop constants and lower-order terms
 - the doubling experiment: ratio → 2ᵇ ⇒ Nᵇ
 
-We wrote "**~N³**" and "**order of growth N³**" — useful, but informal.
-
---
-
-## Tonight
-
-Two things:
-
-1. **Space complexity** — count the bytes a structure uses, then how that grows with N (its **order of growth**) — in concrete C++.
-2. **Asymptotic notation** — Big-O, Big-Θ, Big-Ω: the precise definitions behind "order of growth," and what they pin down about an **algorithm** versus a **problem**.
-
-One rigorous, shared language for every cost — time or space — from here on.
+We wrote "**~N³**" — useful, but informal. Tonight: the same analysis for **space**, then the precise notation (**O / Θ / Ω**) behind "order of growth."
 
 ---
 
@@ -198,7 +187,7 @@ Two ways to hold N integers:
 | array | 4N | **O(N)** |
 | linked list | 16N | **O(N)** |
 
-<img src="graphs/memory-array-vs-list.svg" style="width:52%">
+<img src="graphs/memory-array-vs-list.svg" style="width:47%">
 
 Same **order of growth** — different **constant** (4×).
 
@@ -218,11 +207,11 @@ The same vocabulary as time:
 
 --
 
-## Auxiliary space — what an *algorithm* adds
+## Auxiliary space
 
-We analyze **auxiliary space**: the memory an algorithm uses **beyond its input**.
+**Auxiliary space** = what an *algorithm* uses **beyond its input**.
 
-**O(1) — constant extra space.** A few variables, no allocation:
+**O(1)** — a few variables, no allocation:
 
 ```cpp
 long sum(const vector<int>& a) {
@@ -371,7 +360,7 @@ Nuance if a student asks "do we even need the visited array?": not strictly, for
 | brute-force 3-sum | Θ(N³) | **Θ(1)** |
 | mergesort | Θ(N log N) | Θ(N) |
 | BFS on n×n grid | Θ(n²) | Θ(n²) |
-| DP table over all 2^N subsets | Θ(2^N · N) | **Θ(2^N)** |
+| DP table over all 2ᴺ subsets | Θ(2ᴺ · N) | **Θ(2ᴺ)** |
 
 --
 
@@ -656,8 +645,8 @@ Everything we've pinned belongs to a specific algorithm:
 - fast 3-sum — **Θ(N² log N)**
 - mergesort — **Θ(N log N)**
 
-1. Are these **O / Θ / Ω** properties of the **problem**, or of the **algorithm**?
-2. If not the problem — what *can* we say about the problem itself?
+1. Are these properties of the **problem**, or of the **algorithm**?
+2. If not the problem — what *can* we say about it?
 
 Talk to your neighbor — 60 seconds.
 

@@ -36,9 +36,9 @@
     0:54  Part 5  BST as a symbol table      8 min
     1:02  ☕ BREAK                          10 min
     1:12  Part 6  Search & insert           16 min
-    1:28  Part 7  Ordered operations        19 min
-    1:47  Part 8  Deletion                  17 min
-    2:04  Part 9  Analysis                  17 min
+    1:28  Part 7  Ordered operations        17 min
+    1:45  Part 8  Deletion                  16 min
+    2:01  Part 9  Analysis                  20 min   (incl. the ancestor-probability proof)
     2:21  Part 10 BST applications           4 min
     2:25  Part 11 Wrap & ICA 03              5 min
     2:30  end
@@ -62,7 +62,7 @@
 - search / insert / delete, and the **order-based** operations
 - why a random BST stays shallow: **~1.39 log₂ N** compares
 
-*Secondary:* ODS Ch 6–7 (C++ code; random BSTs). Reading quiz due before class.
+*Secondary:* ODS Ch 6–7. Reading quiz due before class.
 
 ---
 
@@ -127,16 +127,13 @@ int countNodes(TreeNode* t) {
 
 ## Storing a general tree as binary
 
-Variable-length child lists are awkward. Re-encode them as just **two** links per node:
-
-- **firstChild** → its leftmost child *(down)*
-- **nextSibling** → its next sibling *(across)*
+Variable-length child lists are awkward. Re-encode with **two** links per node — **firstChild** *(down)* and **nextSibling** *(across)*:
 
 ```cpp
 struct GTreeNode {
     Object     item;
-    GTreeNode* firstChild;    // → binary "left"
-    GTreeNode* nextSibling;   // → binary "right"
+    GTreeNode* firstChild;    // leftmost child   → binary "left"
+    GTreeNode* nextSibling;   // next sibling     → binary "right"
 };
 ```
 
@@ -161,7 +158,7 @@ Two links per node, so **any general tree is a binary tree**.
 </pre>
 </div>
 
-<small>Press **▶ Play** to run the stages (or step with **⏮ ◁ ▷ ⏭**): first each node's **firstChild** link turns **green** (down), then the **nextSibling** links appear in **orange** (across), then the leftover gray links are **pruned** — every node now has ≤ 2 links — and the tree **morphs** into its binary shape. Same 13 nodes, same information.</small>
+<small>Press **▶ Play** (or step with **⏮ ◁ ▷ ⏭**): each node's **firstChild** link turns **green**, the **nextSibling** links appear in **orange**, the leftover gray links are **pruned**, and the tree **morphs** into its binary shape. Same 13 nodes, same information.</small>
 
 ---
 
@@ -288,7 +285,7 @@ When the array fills, grow it like a **dynamic array**:
 
 --
 
-## 🎬 Demo — array layout by position
+## 🎬 Demo — the array layout
 
 <div class="algo-viz" data-algo="array-tree">
 <pre class="viz-fallback">
@@ -307,7 +304,7 @@ When the array fills, grow it like a **dynamic array**:
 </pre>
 </div>
 
-<small>Click a **node or an array cell** → its **array index** and the parent/child formulas (2i+1, 2i+2, ⌊(j−1)/2⌋). Clicking a **greyed (wasted) cell** shows a dashed **ghost node** where that index would live — the slot is allocated even though nothing is stored there.</small>
+<small>Click a **node or an array cell** → its index + the formulas (2i+1, 2i+2, ⌊(j−1)/2⌋). A **greyed (wasted) cell** ghosts the node that would live there — the slot is allocated regardless.</small>
 
 ---
 
@@ -542,10 +539,7 @@ Stretch — back in 10. Up next: **search, insert, delete**, and the **ordered o
 
 ## Search (get): hit, miss, and the path
 
-Search defines a **path** from the root: compare, go left or right.
-
-- **hit** — the path reaches a node with the key (return its value)
-- **miss** — the path falls off a **null link** (return `nullptr`)
+Search defines a **path** from the root — compare, go left or right — ending in a **hit** (a node with the key) or a **miss** (falling off a **null link**):
 
 ```cpp
 Value* get(Node* t, const Key& key) {
@@ -582,7 +576,7 @@ Elementary BSTs only add the one new link at the bottom — but the same up-the-
 
 --
 
-## 🎬 Demo — build a BST (construction trace)
+## 🎬 Demo — build a BST
 
 <div class="algo-viz" data-algo="bst-ops" data-example="S,E,A,R,C,H,E,X,A,M,P,L,E">
 <pre class="viz-fallback">
@@ -603,23 +597,23 @@ Elementary BSTs only add the one new link at the bottom — but the same up-the-
 </pre>
 </div>
 
-<small>Press **▶** to build from the input sequence — the **strip** highlights each key as it's inserted; its **⚙ menu** edits / shuffles / sorts (again = reverse) / extends the sequence. Repeats (`E`, `A`) **update the value, no new node** → **10 nodes, 13 inserts**. Scrub with **⏮ ◁ ▶ ▷ ⏭**. Click a **+**, an **edge**, or a **node** — only valid keys are offered.</small>
+<small>Press **▶** to build — repeats (`E`, `A`) **update the value, no new node** → **10 nodes, 13 inserts**. Scrub with **⏮ ◁ ▶ ▷ ⏭**; the strip's **⚙ menu** edits / shuffles / sorts the sequence; click a **+**, an **edge**, or a **node**.</small>
 
 ---
 
 ### Part 7 · Ordered operations
 
-<small>(~19 min)</small>
+<small>(~17 min)</small>
 
 --
 
 ## Ordered operations — more than a set
 
-Beyond get/put, a BST supports the **ordered symbol-table API**, each in Θ(height):
+Beyond get/put — the **ordered API**, each in Θ(height):
 
 - **min / max** — leftmost / rightmost node
 - **floor(k) / ceiling(k)** — largest key ≤ k / smallest key ≥ k
-- **select(i) / rank(k)** — key of rank i / number of keys < k (uses the `size` field)
+- **select(i) / rank(k)** — key of rank i / # keys < k (uses `size`)
 - **range** — `keys(lo, hi)`: the keys in `[lo, hi]`, in order
 
 --
@@ -691,9 +685,9 @@ int rank(Node* t, const Key& k) {        // # keys < k
 
 <div class="algo-viz" data-algo="bst-ordered">
 <pre class="viz-fallback">
-              50 (9)                    select(3) = 40   rank(60) = 5
+              50 (10)                   select(3) = 40   rank(60) = 5
             /       \                  (0-based rank; the size counts
-          30 (4)     70 (4)             steer the descent: go left if
+          30 (4)     70 (5)             steer the descent: go left if
          /   \      /    \              i < size(left), else right)
        20    40    60     80           sorted: 20 30 35 40 50 60 65 70 80 90
             /        \      \           ranks:  0  1  2  3  4  5  6  7  8  9
@@ -746,7 +740,7 @@ Returns `[lo, hi]` **in sorted order**, in time **height + output size**.
 
 ### Part 8 · Deletion
 
-<small>(~17 min)</small>
+<small>(~16 min)</small>
 
 --
 
@@ -842,7 +836,7 @@ Every removed node is freed exactly once — **no leaks** (PA1 grades this).
 </pre>
 </div>
 
-<small>Press **▶** to build, then **Delete** a key — a leaf, a one-child node, and a two-child node (e.g. `E`). **2-child via** switches **successor ↔ predecessor**. Scrub any operation with **⏮ ◁ ▶ ▷ ⏭** (◁ steps *backward*); the input-sequence panel's **⚙ menu** reshapes the sequence; click **+** / an **edge** / a **node** to grow or relabel.</small>
+<small>Press **▶** to build, then **Delete** a leaf, a one-child node, and a two-child node (e.g. `E`). **via** switches **successor ↔ predecessor**; scrub with **⏮ ◁ ▶ ▷ ⏭** (◁ steps *backward*, resurrecting the key).</small>
 
 ---
 
@@ -854,11 +848,11 @@ Every removed node is freed exactly once — **no leaks** (PA1 grades this).
 
 ## Cost = the length of a path = depth
 
-Every BST operation walks **one or two paths** root→down. So each costs **Θ(depth)**, and the worst case is **Θ(height)**.
+Every BST operation walks **one or two paths** root→down — **Θ(depth)** each, worst case **Θ(height)**.
 
 > **Proposition E (Sedgewick).** In a BST, all operations take time proportional to the **height** of the tree, in the worst case.
 
-So everything reduces to **one question: how tall is the tree?**
+Everything reduces to **one question: how tall is the tree?**
 
 --
 
@@ -872,7 +866,7 @@ So everything reduces to **one question: how tall is the tree?**
 
 ## BSTs are dual to quicksort
 
-The **root** is like quicksort's first **partition** item: every left key is smaller, every right key larger, and the subtrees are built recursively — exactly quicksort's recursive partition.
+The **root** is like quicksort's first **partition** item (CSS 342; formally in S13): every left key is smaller, every right key larger, and the subtrees are built recursively — exactly quicksort's recursive partition.
 
 So the analysis of a **random** BST mirrors the analysis of quicksort.
 
@@ -889,13 +883,13 @@ So the analysis of a **random** BST mirrors the analysis of quicksort.
       2                                 4     12
        \                               / \   /  \
         3                             2   6 10   14
-         \  … height 14 = n−1        height ≈ 1.39·log2 n
+         \  … height 14 = n−1        avg depth ≈ 1.39·log2 n
  
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Shuffle** the right tree: sorted insertion → a **path**; random → **bushy** (~1.39 log₂ n). Same keys, different shapes.</small>
+<small>**Shuffle** the right tree: sorted insertion → a **path**; random → **bushy** (~1.39 log₂ n average depth). Same keys, different shapes.</small>
 
 --
 
@@ -907,13 +901,25 @@ So the analysis of a **random** BST mirrors the analysis of quicksort.
 
 --
 
-## Proposition C — average search cost
+## Prop C — average search cost
 
-Compares for a search **hit** = 1 + the node's **depth**. Summing all depths gives the **internal path length**; average it over N (plus one).
+Compares for a search **hit** = 1 + the node's **depth**; summing all depths gives the **internal path length**.
 
 > **Proposition C.** Search hits in a BST built from **N random** keys use **~ 2 ln N ≈ 1.39 log₂ N** compares on average.
 
-The internal-path-length recurrence is the same one we solved for quicksort.
+Sedgewick solves a recurrence (quicksort's, S13) — next slide: a **direct proof**, one probability.
+
+--
+
+## Why 2 ln N — one probability
+
+In a random-order BST, key *j* is an **ancestor** of key *i* ⟺ *j* came **first** among the keys ranked between them — probability **1 / (|i−j|+1)**.
+
+Depth = # of ancestors. Sum the probabilities: **two harmonic sums**, one per side,
+
+$$\sum \tfrac{1}{|i-j|+1} \approx \ln i + \ln (N-i) \le 2\ln N$$
+
+<small>The harmonic sum 1 + ½ + ⅓ + ⋯ + 1/k ≈ ln k does all the work.</small>
 
 --
 
@@ -964,9 +970,7 @@ Two different "log n"s for a random BST:
 - average **depth** (internal path length) → **~1.39 log₂ N** (Prop C)
 - average **height** → **~2.99 log₂ N** (Robson; Devroye) — taller, still logarithmic
 
-But **random is a hope, not a guarantee**: sorted input builds a **path** of height **n−1**, so an adversary forces **Θ(n)**.
-
-→ **Next: balanced trees (S04)** — Θ(log n) for *any* insertion order.
+**Random is a hope, not a guarantee** — sorted input builds a path, height **n−1** → **balanced trees (S04)**: Θ(log n) for *any* order.
 
 ---
 
@@ -997,10 +1001,10 @@ A **BST / ordered map** shines where you need **order** (a hash table can't):
 ## Recap
 
 - a **tree** is recursive; **height** ranges from **log n** to **n** and decides cost (**Prop E**)
-- **binary trees**: shapes, array layout, four **traversals**; **expression trees** (prefix/infix/postfix)
+- **binary trees**: shapes, array layout, **traversals**; **expression trees**
 - the **BST = ordered symbol table**: get / put / delete in **Θ(height)**; node carries a **size** count
 - **ordered ops**: min/max, floor/ceiling, **select/rank**, **range** — the payoff of keeping order
-- **delete** = Hibbard (promote the successor); **analysis**: a random BST is ~**1.39 log₂ N** deep (Prop C/D), but worst case **Θ(n)** → S04 balances
+- **delete** = Hibbard; a random BST is ~**1.39 log₂ N** deep (Prop C/D), worst case **Θ(n)** → S04 balances
 
 --
 
@@ -1012,7 +1016,7 @@ In `ica03/ica03.cpp` (node, test tree, `main` given), fill the `TODO`s:
 2. `countLeaves`
 3. `countOneChild`
 4. `contains` — use the BST property → **one path**
-5. *stretch:* `isValidBST` · *extra credit:* `evalExprTree`
+5. *stretch:* `isValidBST` · *EC:* `evalExprTree`
 
-**Memory:** they use `new` — leak-checking starts here (**Valgrind handout**, on the Handouts page), graded from **ICA 04**; PA1 leak-free.
+**Memory:** leak-checking starts here (**Valgrind handout**) — required from **ICA 04**; PA1 leak-free.
 

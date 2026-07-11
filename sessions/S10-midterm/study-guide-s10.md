@@ -1,11 +1,11 @@
 ---
 title: "CSS 343 — Midterm Study Guide"
-version: "1.2"
+version: "1.3"
 status: draft
 created_by: "Claude"
 created_at: "2026-07-04T12:00"
 last_modified_by: "Claude"
-last_modified_at: "2026-07-11T21:00"
+last_modified_at: "2026-07-11T23:30"
 contributors:
   - "Dr. Marcel Gavriliu"
   - "Claude"
@@ -26,7 +26,7 @@ related:
 
 **Session 10 (Thu Jul 23, 2026) — Review + Midterm Exam.** Covers **Sessions 1–9**: analysis of algorithms, trees (BST / AVL / 2-3 / B), heaps, hashing, and graphs (DFS/BFS/topo/Dijkstra).
 
-> **Format:** a **Canvas quiz**, taken in class — 100 points, **120 minutes**, one attempt, closed book, **one page of double-sided handwritten notes** allowed. Answers are typed and auto-graded, so the format conventions matter: orders and arrays are entered **comma-separated, no spaces** (example: `1,2,3`), and whenever a choice exists, ties break **alphabetically / in ascending order** — the same conventions as the ICAs. Expect: complexity bounds, tracing algorithms on given input (recursion, heap, BFS/DFS/topo, Dijkstra, hashing, BST/AVL, 2-3), and short concept questions.
+> **Format:** a **Canvas quiz**, taken in class — 100 points, **110 minutes**, one attempt, closed book, **one page of double-sided handwritten notes** allowed. Answers are typed and auto-graded, so the format conventions matter: orders and arrays are entered **comma-separated, no spaces** (example: `1,2,3`), and whenever a choice exists, ties break **alphabetically / in ascending order** — the same conventions as the ICAs. Expect: complexity bounds, tracing algorithms on given input (recursion, heap, BFS/DFS/topo, Dijkstra, hashing, BST/AVL, 2-3), and short concept questions.
 >
 > **Rehearse the format:** the [practice midterm](./practice-midterm.md) has the identical structure with a full worked key — and it is also on Canvas as an **ungraded practice quiz** with unlimited attempts. Take the Canvas version at least once so exam-day answer entry is automatic.
 
@@ -105,6 +105,7 @@ Cost of the core operations. `n` = number of keys/elements; `V, E` = vertices, e
 
 | Version | Date | Author | Summary |
 | ------- | ---------------- | ------ | ------------- |
+| 1.3 | 2026-07-11T23:30 | Claude | SP26 exam shape adopted: 110 minutes; 10 container questions + attestation, each with multiple embedded blanks; data-structure diagrams rendered into the quiz. |
 | 1.2 | 2026-07-11T21:00 | Claude | Exam duration set to 120 minutes (was 105); QTIs regenerated to match. |
 | 1.1 | 2026-07-10T14:00 | Claude | Format finalized: in-class Canvas quiz (100 pts, 105 min, 1 attempt, closed book + 1 notes page, auto-graded with the comma/alphabetical conventions); pointed students at the practice midterm md + ungraded Canvas practice quiz. |
 | 1.0 | 2026-07-05T12:00 | Claude | Fleshed out from scaffold: master complexity table, per-session key ideas (S1–S9), common pitfalls, and 12 practice questions. Format details left to the instructor. |

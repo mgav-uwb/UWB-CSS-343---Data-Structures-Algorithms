@@ -61,10 +61,12 @@
       var left = drawPanel(new BST().buildFrom(KEYS.slice()), 0, halfW, "sorted insertion → a path");
       var right = drawPanel(new BST().buildFrom(shuffle(KEYS, randSeed)), halfW, halfW, "random insertion → balanced-ish");
       var lg = Math.log(n) / Math.LN2;
+      // avg-depth theory = avg search-hit compares (1.39 lg n − 1.85, Sedgewick's fit) minus 1
+      var theo = Math.max(0, 1.39 * lg - 2.85);
       ctrls.setStatus(
         "Same " + n + " keys. Sorted → height " + left.h + ", avg depth " + left.ad.toFixed(1) +
         ". Random → height " + right.h + ", avg depth " + right.ad.toFixed(1) +
-        " (≈ " + (1.39 * lg).toFixed(1) + " ≈ 1.39 log₂ n). The root acts like quicksort's first partition."
+        " (theory ≈ " + theo.toFixed(1) + " = 1.39 log₂ n − 2.85). The root acts like quicksort's first partition."
       );
     }
     ctrls.on(function (act) { if (act === "shuffle") { randSeed += 101; render(); } });

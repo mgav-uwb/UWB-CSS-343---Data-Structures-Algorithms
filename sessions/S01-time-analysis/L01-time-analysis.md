@@ -6,14 +6,14 @@
   graphs in graphs/. Asymptotic notation (O/Θ/Ω) and memory are Lecture 2.
 
   Session plan (150 min):
-    0:00  Part 0  Frame                      (~12 min)
-    0:12  Part 1  The problem, a solution    (~25 min)
-    0:37  Part 2  Observe: measure it        (~25 min)
-    1:02  Part 3  Model: derive it           (~28 min)
-    1:30  BREAK                              (10 min)
-    1:40  Part 4  Order-of-growth classes    (~20 min)
-    2:00  Part 5  Make it faster + big-O     (~25 min)
-    2:25  Part 6  Doubling method · wrap     (~5  min)
+    0:00  Part 0  Frame                      (~10 min)
+    0:10  Part 1  The problem, a solution    (~25 min)
+    0:35  Part 2  Observe: measure it        (~25 min)
+    1:00  Part 3  Model: derive it           (~26 min)
+    1:26  BREAK                              (10 min)
+    1:36  Part 4  Order-of-growth classes    (~18 min)
+    1:54  Part 5  Make it faster + big-O     (~30 min)
+    2:24  Part 6  Doubling method · wrap     (~6  min)
 -->
 
 ## CSS 343
@@ -28,7 +28,7 @@
 
 ### Part 0 · The course
 
-<small>(~12 min)</small>
+<small>(~10 min)</small>
 
 --
 
@@ -60,18 +60,6 @@ The answers seem to depend on everything — the computer, the input, the progra
 4. **Verify** — measure again and compare
 
 Two ground rules: experiments are **reproducible**; hypotheses are **falsifiable**.
-
---
-
-## Tonight's path
-
-**Problem → Observe → Model → Classify → Improve**
-
-1. Take a concrete problem
-2. **Measure** a solution's running time
-3. **Derive** the same answer with math
-4. Place it among a few **growth rates**
-5. Use the analysis to design a **faster** algorithm
 
 ---
 
@@ -193,14 +181,14 @@ Each step **doubles N** and prints the operation count and its **ratio** to the 
 ## What we observe
 
 ```
-     N   triples     operations   ratio   time(s)
-   250         0        2573000      –     0.002
-   500         8       20708500    8.05    0.012
-  1000        62      166167000    8.02    0.077
-  2000       512     1331334000    8.01    0.528
+     N   triples     operations   ratio   time(s)  tratio
+   250         0        2573000    0.00     0.001    0.00
+   500         8       20708500    8.05     0.010    7.83
+  1000        62      166167000    8.02     0.083    8.47
+  2000       512     1331334000    8.01     0.602    7.24
 ```
 
-The **operation-count ratio → 8** every time N doubles.
+The **operation-count ratio → 8** every time N doubles. The **time ratio agrees — noisily**.
 
 --
 
@@ -236,31 +224,22 @@ So: plot log-log, measure the slope, read off the exponent.
 
 --
 
-## The power law
+## The power law → predict
 
-Slope **b = 3**, so $T(N) = aN^{3}$. Solve for *a* from one measured point, then **predict**:
+Slope **b = 3**, so $T(N) = aN^{3}$. Solve for *a* from one measured point, then **forecast**:
 
 - T(4000) ≈ 8 × T(2000)
 - T(8000) ≈ 8 × T(4000)
 
-A back-of-the-envelope forecast, before the run finishes.
+The forecast stands or falls on the **next measurement** — agreement raises confidence; one miss kills the model.
 
---
-
-## Predict, then verify
-
-We measured small N, fit $T = a N^3$, and forecast large N.
-
-- Forecast stands or falls on the **next measurement**.
-- Agreement raises confidence; one miss kills the model.
-
-But measuring doesn't tell us **why** the exponent is 3. For that, we model.
+But measuring never tells us **why** the exponent is 3. For that, we model.
 
 ---
 
 ### Part 3 · Model — derive it
 
-<small>(~28 min)</small>
+<small>(~26 min)</small>
 
 **Why N³? Get it from the code, not the stopwatch**
 
@@ -313,7 +292,9 @@ $$\frac{N(N-1)(N-2)}{6} \sim \frac{N^3}{6}$$
 
 $$\frac{N^3/6 - N^2/2 + N/3}{N^3/6} = 1 - \frac{3}{N} + \frac{2}{N^2} \longrightarrow 1$$
 
-as N → ∞. The correction shrinks as N grows. **Tilde keeps the leading term**; everything else is noise at scale.
+as N → ∞. **Tilde keeps the leading term**; everything else is noise at scale.
+
+The correction even predicts the **measured ratios**: $8(1 + \tfrac{3}{2N})$ = **8.048, 8.024, 8.012** at N = 250, 500, 1000 — our table's 8.05, 8.02, 8.01, closing on 8 from above.
 
 --
 
@@ -376,7 +357,7 @@ When we return: the handful of growth rates you'll see all term, then how to bea
 
 ### Part 4 · Order-of-growth classes
 
-<small>(~20 min)</small>
+<small>(~18 min)</small>
 
 --
 
@@ -390,7 +371,7 @@ When we return: the handful of growth rates you'll see all term, then how to bea
 | N log N | linearithmic | divide & conquer | mergesort |
 | N² | quadratic | double loop | check all pairs |
 | N³ | cubic | triple loop | 3-sum |
-| 2ⁿ | exponential | all subsets | exhaustive search |
+| 2ᴺ | exponential | all subsets | exhaustive search |
 
 --
 
@@ -407,7 +388,7 @@ When we return: the handful of growth rates you'll see all term, then how to bea
 
 - **quadratic** — every pair: a loop inside a loop (N²)
 - **cubic** — every triple: three nested loops (N³ — tonight's 3-sum)
-- **exponential** — every subset: 2ⁿ, infeasible beyond tiny N
+- **exponential** — every subset: 2ᴺ, infeasible beyond tiny N
 
 Nesting **multiplies**; that's why exponents climb so fast.
 
@@ -415,7 +396,7 @@ Nesting **multiplies**; that's why exponents climb so fast.
 
 ## Why the exponent rules everything
 
-<img src="graphs/orders-of-growth.svg" style="width:90%">
+<img src="graphs/orders-of-growth.svg" style="width:84%">
 
 Log-log turns each class into a **line whose slope is its exponent.**
 
@@ -431,23 +412,15 @@ At **N = 10⁶**, on a 10⁹ ops/sec machine:
 | N log N | 20 ms |
 | N² | ~17 minutes |
 | N³ | ~31 years |
-| 2ⁿ | beyond the age of the universe |
+| 2ᴺ | beyond the age of the universe |
 
-Same machine, same language — the **algorithm** decides feasibility.
-
---
-
-## The takeaway
-
-Order of growth — **not constant factors, not the machine** — decides whether a program finishes.
-
-So when a program is too slow, the first question is not "faster machine?" but **"better order of growth?"**
+The **algorithm** decides feasibility — ask *better order of growth?* before *faster machine?*
 
 ---
 
 ### Part 5 · Designing a faster algorithm
 
-<small>(~25 min)</small>
+<small>(~30 min)</small>
 
 **Analysis guides design**
 
@@ -592,33 +565,83 @@ The fast versions hug the axis; the brute-force versions explode.
 
 --
 
+## Can the log go too?
+
+`threeSumFast` **re-searches** for every pair: log N each.
+
+On sorted data: fix `a[i]`, close **two pointers** in from the tail's ends, `s = a[i]+a[lo]+a[hi]`:
+
+- **s < 0** → `a[lo]` pairs with nothing left: `lo++`
+- **s > 0** → mirror image — `hi` is finished: `hi--`
+- **s = 0** → count it, retire both
+
+Each step **retires an index for good** ⇒ ≤ N steps per `i`. No search, no log.
+
+--
+
+## 3-sum with two pointers
+
+```cpp
+long threeSumTwoPointer(vector<int> a) {   // ~ N^2
+    sort(a.begin(), a.end());              // N log N  (preprocess)
+    int N = a.size(); long cnt = 0;
+    for (int i = 0; i < N; i++) {          // fix a[i] ...
+        int lo = i + 1, hi = N - 1;        // ... two pointers on the tail
+        while (lo < hi) {
+            int s = a[i] + a[lo] + a[hi];
+            if      (s < 0) lo++;
+            else if (s > 0) hi--;
+            else { cnt++; lo++; hi--; }    // (distinct values)
+        }
+    }
+    return cnt;
+}
+```
+
+By the rules: N log N **+** N · N **=** **N²** — the log is gone.
+
+--
+
+## The whole ladder
+
+| algorithm | idea | order | doubling × |
+|---|---|---|---|
+| `threeSum` | test every triple | N³ | ×8 |
+| `threeSumFast` | sort; binary-search the third | N² log N | ×4 and a bit |
+| `threeSumTwoPointer` | sort; retire an index per step | N² | ×4 |
+
+```
+$ g++ -std=c++17 -O2 demo/twopointer.cpp -o twopointer && ./twopointer 16000
+```
+
+--
+
 ## How fast *can* we go?
 
-A **lower bound** is the best order of growth *any* algorithm could achieve.
+A **lower bound** is a floor: a cost *no* algorithm can beat.
 
-- 2-sum: no algorithm beats N log N (comparison model)
-- 3-sum: nobody has proven a sub-quadratic algorithm — believed to be ~N²
+- **2-sum** — in the comparison model, **N log N** is a proven floor (Session 13 proves one of these)
+- **3-sum** — our N² is essentially it: only log-factor shavings are known, and the *3-sum conjecture* says no $N^{2-\varepsilon}$ algorithm exists
 
-A lower bound tells you when to **stop** optimizing.
+When you're standing on the floor, **stop optimizing**.
 
 ---
 
 ### Part 6 · The shortcut & what's next
 
-<small>(~5 min)</small>
+<small>(~6 min)</small>
 
 --
 
 ## The doubling-ratio method
 
-The fastest way to find an algorithm's order of growth:
+Run it **doubling N**, read the ratio: if $T(N) = aN^{b}$,
 
-1. Run it, **doubling N**; record the ratio of consecutive running times.
-2. Ratio → **2ᵇ** ⇒ order of growth **Nᵇ**.
+$$\frac{T(2N)}{T(N)} = \frac{a(2N)^{b}}{aN^{b}} = 2^{b}$$
 
-We saw **ratio → 8 = 2³** ⇒ N³.
+The constant *a* **cancels**; lower-order terms fade (we watched: 8.05 → 8.02 → 8.01). Ratio → **8 = 2³** ⇒ **N³**.
 
-Two minutes of doubling gives the exponent — and tells you whether the algorithm can ride Moore's Law.
+Two minutes of doubling gives the exponent — and whether the algorithm can ride Moore's Law.
 
 --
 
@@ -633,22 +656,22 @@ For an **Nᵇ** algorithm, a 2× machine grows feasible N by **2^(1/b)**:
 | N — linear | 2 | **×2** (doubles!) |
 | N² — quadratic | 4 | ×√2 ≈ 1.41 |
 | N³ — cubic | 8 | ×∛2 ≈ 1.26 |
-| 2ⁿ — exponential | — | **+1 element** |
+| 2ᴺ — exponential | — | **+1 element** |
 
 --
 
 ## To *double* the problem
 
-Run the trade the other way: to solve **2N** in the same time you need a **2ᵇ×** machine — exactly **b Moore's-Law generations** (~2 yr each).
+To solve **2N** in the same time you need a **2ᵇ×** machine — exactly **b Moore's-Law generations** (~2 yr each).
 
 | order | speedup to double N | wait |
 |---|---|---|
 | N — linear | 2× | ~2 yr |
 | N² — quadratic | 4× | ~4 yr |
 | N³ — cubic | 8× | ~6 yr |
-| 2ⁿ — exponential | impossible | never |
+| 2ᴺ — exponential | impossible | never |
 
-The doubling ratio **2ᵇ** is the whole story: **b** is how many hardware generations it costs to double your input. Only linear (or better) keeps pace; cubic and up fall behind, and exponential never starts.
+Linear keeps pace; cubic falls behind; exponential never starts.
 
 --
 
@@ -656,9 +679,9 @@ The doubling ratio **2ᵇ** is the whole story: **b** is how many hardware gener
 
 In `ica01/`: instrument **3-sum** and run the **doubling experiment**.
 
-1. Add a counter to `count3`; print N, operations, ratio (skeleton provided)
+1. Add the counter to `count3` (skeleton provided)
 2. Confirm the ratio → **8**; predict operations at N = 16000
 3. One sentence: what order of growth, and how the ratio shows it
 
-**Start now, finish at home.** Submit `threesum_lab.cpp` before Session 2.
+**Start now, finish at home** — submit `threesum_lab.cpp` **tonight, 11:59 PM**.
 

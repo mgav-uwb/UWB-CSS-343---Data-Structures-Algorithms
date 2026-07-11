@@ -1,8 +1,8 @@
 # CSS 343 — Practice Final (Summer 2026)
 
-**100 points · 120 minutes · Session 18 · a Canvas quiz, taken in class.** Comprehensive (S1–S17): the post-midterm material leads, with direct first-half items (a heap, Dijkstra) alongside the complexity bank. Closed book; one double-sided hand-written note page; no devices other than the Canvas exam page. Orders/lists: **comma-separated, no spaces**; ties broken **alphabetically / ascending** unless stated. This document is the paper rendering of the quiz.
+**100 points · 110 minutes · Session 18 · a Canvas quiz, taken in class.** Comprehensive (S1–S17): the post-midterm material leads, with direct first-half items (a heap, Dijkstra) alongside the complexity bank. Closed book; one double-sided hand-written note page; no devices other than the Canvas exam page. Orders/lists: **comma-separated, no spaces**; ties broken **alphabetically / ascending** unless stated. This document is the paper rendering of the quiz.
 
-*Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 120 minutes first. It is also on Canvas as an **ungraded practice quiz** with these exact questions — take that version too, so exam-day answer entry is automatic.*
+*Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 110 minutes first. It is also on Canvas as an **ungraded practice quiz** with these exact questions — take that version too, so exam-day answer entry is automatic.*
 
 ## Q1 — Tight complexity bounds (10 pts)
 

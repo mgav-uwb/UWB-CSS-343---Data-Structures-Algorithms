@@ -19,7 +19,10 @@
 // too slow: N^3 up to N3_MAX, the N^2 log N versions up to N2LOGN_MAX; the two
 // N^2 versions run all the way to MAX_SIZE.
 //
-// Build & run:  g++ -std=c++17 -O2 twopointer.cpp -o twopointer && ./twopointer
+// Build & run:  g++ -std=c++17 -O2 twopointer.cpp -o twopointer
+//
+//   ./twopointer          # full ladder, N = 1000 .. 128000 (~3 min)
+//   ./twopointer 16000    # class-sized run (~20 s, mostly the cubic rung)
 
 #include <cstdio>
 #include <cstdlib>
@@ -232,14 +235,16 @@ void report(const char* name, const char* order, long triples,
            sec_now, mult(sec_now, sec_prev, rt));
 }
 
-int main() {
+int main(int argc, char** argv) {
+    int maxSize = (argc > 1) ? atoi(argv[1]) : MAX_SIZE;   // cap the whole run (class-sized: 16000)
+    if (maxSize > MAX_SIZE) maxSize = MAX_SIZE;
     mt19937 rng(343);
     printf("3-sum: every algorithm finds the SAME triples; the work tells them apart.\n");
 
     long long pB = 0, pF = 0, pT = 0, pU = 0, pS = 0, pH = 0;   // previous op counts, per algorithm
     double pBt = 0, pFt = 0, pTt = 0, pUt = 0, pSt = 0, pHt = 0; // previous wall-clock times, per algorithm
-    vector<int> a = distinctValues(MAX_SIZE, rng);
-    for (int N = 1000; N <= MAX_SIZE; N += N) {
+    vector<int> a = distinctValues(MAX_SIZE, rng);              // full pool either way, so counts match across runs
+    for (int N = 1000; N <= maxSize; N += N) {
         long bTri = -1, fTri = -1, tTri = -1, uTri = -1, sTri = -1, hTri = -1;
         long long bOps = 0, fOps = 0, tOps = 0, uOps = 0, sOps = 0, hOps = 0;
         double bSec = 0, fSec = 0, tSec = 0, uSec = 0, sSec = 0, hSec = 0;
