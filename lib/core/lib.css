@@ -24,7 +24,7 @@
 .u-opbar { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; background: #fff; border: 1px solid #eef0f4; border-radius: 12px; padding: 9px 13px; margin-bottom: 10px; }
 .u-opbar label { color: #66708a; font-size: 12px; font-weight: 600; }
 .u-opbar input { font: 600 13px ui-monospace, Menlo, monospace; border: 1px solid #d7dbe6; border-radius: 8px; padding: 6px 9px; }
-.u-opbar .u-seq { width: 320px; } .u-opbar .u-val { width: 60px; }
+.u-opbar .u-seq { width: 320px; } .u-opbar .u-val { width: 60px; } .u-opbar .u-named { width: 110px; }
 .u-opbar button { font: 600 13px system-ui; border: 1px solid #7c5cff; background: #7c5cff; color: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; }
 .u-opbar button.ghost { background: #f7f8fb; color: #4b3ccc; }
 .u-opbar button:hover { filter: brightness(1.05); }

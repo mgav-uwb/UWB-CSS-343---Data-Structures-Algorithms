@@ -1,11 +1,11 @@
 ---
 title: "CSS 343 — Final Study Guide"
-version: "1.1"
+version: "1.2"
 status: review
 created_by: "Claude"
 created_at: "2026-07-04T12:00"
 last_modified_by: "Claude"
-last_modified_at: "2026-07-11T20:00"
+last_modified_at: "2026-07-11T22:00"
 contributors:
   - "Dr. Marcel Gavriliu"
   - "Claude"
@@ -26,9 +26,9 @@ related:
 
 **Session 18 (Thu Aug 20, 2026) — Review + Final Exam.** **Comprehensive**, covering **Sessions 1–17**, with emphasis on the **post-midterm** material (S11–S17): union-find & MST, greedy & Huffman, sorting & divide-and-conquer, dynamic programming, strings, and regular expressions.
 
-> **Format:** **110 points, 140 minutes**, one sitting, closed book, **one page of double-sided handwritten notes** allowed. Answer-entry conventions match the ICAs and the midterm: orders and arrays **comma-separated, no spaces** (example: `1,2,3`); where a choice exists, ties break **alphabetically / in ascending order**; any question-specific determinism rule (union tie-breaking, Huffman tie-breaking, `<=` in merge) is stated inside the question. Expect: a complexity bank, tracing on given input (union-find + Kruskal, articulation points, Huffman, master theorem, merge, LCS, knapsack, KMP + trie, hashing, a heap, Dijkstra), regex writing, a DFA, and one design question. Roughly **two-thirds post-midterm**; for the first half (S1–S9), review the [midterm guide](../S10-midterm/study-guide-s10.md).
+> **Format:** a **Canvas quiz**, taken in class, like the midterm — **100 points, 120 minutes**, one attempt, closed book, **one page of double-sided handwritten notes** allowed. Answers are typed and auto-graded, so the conventions matter: orders and arrays **comma-separated, no spaces** (example: `1,2,3`); where a choice exists, ties break **alphabetically / in ascending order**; any question-specific determinism rule (union tie-breaking, Huffman tie-breaking) is stated inside the question. Expect: a complexity bank, tracing on given input (union-find + Kruskal, articulation points, Huffman, master theorem, LCS, knapsack, KMP + trie, hashing, a heap, Dijkstra), regexes, a DFA, and a design question. Roughly **two-thirds post-midterm**; for the first half (S1–S9), review the [midterm guide](../S10-midterm/study-guide-s10.md).
 >
-> **Rehearse the format:** the [practice final](./practice-final.md) has the identical structure with a full worked key — work it **cold, on paper, under time** before checking.
+> **Rehearse the format:** the [practice final](./practice-final.md) has the identical structure with a full worked key — and it is also on Canvas as an **ungraded practice quiz** with unlimited attempts. Work it **cold, on paper, in 120 minutes** first, then take the Canvas version at least once so exam-day answer entry is automatic.
 
 ## 1 · Master reference table
 
@@ -111,6 +111,7 @@ related:
 
 | Version | Date | Author | Summary |
 | ------- | ---------------- | ------ | ------------- |
+| 1.2 | 2026-07-11T22:00 | Claude | Final is a Canvas quiz like the midterm: 100 pts / 120 min (was 110/140); merge-step question cut in the resize; pointed students at the ungraded Canvas practice quiz. |
 | 1.1 | 2026-07-11T20:00 | Claude | Format finalized to match the built exam kit (110 pts, 140 min, closed book + 1 note page, comma/alphabetical conventions, in-question determinism rules, ~2/3 post-midterm); pointed students at the practice final ("work it cold, under time"). Practice-question precision: union-find universe pinned to 1..6, KMP reset phrased as f[3], trie count excludes the root — matching the practice-final conventions. |
 | 1.0 | 2026-07-05T13:00 | Claude | Fleshed out from scaffold: master table (S1–S17), post-midterm key ideas (S11–S17), cross-cutting themes, pitfalls, and 15 practice questions. Format left to the instructor; first-half detail deferred to the midterm guide. |
 | 0.1 | 2026-07-04T12:00 | Claude | Scaffold: covered-topics list (S1–S17) from schedule, format + TODO placeholders. |

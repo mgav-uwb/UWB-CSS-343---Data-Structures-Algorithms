@@ -1,8 +1,8 @@
 # CSS 343 — Practice Final (Summer 2026)
 
-**110 points · 140 minutes · Session 18.** Comprehensive (S1–S17): the post-midterm material leads, with direct first-half items (heaps, Dijkstra) alongside the complexity bank. Closed book; one double-sided hand-written note page. Orders/lists: **comma-separated, no spaces**; ties broken **alphabetically / ascending** unless stated.
+**100 points · 120 minutes · Session 18 · a Canvas quiz, taken in class.** Comprehensive (S1–S17): the post-midterm material leads, with direct first-half items (a heap, Dijkstra) alongside the complexity bank. Closed book; one double-sided hand-written note page; no devices other than the Canvas exam page. Orders/lists: **comma-separated, no spaces**; ties broken **alphabetically / ascending** unless stated. This document is the paper rendering of the quiz.
 
-*Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 130 minutes first.*
+*Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 120 minutes first. It is also on Canvas as an **ungraded practice quiz** with these exact questions — take that version too, so exam-day answer entry is automatic.*
 
 ## Q1 — Tight complexity bounds (10 pts)
 
@@ -38,7 +38,7 @@ then execute `find(1)` and `find(7)`. Give **(i)** the two find results (2 pts) 
 
 **(b)** Kruskal's algorithm runs on a 9-vertex graph (vertices 0..8) with edges `(u,v,w)`: (0,1,3) · (0,7,10) · (1,2,7) · (2,3,6) · (2,8,1) · (3,4,8) · (3,5,13) · (4,5,9) · (5,6,4) · (7,6,2) · (7,8,5) · (8,6,11).
 
-Give the edges in the order Kruskal **accepts** them, the **first edge it skips** (and why), and the **MST weight** (4 pts).
+Give the edges in the order Kruskal **accepts** them, written as `u-v` pairs comma-separated (2 pts), the **first edge it skips** as `u-v` (1 pt), and the **MST weight** (1 pt).
 
 ## Q3 — Articulation points (8 pts)
 
@@ -52,7 +52,7 @@ Frequencies: **a: 25   b: 12   c: 7   d: 28   e: 14   f: 4   g: 3**
 
 Build the Huffman trie. Determinism rules: always merge the two nodes of smallest frequency, breaking frequency ties by the alphabetically-first symbol contained; of the two merged nodes, the smaller (same rule) becomes the **left** (0) child.
 
-**(a)** the code for every symbol (5 pts) · **(b)** encode **fade** (2 pts) · **(c)** how many bits total (1 pt)?
+**(a)** the codes for **a, c, d, f, g** (1 pt each) · **(b)** encode **fade** (2 pts) · **(c)** how many bits total (1 pt)?
 
 ## Q5 — Recurrences (6 pts, 2 each)
 
@@ -64,31 +64,25 @@ Solve with the master theorem (state the case):
 
 3. T(n) = 3·T(n/2) + n
 
-## Q6 — The merge step (6 pts)
+## Q6 — LCS (8 pts)
 
-Merge the sorted runs **[1, 7, 10, 18]** and **[3, 5, 13, 15, 20, 28]** (mergesort's merge, `<=` keeps the left run's element).
+Fill the LCS table for **A = ABDCBA** (rows) vs **B = BDACB** (columns) on scratch paper, then give:
 
-**(a)** the merged array (4 pts) · **(b)** exactly how many element **comparisons** were made (2 pts)?
+**(a)** the table ROW for the prefix `ABDC` (its 6 values, ε-column first, comma-separated) (2 pts) · the FINAL row (2 pts) · **(b)** the LCS **length** (1 pt) · **(c)** one longest common subsequence via traceback (3 pts — any valid LCS accepted).
 
-## Q7 — LCS table (8 pts)
-
-Fill the LCS table for **A = ABDCBA** (rows) vs **B = BDACB** (columns).
-
-**(a)** the completed table (5 pts) · **(b)** the LCS **length** (1 pt) · **(c)** one longest common subsequence via traceback (2 pts).
-
-## Q8 — 0/1 knapsack (7 pts)
+## Q7 — 0/1 knapsack (7 pts)
 
 item 1: value 40, weight 1 · item 2: value 80, weight 2 · item 3: value 100, weight 3 · item 4: value 60, weight 2 · capacity **W = 5**.
 
-**(a)** the FINAL row of the DP table, K[n][0..W] (4 pts) · **(b)** the optimal value (1 pt) · **(c)** which items achieve it, via traceback (2 pts).
+**(a)** the FINAL row of the DP table, K[n][0..W] (4 pts) · **(b)** the optimal value (1 pt) · **(c)** a set of items that achieves it (2 pts — any optimal set accepted).
 
-## Q9 — KMP & tries (8 pts)
+## Q8 — KMP & tries (8 pts)
 
 **(a)** The failure function of the pattern **ababab** (one value per position) (4 pts).
 
 **(b)** Insert **sun, sung, sunk, sad, sip** into an (initially empty) trie with a word-end flag. How many nodes does the trie have, NOT counting the root (2 pts)? What is its depth — the longest root-to-node path (1 pt)? Is `su` reported as a stored word (1 pt)?
 
-## Q10 — Hashing (7 pts)
+## Q9 — Hashing (7 pts)
 
 Define conv(x) = length(x) + Σ ord(c) over x's characters, with ord(a)=1 … ord(z)=26; the hash is **h(x) = conv(x) mod 7**, table slots 0..6, collisions by **linear probing**.
 
@@ -96,17 +90,17 @@ Insert, in order: **ml, ai, db, os, ux, api**
 
 **(a)** each key's home slot (3 pts) · **(b)** the final table, slots 0..6, `_` for empty (4 pts).
 
-## Q11 — Design (6 pts)
+## Q10 — Design (6 pts)
 
 A catalog system stores millions of records keyed by unique ID, and must also answer *range* queries by date and *prefix* queries by title. **(a)** For ID lookup, compare separate chaining vs linear probing under a HIGH load factor — one or two sentences each on where they degrade (3 pts). **(b)** Name the structure you'd add for the date-range queries and the one for the title-prefix queries, with one sentence of justification each (3 pts).
 
-## Q12 — Write the regular expressions (6 pts, 3 each)
+## Q11 — Write the regular expressions (6 pts, 3 each)
 
 1. The set of strings over {a,b}: all strings of exactly two symbols.
 
 2. The set of strings over {0,1}: all strings ending in 0 (at least one symbol).
 
-## Q13 — DFA (10 pts)
+## Q12 — DFA (10 pts)
 
 Σ = {a,b}. We want to recognize: **strings with an EVEN number of a's**.
 
@@ -116,17 +110,17 @@ A catalog system stores millions of records keyed by unique ID, and must also an
 
    `aa` · `aba` · `b` · `abab` · `a` · `baab` · `bb` · `ε`
 
-## Q14 — Binary heap (5 pts)
+## Q13 — Binary heap (3 pts)
 
 Insert, in this order, into an initially empty **binary max-heap** (append then swim; write the array **1-indexed**, a[1..n]): **12, 19, 6, 24, 10, 28, 8**.
 
-**(a)** the heap array after all inserts (3 pts) · **(b)** the array after **one** `delMax` (2 pts).
+**(a)** the heap array after all inserts (2 pts) · **(b)** the array after **one** `delMax` (1 pt).
 
-## Q15 — Dijkstra's shortest paths (5 pts)
+## Q14 — Dijkstra's shortest paths (3 pts)
 
 A **directed**, non-negative weighted graph on vertices 0..4, edges `(u→v, w)`: (0→1, 1) · (0→2, 6) · (1→2, 2) · (2→3, 3) · (1→3, 9) · (3→4, 1).
 
-Run **Dijkstra from vertex 0**. Give `dist[v]`, the shortest-path distance, for **every** vertex 0..4 (5 pts).
+Run **Dijkstra from vertex 0**. Give `dist[v]`, the shortest-path distance, for **every** vertex 0..4, comma-separated (3 pts).
 
 
 ---
@@ -136,45 +130,33 @@ Run **Dijkstra from vertex 0**. Give `dist[v]`, the shortest-path distance, for 
 **Q1.** (1) O(E log V) · (2) O(n log n) · (3) O(n + m) · (4) O(n·m) · (5) O(n) · (6) O(log n) · (7) O(1) · (8) O(1) · (9) O(n + m) · (10) O(n log n)
 
 **Q2.** (a) find(1)=3, find(7)=7 · parent[] = `[3, 3, 3, 3, 5, 7, 7, 7, 9, 3]`
-(b) accepted: (2,8,1) (7,6,2) (0,1,3) (5,6,4) (7,8,5) (2,3,6) (1,2,7) (3,4,8) · first skip: (4,5,9) — endpoints already connected · weight **36**
+(b) accepted: `2-8,7-6,0-1,5-6,7-8,2-3,1-2,3-4` · first skip: `4-5` (endpoints already connected) · weight **36**
 
 **Q3.** (a) A(1,1) B(2,1) C(3,1) D(4,4) E(5,4) F(6,4) G(7,7) H(8,8) · (b) **C,D,F,G**
 
-**Q4.** (a) a=01 b=100 c=1010 d=11 e=00 f=10111 g=10110 · (b) `10111011100` · (c) 11 bits
+**Q4.** (a) a=01 c=1010 d=11 f=10111 g=10110 · (b) `10111011100` · (c) 11 bits
 
 **Q5.** (1) Θ(n) — n^{log₂2}=n dominates f=1 → case 1 · (2) Θ(log n) — n^{log₂1}=1 = f → case 2 (binary search) · (3) Θ(n^{log₂3}) — n^{log₂3}≈n^{1.58} dominates f=n → case 1
 
-**Q6.** (a) `1,3,5,7,10,13,15,18,20,28` · (b) 8 comparisons
+**Q6.** (a) row `ABDC` = `0,1,2,2,3,3` · final row = `0,1,2,3,3,4` · (b) length **4** · (c) any of: `BDCB`
 
-**Q7.** (a)
-|   | ε | B | D | A | C | B |
-|---|---|---|---|---|---|---|
-| ε | 0 | 0 | 0 | 0 | 0 | 0 |
-| A | 0 | 0 | 0 | 1 | 1 | 1 |
-| B | 0 | 1 | 1 | 1 | 1 | 2 |
-| D | 0 | 1 | 2 | 2 | 2 | 2 |
-| C | 0 | 1 | 2 | 2 | 3 | 3 |
-| B | 0 | 1 | 2 | 2 | 3 | 4 |
-| A | 0 | 1 | 2 | 3 | 3 | 4 |
-(b) length **4** · (c) e.g. `BDCB` (any valid LCS accepted)
+**Q7.** (a) `0,40,80,120,140,180` · (b) **180** · (c) any of: {1,2,4} · {2,3}
 
-**Q8.** (a) `0,40,80,120,140,180` · (b) **180** · (c) items {2,3}
+**Q8.** (a) `0,0,1,2,3,4` · (b) 9 nodes · depth 4 · NO — it is only a prefix (its node's word-end flag is false)
 
-**Q9.** (a) `0,0,1,2,3,4` · (b) 9 nodes · depth 4 · NO — it is only a prefix (its node's word-end flag is false)
+**Q9.** (a) ml→6 ai→5 db→1 os→1 ux→5 api→1 · (b) `ux,db,os,api,_,ai,ml`
 
-**Q10.** (a) ml→6 ai→5 db→1 os→1 ux→5 api→1 · (b) `ux,db,os,api,_,ai,ml`
+**Q10.** (a) chaining: long chains → Θ(α) scans but graceful; probing: clustering snowballs as α→1, probes explode (and deletes need care). (b) date ranges → a balanced BST/B+ tree (ordered: range = in-order between bounds); title prefixes → a trie (prefix = a path; subtree = all completions).
 
-**Q11.** (a) chaining: long chains → Θ(α) scans but graceful; probing: clustering snowballs as α→1, probes explode (and deletes need care). (b) date ranges → a balanced BST/B+ tree (ordered: range = in-order between bounds); title prefixes → a trie (prefix = a path; subtree = all completions).
+**Q11.** (1) `(a|b)(a|b)` (equivalents accepted) · (2) `(0|1)*0` (equivalents accepted)
 
-**Q12.** (1) `(a|b)(a|b)` (equivalents accepted) · (2) `(0|1)*0` (equivalents accepted)
-
-**Q13.** (a) canonical table (any equivalent DFA accepted):
+**Q12.** (a) canonical table (any equivalent DFA accepted):
 ```text
 → S0 (acc) | a→S1  b→S0 | yes
 S1 | a→S0  b→S1 | no
 ```
 (b) aa→Yes · aba→Yes · b→Yes · abab→Yes · a→No · baab→Yes · bb→Yes · ε→Yes
 
-**Q14.** (a) `28,19,24,12,10,6,8` · (b) `24,19,8,12,10,6`
+**Q13.** (a) `28,19,24,12,10,6,8` · (b) `24,19,8,12,10,6`
 
-**Q15.** dist[] = `0,1,3,6,7`
+**Q14.** dist[] = `0,1,3,6,7`
