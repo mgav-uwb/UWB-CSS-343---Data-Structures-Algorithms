@@ -77,15 +77,6 @@ Forget it → **infinite recursion**. The base cases feed the first inputs into 
 
 --
 
-## Tonight's plan
-
-1. **divide-and-conquer** + the **master theorem**
-2. **mergesort** — easy divide, work in the **merge**
-3. **quicksort** — work in the **partition**, trivial combine
-4. **lower bound** (Ω(n log n)) + **quickselect**
-
---
-
 ## Recurrences
 
 A D&C algorithm's cost obeys a **recurrence**:
@@ -110,6 +101,24 @@ For `T(n) = a·T(n/b) + f(n)`, compare `f(n)` to `n^(log_b a)`:
 ```
 
 The winner (leaves vs root work) sets the cost.
+
+--
+
+## Where the three cases come from
+
+Sum the recursion tree **level by level**:
+
+```text
+   level 0:  f(n)                     (the root)
+   level 1:  a · f(n/b)
+   level i:  aⁱ · f(n/bⁱ)
+   bottom:   n^(log_b a) · Θ(1)       (the leaves)
+
+   T(n) = Σ levels — a geometric series:
+   terms shrink → the ROOT dominates      (case 3)
+   terms flat   → every level ties → ×log n (case 2)
+   terms grow   → the LEAVES dominate     (case 1)
+```
 
 --
 
@@ -281,7 +290,7 @@ Each level merges **n** elements total → **log n levels × n = Θ(n log n)**.
 </pre>
 </div>
 
-<small>Each **merge** compares the fronts of two sorted runs and writes the smaller out. Runs **double** each pass — `log n` passes × `Θ(n)` per pass = **Θ(n log n)**. Full sandbox: the **Explore** page.</small>
+<small>**Build** loads the array, **Mergesort** runs the merges — runs **double** each pass, `log n` passes × `Θ(n)` = **Θ(n log n)**. The build string is editable (`1..12:1:RAND`).</small>
 
 --
 
@@ -388,10 +397,23 @@ Lomuto scheme, **pivot = last element**:
    1<5 → i=1, swap a[1],a[2]  → 3 1 7 8 2
    8<5? no
    2<5 → i=2, swap a[2],a[4]  → 3 1 2 8 7
-   place pivot: swap a[3],a[5] → 3 1 2 [5] 8 7
+   place pivot: swap a[3],a[5] → 3 1 2 [5] 7 8
 ```
 
-Pivot 5 lands at index 3; left all < 5, right all > 5.
+Pivot 5 lands at index 3 — its final sorted spot; left all < 5, right all > 5.
+
+--
+
+## Your turn — partition
+
+Lomuto, **pivot = last**:
+
+```text
+   [ 5 9 3 8 6 | 7 ]    where does 7 land?
+   what are the two sides?
+```
+
+<small>5&lt;7 (i=0) · 9 no · 3&lt;7 → swap → `5 3 9 8 6` · 8 no · 6&lt;7 → swap → `5 3 6 8 9` · place pivot: swap a[3],a[5] → **`5 3 6 [7] 9 8`** — pivot at rank 3, left `5 3 6`, right `9 8`.</small>
 
 --
 
@@ -409,8 +431,9 @@ Both are Θ(n) and place the pivot; Hoare is the classic, Lomuto the teachable o
 A bad pivot peels off **one** element per level → **n levels**:
 
 ```text
-   sorted input + first-element pivot:
-   [1|2 3 4 5]  [2|3 4 5]  [3|4 5]  …   n levels × n work = Θ(n²)
+   sorted input + a fixed-position pivot (first or last):
+   [1 2 3 4|5] → [1 2 3|4] → [1 2|3] → …
+   n levels, each peeling ONE element → Θ(n²)
 ```
 
 Balanced pivots give log n levels; bad pivots give n. **Pivot choice is everything.**
@@ -428,7 +451,7 @@ Balanced pivots give log n levels; bad pivots give n. **Pivot choice is everythi
 </pre>
 </div>
 
-<small>Pick a **pivot**, **partition** (smaller left / larger right), then recurse each side. The pivot **locks into its final slot** each time — sorting **in place**, no extra buffer. Full sandbox: the **Explore** page.</small>
+<small>**Quicksort**: each pivot **locks into its final slot**, in place. Compare its counters with **Mergesort** on the same input — then Build `1..12` (sorted!) and watch quicksort's compares **blow up**.</small>
 
 --
 
@@ -497,13 +520,13 @@ Equal keys are done — never recursed on. Θ(n) on all-equal input (else Θ(n²
 ## Quicksort — the whole sort
 
 ```text
-   [3 7 1 8 2 5]           pivot 5 → [3 1 2] 5 [8 7]
-   [3 1 2]  pivot 2 → [1] 2 [3]      [8 7] pivot 7 → [.] 7 [8]
-   [1] [3]  singletons — done
+   [3 7 1 8 2 5]           pivot 5 → [3 1 2] 5 [7 8]
+   [3 1 2]  pivot 2 → [1] 2 [3]      [7 8] pivot 8 → [7] 8
+   [1] [3] [7]  singletons — done
    → 1 2 3 5 7 8
 ```
 
-Each pivot (5, 2, 7, …) locks in; the sides sort recursively, in place.
+Each pivot (5, 2, 8, …) locks in; the sides sort recursively, in place.
 
 --
 
@@ -521,13 +544,13 @@ Each pivot (5, 2, 7, …) locks in; the sides sort recursively, in place.
 
 ## Why quicksort wins in practice
 
-Same Θ(n log n) as mergesort, but a **smaller constant**:
+Same Θ(n log n), but a **smaller constant**:
 
-- **in place** — no Θ(n) buffer to allocate or touch
-- **cache-friendly** — partition scans contiguous memory
+- **in place** — no Θ(n) buffer to touch
+- **cache-friendly** — partition scans contiguously
 - fewer data moves than merge
 
-So `std::sort` is quicksort-based, even though mergesort has the better worst case.
+So `std::sort` is quicksort-based despite the worse worst case.
 
 ---
 
@@ -659,7 +682,7 @@ If k had been 1, we'd recurse into the **left** only; if 5, the **right** only.
 </pre>
 </div>
 
-<small>Partition, then recurse into **only** the side holding rank `k` (the other side is discarded). The active range **shrinks** each step until the pivot lands exactly at `k` — **Θ(n)** average. Full sandbox: the **Explore** page.</small>
+<small>**Select rank** k: partition, then recurse into **only** the side holding rank k. Compare the counters with a full **Quicksort** — selection does a fraction of the work (Θ(n) vs Θ(n log n)).</small>
 
 --
 
@@ -743,10 +766,8 @@ One paradigm, read by one theorem.
 
 In `ica13/ica13.cpp`:
 
-- implement **merge** and a top-down **mergesort**
-- implement **partition** and **quicksort**
-- implement **quickselect** (the k-th smallest)
-- self-tests check sortedness, stability, and known order statistics
+- **merge** + top-down **mergesort** · **partition** (Lomuto) + **quicksort** · **quickselect**
+- tests check against `std::sort` on random / duplicate / **already-sorted** inputs, plus known order statistics
 
 Build `-g`, run the self-tests, Valgrind-clean.
 

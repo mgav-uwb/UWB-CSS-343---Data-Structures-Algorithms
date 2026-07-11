@@ -45,18 +45,31 @@
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
+  <!-- Unified library — stage-scoped interactive demos. Build strings use the
+       range syntax START..STOP[:STEP][:ORDER]; Build shows the raw array (the
+       ops run the algorithms — the S06 loadRaw pattern):
+         mergesort-merge     (P2)  Mergesort on an editable array
+         quicksort-partition (P3)  adds Quicksort — compare counters vs
+                                   Mergesort on the same input; Build "1..12"
+                                   (already sorted) = the Θ(n²) pivot trap
+         quickselect         (P4)  adds Select rank k (one-sided recursion) -->
   <script type="module">
     import { initDeckDemos, Sorting, ArrayRenderer } from "../../lib/deck.js";
-    // build([]) installs the default sample [5,2,8,1,9,3,7,4,6]
-    const sort = () => ({
-      make: () => { const s = new Sorting(); s.build([]); return s; },
+    const base = () => ({
+      make: () => new Sorting(),
+      initial: "1..12:1:RAND", loadRaw: true,     // Build = show the raw array; ops sort it
       renderer: (c) => new ArrayRenderer(c, { mode: "cells" }),
-      costs: ["compare", "swap", "write"], chrome: { showCosts: true }, width: 860, height: 150,
+      stateMsg: (s) => `array of ${s.a.length} — pick an algorithm (Build reloads the raw array)`,
+      costs: ["compare", "swap", "write"], chrome: { showCosts: true },
+      width: 900, height: 150,
     });
+    const mergeOp = { name: "Mergesort", run: (s) => s.mergesort() };
+    const quickOp = { name: "Quicksort", run: (s) => s.quicksort() };
     initDeckDemos({
-      "mergesort-merge":     { ...sort(), run: (s) => s.mergesort() },   // bottom-up merges, runs double
-      "quicksort-partition": { ...sort(), run: (s) => s.quicksort() },   // partition + recurse, in place
-      "quickselect":         { ...sort(), run: (s) => s.quickselect(4) },// 5th-smallest (rank 4)
+      "mergesort-merge":     { ...base(), ops: [mergeOp] },
+      "quicksort-partition": { ...base(), ops: [mergeOp, quickOp] },
+      "quickselect":         { ...base(), ops: [mergeOp, quickOp,
+        { name: "Select rank", arg: "number", run: (s, v) => s.quickselect(v) }] },
     });
   </script>
 </body>
