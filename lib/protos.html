@@ -274,7 +274,7 @@ while (tree has &lt; V vertices) {
 
 <section id="sorting">
 <h2>Mergesort · quicksort · quickselect</h2>
-<p class="why">Divide and conquer twice over: mergesort's work is in the combine, quicksort's in the divide.</p>
+<p class="why">Divide and conquer twice over: mergesort's work is in the combine (NOT in place — each merge copies into a Θ(n) aux buffer), quicksort's in the divide (in place).</p>
 <pre>
 void merge(a, lo, mid, hi) {
     copy a[lo..hi] to aux;
