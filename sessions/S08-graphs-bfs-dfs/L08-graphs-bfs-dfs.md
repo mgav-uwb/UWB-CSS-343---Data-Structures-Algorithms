@@ -329,8 +329,9 @@ Linear in the size of the graph — optimal: you must at least **look** at every
 <div class="algo-viz" data-algo="graph-dfs">
 <pre class="viz-fallback">
    DFS on tonight's DAG: dive along tree edges (bold),
-   mark each vertex, BACK UP at a dead end. edges into
-   already-visited vertices are skipped.
+   mark each vertex, BACK UP at a dead end. the second row
+   shows the RECURSION STACK growing on the dive and
+   shrinking as calls return.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
@@ -527,9 +528,11 @@ Both directions → **dist[v] = δ(v)**. ∎
 
 <div class="algo-viz" data-algo="graph-bfs">
 <pre class="viz-fallback">
-   BFS from vertex 0: expand in LAYERS via a queue. each
-   vertex gets a distance label = fewest edges from 0.
-   then run DFS from the same start and compare orders.
+   BFS from vertex 0: expand in LAYERS via a queue (second
+   row — watch it drain from the front). each vertex gets a
+   distance label = fewest edges from 0. then run DFS from
+   the same start and compare orders — same graph, different
+   container, different order.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>

@@ -555,8 +555,9 @@ Safe by the **cut property** — so Kruskal only adds MST edges.
 <div class="algo-viz" data-algo="kruskal">
 <pre class="viz-fallback">
    edges cheapest-first: ADD an edge (bold) if its endpoints
-   are in different components (union-find), SKIP it (faded)
-   if they're already connected — that would make a cycle.
+   have different union-find roots, SKIP it (faded) if they
+   share one — a cycle. the second row shows that union-find
+   forest merging as edges are accepted.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>

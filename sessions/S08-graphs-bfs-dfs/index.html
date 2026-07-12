@@ -57,7 +57,7 @@
                               cycle: Kahn strands red vertices, DFS flags the
                               back edge -->
   <script type="module">
-    import { initDeckDemos, Graph, GraphRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, ArrayRenderer, Graph, GraphRenderer } from "../../lib/deck.js";
     const DAG = "0 1, 0 2, 1 3, 1 4, 2 3, 2 4, 3 5, 4 5, 4 7, 5 6"; // tonight's DAG (slide "The graph for tonight")
     const base = () => ({
       make: () => new Graph(),
@@ -68,6 +68,16 @@
       costs: ["visit", "compare"], chrome: { showCosts: true },
       width: 960, height: 240,
     });
+    // frontier row: the container that MAKES the search breadth- or depth-first
+    const frontierView = (inner) => ({ draw: (snap) => inner.draw(snap?.frontier?.items ?? [], {}) });
+    const dual = (h) => ({
+      renderer: [
+        (c) => new GraphRenderer(c, { directed: true }),
+        (c) => frontierView(new ArrayRenderer(c, { mode: "cells", pointers: false })),
+      ],
+      labels: ["", "the frontier — BFS: the queue · DFS: the recursion stack · topo: the ready set"],
+      height: [h, 48],
+    });
     const dfsOp = { name: "DFS from", arg: "number", run: (s, v) => s.dfs(v) };
     const bfsOp = { name: "BFS from", arg: "number", run: (s, v) => s.bfs(v) };
     initDeckDemos({
@@ -77,9 +87,9 @@
         label: "tonight's graph — a DAG on 8 vertices, 10 directed edges",
         width: 900, height: 230,
       },
-      "graph-dfs":  { ...base(), ops: [dfsOp] },
-      "graph-bfs":  { ...base(), ops: [dfsOp, bfsOp] },
-      "graph-topo": { ...base(), height: 215, ops: [dfsOp, bfsOp, { name: "Topo sort", run: (s) => s.topo() }] },
+      "graph-dfs":  { ...base(), ...dual(195), ops: [dfsOp] },
+      "graph-bfs":  { ...base(), ...dual(195), ops: [dfsOp, bfsOp] },
+      "graph-topo": { ...base(), ...dual(175), ops: [dfsOp, bfsOp, { name: "Topo sort", run: (s) => s.topo() }] },
     });
   </script>
 </body>

@@ -284,8 +284,9 @@ Each level merges **n** elements total → **log n levels × n = Θ(n log n)**.
 <div class="algo-viz" data-algo="mergesort-merge">
 <pre class="viz-fallback">
    bottom-up mergesort: merge adjacent runs of size 1, then
-   2, then 4, … each pass compares fronts and writes the
-   smaller into place. watch the sorted runs grow ×2 a pass.
+   2, then 4, … each merge copies both runs into the Θ(n)
+   AUX buffer (second row), compares fronts, writes the
+   smaller back. watch the sorted runs grow ×2 a pass.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>

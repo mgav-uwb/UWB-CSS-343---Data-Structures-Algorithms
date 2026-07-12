@@ -63,10 +63,18 @@
       costs: ["compare", "swap", "write"], chrome: { showCosts: true },
       width: 900, height: 150,
     });
+    // aux row adapter: draw the frame's scratch buffer with its own highlights
+    const auxView = (inner) => ({ draw: (snap, hl) => inner.draw(snap?.aux ?? [], (hl && hl.aux) || {}) });
     const mergeOp = { name: "Mergesort", run: (s) => s.mergesort() };
     const quickOp = { name: "Quicksort", run: (s) => s.quicksort() };
     initDeckDemos({
-      "mergesort-merge":     { ...base(), ops: [mergeOp] },
+      "mergesort-merge":     { ...base(), ops: [mergeOp],
+        renderer: [
+          (c) => new ArrayRenderer(c, { mode: "cells" }),
+          (c) => auxView(new ArrayRenderer(c, { mode: "cells" })),
+        ],
+        labels: ["a[]", "aux — the Θ(n) buffer each merge copies into"],
+        height: [105, 85] },
       "quicksort-partition": { ...base(), ops: [mergeOp, quickOp] },
       "quickselect":         { ...base(), ops: [mergeOp, quickOp,
         { name: "Select rank", arg: "number", run: (s, v) => s.quickselect(v) }] },

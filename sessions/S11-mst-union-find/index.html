@@ -55,7 +55,7 @@
                               MST-vs-SPT contrast (triangle "0 1 2, 1 2 2,
                               0 2 3": Prim keeps 1-2, Dijkstra keeps 0-2) -->
   <script type="module">
-    import { initDeckDemos, UnionFind, ArrayRenderer, WeightedGraph, GraphRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, UnionFind, ArrayRenderer, WeightedGraph, GraphRenderer, ForestRenderer } from "../../lib/deck.js";
     const WMST = "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1, 4 7 7";
     const mst = () => ({
       make: () => new WeightedGraph({ directed: false }),
@@ -86,7 +86,14 @@
         label: "tonight's graph — the L09 graph, now undirected: 8 vertices, 11 weighted edges",
         width: 900, height: 225,
       },
-      "kruskal": { ...mst(), ops: [{ name: "Kruskal", run: (s) => s.kruskal() }] },
+      "kruskal": { ...mst(),
+        renderer: [
+          (c) => new GraphRenderer(c, { directed: false }),
+          (c) => { const r = new ForestRenderer(c, { R: 12, rowH: 40 }); return { draw: (snap) => r.draw(snap?.uf ?? [], {}) }; },
+        ],
+        labels: ["", "the union-find forest — same root ⇒ the edge would close a cycle ⇒ skip"],
+        height: [185, 120],
+        ops: [{ name: "Kruskal", run: (s) => s.kruskal() }] },
       "prim": { ...mst(), height: 210, ops: [
         { name: "Kruskal", run: (s) => s.kruskal() },
         { name: "Prim from", arg: "number", run: (s, v) => s.prim(v) },
