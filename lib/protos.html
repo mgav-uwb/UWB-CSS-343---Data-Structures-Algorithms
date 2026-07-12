@@ -243,6 +243,9 @@ void unite(int p, int q) {
     parent[rp] = rq;
     size[rq] += size[rp];
 }
+// why the size array? weighting alone caps height at log n, and
+// weighting + compression is what reaches the ~constant α(n) bound —
+// arbitrary linking with compression alone is stuck at O(log n) amortized
 </pre>
 <p class="backtop"><a href="#toc">↑ contents</a></p>
 </section>
@@ -252,6 +255,7 @@ void unite(int p, int q) {
 <p class="why">Both are the cut property in motion; they differ in which safe edge they grab next.</p>
 <pre>
 // Kruskal: cheapest edge anywhere that doesn't close a cycle
+// (variant: a min-heap of edges + stop at V−1 accepted — often skips the heavy tail)
 sort edges by weight;
 for (auto [w, u, v] : edges) {
     <span class="todo">// TODO: use union-find — if find(u) != find(v), take the edge and unite;</span>
