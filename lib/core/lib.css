@@ -1,6 +1,8 @@
 /* CSS 343 unified library — core/lib.css. Player + canvas + cost panel. */
 .u-player { font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #1a1c22; max-width: 920px; margin: 0 auto; }
-.u-canvas-wrap { background: #fff; border: 1px solid #eef0f4; border-radius: 12px; padding: 6px; }
+/* overflow-x: renderers clamp their zoom-out at RENDER_LIMITS.minScale and
+   grow the canvas past 100% instead, so oversized structures scroll here */
+.u-canvas-wrap { background: #fff; border: 1px solid #eef0f4; border-radius: 12px; padding: 6px; overflow-x: auto; }
 .u-canvas-wrap canvas { width: 100%; height: auto; display: block; }
 .u-player .u-canvas-wrap + .u-canvas-wrap { margin-top: 6px; }
 .u-canvas-label { font: 600 12px system-ui; color: #66708a; text-align: center; padding: 0 0 2px; }
@@ -43,7 +45,7 @@
 /* two-panel contrast (DualDemo) — side by side, or stacked for wide panels */
 .u-dual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .u-dual-grid.stacked { grid-template-columns: 1fr; gap: 8px; }
-.u-dual-col { background: #fff; border: 1px solid #eef0f4; border-radius: 12px; padding: 6px; }
+.u-dual-col { background: #fff; border: 1px solid #eef0f4; border-radius: 12px; padding: 6px; overflow-x: auto; }
 .u-dual-col canvas { width: 100%; height: auto; display: block; }
 .u-dual-title { font-size: 12.5px; color: #66708a; text-align: center; padding: 4px 0 2px; }
 .u-dual-title b { color: #2a2f3a; }
