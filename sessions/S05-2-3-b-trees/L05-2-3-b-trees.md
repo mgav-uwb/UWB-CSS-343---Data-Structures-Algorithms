@@ -667,7 +667,8 @@ Guaranteed **Θ(log n)**, height **≤ 2 log₂ n**, with plain-BST code plus re
 |---|---|---|
 | height | ≤ 1.44 log₂n | ≤ 2 log₂n |
 | balance | **tighter** | looser |
-| restructuring / insert | up to log n | **≤ 2 rotations** |
+| rotations / insert | ≤ 1 (single or double) | **≤ 2** + recolors |
+| rotations / delete | up to **log n** | **O(1)** |
 | best for | **read**-heavy | **write**-heavy |
 
 Both guaranteed Θ(log n) — AVL searches a bit faster, red-black updates a bit faster.

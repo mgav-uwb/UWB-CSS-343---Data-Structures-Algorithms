@@ -52,7 +52,7 @@
 - the **four rotation cases** — single + double rotations
 - why every operation stays **O(log n)**
 
-_Review:_ Sedgewick §3.2 — BST insert/delete and the **Θ(n)** worst-case path we fix tonight. Reading quiz (BST review) due before class.
+_Review:_ Sedgewick §3.2 — the **Θ(n)** worst-case path we fix tonight. Reading quiz due before class.
 
 ---
 
@@ -124,7 +124,7 @@ We want a **worst-case guarantee**, for any input.
 </pre>
 </div>
 
-<small>The **same** keys 1…16 into both: the **plain BST** becomes a tall path while the **AVL** stays flat — each panel's title shows its live **height** (15 vs ~4). **Reset**, then **Insert** a key into both (or the whole sequence) to watch them diverge step by step.</small>
+<small>The **same** keys 1…16: the **plain BST** grows a path, the **AVL** stays flat (live heights: **15 vs 4**). **Reset**, then **Insert** key-by-key to watch them diverge.</small>
 
 --
 
@@ -175,7 +175,7 @@ That invariant is keeping the tree **balanced** (L03's shape) — heights differ
 
 > **The AVL invariant.** Every node stays **balanced** — its two subtrees' heights differ by **at most 1** (L03's `balanced` shape).
 
-The **balance factor** is the lean: **bf(x) = height(left) − height(right)**, and the invariant is exactly **bf(x) ∈ {−1, 0, +1}**.
+The **balance factor** is the lean: **bf(x) = height(left) − height(right)** — the invariant is **bf ∈ {−1, 0, +1}**.
 
 --
 
@@ -392,7 +392,7 @@ Right-rotate at **50** (child **30** rises). **B = `40(35,45)`** — the keys *b
 10  35  45                       35  45
 ```
 
-Only **B** re-hangs (**30's right → 50's left**); `20` and `75` keep their parents, in-order unchanged. That single line is **`y->left = x->right`** — O(1): the whole subtree follows one pointer.
+Only **B** re-hangs (30's right → 50's left) — the single line **`y->left = x->right`**; the whole subtree follows one pointer, in-order unchanged.
 
 --
 
@@ -430,7 +430,7 @@ Straight (LL/RR) → one rotation. Kinked (LR/RL) → two.
 
 --
 
-## 🎬 Demo — the four rotation styles
+## 🎬 Demo — the four styles
 
 <div class="algo-viz" data-algo="avl-cases">
 <pre class="viz-fallback">
@@ -442,7 +442,7 @@ Straight (LL/RR) → one rotation. Kinked (LR/RL) → two.
 </pre>
 </div>
 
-<small>You read the case from the **balance factors** (not "which node was inserted"): at the **±2 node**, its bf picks the **taller child** = **edge 1** (L/R); that child's bf picks **edge 2**. **Same** direction = straight = **LL/RR → one** rotation; **opposite** = kink = **LR/RL → two** — and it **pauses between them** so you watch the kink become an LL/RR first.</small>
+<small>Read the case from the **bf**s: the **±2 node**'s bf picks the **taller child** (edge 1); that child's bf picks edge 2. **Same** direction = **LL/RR → one** rotation; **opposite** = **LR/RL → two** (it pauses between them).</small>
 
 ---
 
@@ -528,9 +528,9 @@ One **rotateLeft(1)** — the sorted-ascending case from Part 1, now self-correc
 
 ## Why exactly one rotation is enough
 
-Before the insert, the subtree was AVL. One insert adds **at most 1** to any subtree height, so the lowest violating node is off by exactly 1 too much.
+One insert adds **at most 1** to any subtree height, so the lowest violating node is off by exactly 1 too much.
 
-- a **single or double** rotation there **lowers that subtree's height by 1**
+- the rotation there **lowers that subtree's height by 1**
 - back to its pre-insert height → every ancestor is balanced again
 
 So insertion needs **at most one** (single or double) rotation.
@@ -733,9 +733,9 @@ Removing 1 leaves 3 right-heavy (RR) → one **rotateLeft(3)** restores it.
 
 ## How tall can an AVL tree get?
 
-Turn it around: what is the **fewest nodes** in an AVL tree of height **h**? Call it **N(h)**.
+Turn it around: the **fewest nodes** in an AVL tree of height **h** — call it **N(h)**.
 
-A _minimal_ AVL tree of height h: a root, one subtree of height **h−1**, and the other as short as the invariant allows — height **h−2**.
+A _minimal_ tree: a root, one subtree of height **h−1**, the other as short as the invariant allows — **h−2**.
 
 $$N(h) = 1 + N(h{-}1) + N(h{-}2)$$
 

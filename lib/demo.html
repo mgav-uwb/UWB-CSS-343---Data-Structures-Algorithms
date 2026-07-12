@@ -27,12 +27,13 @@
 </header>
 <main>
   <p class="blurb" id="blurb"></p>
+  <p class="proto" id="proto" style="margin:-8px 2px 16px;font-size:13px"></p>
   <div id="mount"></div>
   <p class="note">Each structure here exposes <b>all</b> its operations. Lecture slides embed the <b>same</b> engine with a simplified view that spotlights one step. Missing a structure? It gets added as its lecture is built.</p>
 </main>
 
 <script type="module">
-  import { FullDemo } from "./index.js";
+  import { mountDemo } from "./deck.js";
   import { DEMOS } from "./demos/registry.js";
 
   const ds = new URLSearchParams(location.search).get("ds") || "avl";
@@ -41,9 +42,17 @@
   document.getElementById("picker").innerHTML = Object.values(DEMOS)
     .map((d) => `<a href="?ds=${d.id}" class="${d.id === spec.id ? "on" : ""}">${d.title}</a>`).join("");
   document.getElementById("blurb").textContent = spec.blurb || "";
+  document.getElementById("proto").innerHTML = spec.proto
+    ? `<a href="protos.html#${spec.proto}" style="color:#4b3ccc;font-weight:600">Prototype / pseudocode →</a>
+       <span style="color:#8a93a6">the algorithm's skeleton — key steps left for you to write</span>`
+    : "";
   document.title = `CSS 343 — ${spec.title} demo`;
 
-  new FullDemo(document.getElementById("mount"), spec);
+  // the deck bridge defaults to its simplified mini chrome — the gallery is
+  // the FULL sandbox tier, so restore scrub + cost counters unless a spec opts out
+  const full = Object.assign({}, spec,
+    { chrome: Object.assign({ mini: false, showScrub: true, showCosts: !!spec.costs }, spec.chrome || {}) });
+  mountDemo(document.getElementById("mount"), full);
 </script>
 </body>
 </html>

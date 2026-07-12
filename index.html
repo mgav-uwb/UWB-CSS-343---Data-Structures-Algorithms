@@ -3,8 +3,12 @@
   CSS 343 — course hub. Serve the WHOLE course from one server:
       cd css343 && python3 -m http.server 8000      # then open http://localhost:8000/
   Every lecture deck uses relative asset paths, so one root serves them all.
-  TO ADD A LECTURE: append one entry to the LECTURES array below (dir = folder
-  under sessions/ holding its index.html). Materials live in the MATERIALS array.
+
+  LAYOUT: one row per session — the session card on the left, its relevant
+  handouts in the middle, its interactive demos on the right.
+  TO ADD A SESSION: append one entry to the SESSIONS array below (dir = folder
+  under sessions/ holding its index.html; handouts/demos = keys into the
+  HANDOUTS/DEMOS maps). Exam sessions: { exam:true } — rendered unlinked.
 -->
 <html lang="en">
 <head>
@@ -17,33 +21,68 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
        font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-       padding:36px clamp(14px,5vw,64px) 72px}
+       padding:36px clamp(14px,4vw,64px) 72px}
   header{margin-bottom:8px}
   h1{font-size:34px;margin:0;letter-spacing:.5px}
   .course-sub{font-size:18px;color:var(--ink);margin:4px 0 2px;font-weight:500}
   .meta{color:var(--dim);font-size:13.5px}
-  h2{font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);
-     margin:38px 0 14px;font-weight:600}
-  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+
+  /* quick links (course-wide materials) */
+  .quick{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 6px}
+  a.q{display:inline-block;text-decoration:none;color:var(--ink);background:var(--panel);
+      border:1px solid var(--line);border-radius:9px;padding:8px 14px;font-size:13.5px;
+      font-weight:600;transition:border-color .15s,background .15s}
+  a.q:hover{border-color:var(--accent);background:#181b24}
+  a.q .qd{color:var(--dim);font-weight:400}
+
+  /* the session table: session | handouts | demos */
+  #sessions{display:grid;grid-template-columns:minmax(330px,1.15fr) minmax(180px,.55fr) minmax(210px,.75fr);
+            gap:12px 16px;margin-top:26px;align-items:stretch}
+  .colhead{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);
+           font-weight:600;padding:0 2px 2px;border-bottom:1px solid var(--line);align-self:end}
+  .colhead a{color:var(--accent2);text-decoration:none;font-weight:600;text-transform:none;letter-spacing:0}
+  .colhead a:hover{text-decoration:underline}
+
   a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
          border:1px solid var(--line);border-left:3px solid var(--line);border-radius:11px;
-         padding:16px 18px;transition:border-color .15s,transform .15s,background .15s}
+         padding:15px 17px;transition:border-color .15s,transform .15s,background .15s}
   a.card:hover{border-color:var(--accent);border-left-color:var(--accent);
                transform:translateY(-2px);background:#181b24}
   .lec{display:flex;gap:14px;align-items:flex-start}
   .badge{flex:0 0 auto;font-weight:700;font-size:14px;color:var(--accent);
          border:1px solid var(--accent);border-radius:8px;padding:6px 9px;letter-spacing:.5px;
          background:#00e58a14}
-  .ctitle{font-size:17px;font-weight:600;margin:0 0 4px}
-  .ctopics{color:var(--dim);font-size:13.5px;line-height:1.45}
+  .ctitle{font-size:16.5px;font-weight:600;margin:0 0 4px}
+  .ctopics{color:var(--dim);font-size:13px;line-height:1.45}
   .go{color:var(--accent2);font-size:13px;margin-top:9px;font-weight:600}
-  a.card.wip{border-left-color:#3a3f4d}
-  a.card.wip .badge{color:var(--dim);border-color:var(--line);background:transparent}
-  a.card.wip:hover{border-color:var(--accent2);border-left-color:var(--accent2)}
-  .wipchip{font-size:10.5px;font-weight:700;color:#0b0c10;background:var(--accent2);
-           border-radius:5px;padding:1px 6px;margin-left:7px;vertical-align:middle;letter-spacing:.3px}
-  .mat .ctitle{font-size:15.5px}
-  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;color:var(--dim);font-size:13px}
+
+  /* exam rows — unlinked */
+  .card.exam{background:transparent;border-style:dashed;cursor:default}
+  .card.exam .badge{color:var(--dim);border-color:var(--line);background:transparent}
+
+  /* handout / demo chips */
+  .cell{display:flex;flex-direction:column;gap:8px;justify-content:flex-start}
+  a.chip{display:block;text-decoration:none;color:var(--ink);background:var(--panel);
+         border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:12.5px;
+         line-height:1.35;transition:border-color .15s,background .15s}
+  a.chip:hover{border-color:var(--accent);background:#181b24}
+  a.chip .t{font-weight:600}
+  a.chip .d{color:var(--dim);font-size:11.5px;display:block;margin-top:1px}
+  .chip.h .t::before{content:"📄 "}
+  .chip.demo .t::before{content:"▶ ";color:var(--accent2);font-size:10.5px;vertical-align:1px}
+  .none{color:#3a3f4d;font-size:12.5px;padding:8px 2px}
+
+  /* narrow screens: stack each session's three cells vertically */
+  @media (max-width: 920px){
+    #sessions{grid-template-columns:1fr}
+    .colhead{display:none}
+    .cell{flex-direction:row;flex-wrap:wrap}
+    .cell a.chip{flex:0 0 auto}
+    .none{display:none}
+    a.card{margin-top:6px}
+  }
+
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:16px;color:var(--dim);font-size:13px}
   code{background:#000;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--accent2);font-size:12.5px}
 </style>
 </head>
@@ -54,17 +93,14 @@
     <div class="meta">Summer 2026 · T/Th 6:00–8:30 PM · UW1-020 · Dr. Marcel Gavriliu</div>
   </header>
 
-  <h2>Lectures</h2>
-  <div class="grid" id="lectures"></div>
+  <div class="quick">
+    <a class="q" href="schedule/schedule-canvas.html">Schedule <span class="qd">· session-by-session plan</span></a>
+    <a class="q" href="syllabus/syllabus-canvas.html">Syllabus <span class="qd">· policies &amp; grading</span></a>
+    <a class="q" href="assignments/">Assignments <span class="qd">· PA1–PA4</span></a>
+    <a class="q" href="lib/demo.html">Explorer <span class="qd">· every structure &amp; algorithm, interactive</span></a>
+  </div>
 
-  <h2>Explore — interactive data structures &amp; algorithms</h2>
-  <p style="color:var(--dim);font-size:13.5px;margin:-4px 0 14px">
-    The <a href="lib/demo.html" style="color:var(--accent2);font-weight:600">full explorer</a> — every operation, step by step (forward &amp; back), with live operation counts. Jump straight to one:
-  </p>
-  <div class="grid" id="explorers"></div>
-
-  <h2>Reference &amp; materials</h2>
-  <div class="grid" id="materials"></div>
+  <div id="sessions"></div>
 
   <footer>
     One server for the whole course: <code>cd css343 &amp;&amp; python3 -m http.server 8000</code>
@@ -77,128 +113,161 @@
   </footer>
 
 <script>
-// ───────── add a lecture here (dir = folder under sessions/ with its index.html) ─────────
-const LECTURES = [
+// ───────── course-wide handouts & references (keyed; attach per session) ─────────
+const HANDOUTS = {
+  env:      { href:"handouts/computing-environment.html", title:"Computing Environment",
+              desc:"SSH to the lab, compile & run C++, Valgrind" },
+  bigO:     { href:"media/big-o-cheatsheet.html", title:"Big-O Cheat Sheet",
+              desc:"every structure & algorithm, colored by growth" },
+  asym:     { href:"handouts/asymptotic-notation.html", title:"Asymptotic Notation",
+              desc:"O / Ω / Θ as sets, with proofs & exercises" },
+  valgrind: { href:"handouts/valgrind.html", title:"Valgrind",
+              desc:"find leaks: build -g, run, read the report" },
+};
+
+// ───────── interactive demos (keyed; ds = lib/demo.html?ds=…) ─────────
+const DEMOS = {
+  "bst":           { title:"Binary Search Tree", desc:"search · insert · Hibbard delete · ordered ops" },
+  "avl":           { title:"AVL Tree", desc:"insert & delete with rotations, live balance factors" },
+  "bst-vs-avl":    { title:"BST vs AVL", desc:"same keys side by side — heights diverge, ⏩ to sweep" },
+  "two-three":     { title:"2-3 Tree", desc:"split-and-promote — grows at the root" },
+  "btree":         { title:"B-Tree", desc:"wide nodes = disk blocks, shallow splits" },
+  "redblack":      { title:"Red-Black BST", desc:"a 2-3 tree as a BST + one color bit" },
+  "heap":          { title:"Binary Heap / PQ", desc:"swim · sink · Θ(n) heapify · heapsort" },
+  "hash-lp":       { title:"Hash Table (probing)", desc:"hash · probe · resize/rehash · delete" },
+  "hash-chain":    { title:"Hash Table (chaining)", desc:"buckets of linked lists — trivial delete, Θ(α) search" },
+  "graph":         { title:"DFS / BFS / Topo", desc:"searches & Kahn topological sort" },
+  "dijkstra":      { title:"Dijkstra", desc:"relaxation → the shortest-paths tree" },
+  "union-find":    { title:"Union-Find", desc:"weighted quick-union + path compression" },
+  "kruskal":       { title:"Kruskal MST", desc:"sort the edges, union-find the cycles" },
+  "prim":          { title:"Prim MST", desc:"grow one tree via the cheapest crossing edge" },
+  "huffman":       { title:"Huffman Coding", desc:"editable frequencies → trie build → encode/decode" },
+  "mergesort":     { title:"Mergesort", desc:"bottom-up runs — the merge in the spotlight" },
+  "quicksort":     { title:"Quicksort", desc:"Lomuto partition, then recurse both sides" },
+  "quickselect":   { title:"Quickselect", desc:"partition, recurse ONE side — expected Θ(n)" },
+  "fib":           { title:"Fibonacci — the DP arc", desc:"naive vs memoized vs two variables" },
+  "fib-race":      { title:"Fibonacci race", desc:"naive vs memo vs 2 vars in lockstep, ⏩ 1024×" },
+  "lcs":           { title:"LCS Table", desc:"table fill + traceback on any two words" },
+  "knapsack":      { title:"0/1 Knapsack", desc:"take-or-skip table with item traceback" },
+  "edit-distance": { title:"Edit Distance", desc:"insert/delete/replace table + edit script" },
+  "trie":          { title:"Trie (prefix tree)", desc:"insert / search / prefix — cost = key length" },
+  "string-search": { title:"Substring Search", desc:"brute force vs KMP, compare counts" },
+  "nfa-build":     { title:"RE → NFA", desc:"Thompson construction, ε-edges one by one" },
+  "nfa-sim":       { title:"NFA Simulation", desc:"the active-state set, char by char" },
+};
+
+// ───────── one row per session: card + its handouts + its demos ─────────
+const SESSIONS = [
   { id:"L01", dir:"sessions/S01-time-analysis",
     title:"Analysis of Algorithms: Time",
-    topics:"Counting a basic operation · order of growth · the doubling experiment (ratio → 2ᵇ) · intro to big-O · live C++ timing" },
+    topics:"Counting a basic operation · order of growth · the doubling experiment (ratio → 2ᵇ) · faster 3-sum, down to the two-pointer N² ladder · live C++ timing",
+    handouts:["env","bigO"], demos:[] },
   { id:"L02", dir:"sessions/S02-space-asymptotics",
-    title:"Space Complexity & Asymptotic Notation",
-    topics:"Counting bytes (sizeof, padding, stack vs heap) · space as a function of N · O / Θ / Ω made precise · interactive mergesort & grid-BFS memory visualizers" },
+    title:"Space Complexity &amp; Asymptotic Notation",
+    topics:"Counting bytes (sizeof, padding, stack vs heap) · space as a function of N · O / Θ / Ω made precise · interactive mergesort &amp; grid-BFS memory visualizers",
+    handouts:["asym","bigO"], demos:[] },
   { id:"L03", dir:"sessions/S03-trees-bst",
-    title:"Trees & Binary Search Trees",
-    topics:"trees & terminology · binary trees, traversals & expression trees · the BST as an ordered symbol table (search / insert / ordered ops / Hibbard delete) · analysis: cost = Θ(height), random BST ≈ 1.39 log₂ n · interactive BST engine + demos" },
+    title:"Trees &amp; Binary Search Trees",
+    topics:"trees &amp; terminology · binary trees, traversals &amp; expression trees · the BST as an ordered symbol table (search / insert / ordered ops / Hibbard delete) · analysis: cost = Θ(height), random BST ≈ 1.39 log₂ n",
+    handouts:["valgrind"], demos:["bst"] },
   { id:"L04", dir:"sessions/S04-avl-trees",
     title:"Balanced Trees I: AVL",
-    topics:"the balance problem (a BST can degenerate to Θ(n)) · the AVL height-balance invariant · single &amp; double rotations · insertion with rebalancing · height ≤ 1.44 log₂ n — the Θ(log n) guarantee · interactive AVL-insertion visualizer" },
+    topics:"the balance problem (a BST can degenerate to Θ(n)) · the AVL height-balance invariant · single &amp; double rotations · insertion with rebalancing · height ≤ 1.44 log₂ n — the Θ(log n) guarantee",
+    handouts:["valgrind"], demos:["avl","bst-vs-avl"] },
   { id:"L05", dir:"sessions/S05-2-3-b-trees",
     title:"Balanced Trees II: 2-3, B &amp; B+ Trees",
-    topics:"from AVL to multiway (2-3 nodes) · 2-3 insert (split &amp; promote) · red-black BSTs (rotate / flipColors) · B-trees &amp; B+ trees (disk, high fan-out, B vs B+) · when to use which · interactive 2-3 / B-tree / red-black demos" },
+    topics:"from AVL to multiway (2-3 nodes) · 2-3 insert (split &amp; promote) &amp; delete (borrow / merge) · red-black BSTs (rotate / flipColors) · B-trees &amp; B+ trees (disk, high fan-out) · when to use which",
+    handouts:[], demos:["two-three","btree","redblack"] },
   { id:"L06", dir:"sessions/S06-heaps-pq",
     title:"Heaps &amp; Priority Queues; Heapsort",
-    topics:"the priority-queue ADT · binary heap (array, swim &amp; sink) · insert &amp; delMax · build-heap in Θ(n) · heapsort (in place) · d-ary &amp; indexed PQs · interactive swim / sink / heapify / heapsort demos" },
+    topics:"the priority-queue ADT · binary heap (array, swim &amp; sink) · insert &amp; delMax · build-heap in Θ(n) · heapsort (in place) · d-ary &amp; indexed PQs",
+    handouts:[], demos:["heap"] },
   { id:"L07", dir:"sessions/S07-hashing",
     title:"Hashing",
-    topics:"hash functions (uniform, modular, string) · separate chaining · open addressing (linear / quadratic / double probing) · load factor &amp; resizing · hashing vs balanced BST · interactive linear-probing &amp; resize demos" },
+    topics:"hash functions (uniform, modular, string) · separate chaining · open addressing (linear / quadratic / double probing) · load factor &amp; resizing · hashing vs balanced BST",
+    handouts:[], demos:["hash-lp","hash-chain"] },
   { id:"L08", dir:"sessions/S08-graphs-bfs-dfs",
     title:"Graphs I: Representations, BFS/DFS, Topological Sort",
-    topics:"graph vocabulary &amp; representations (adjacency list vs matrix) · depth-first search (recursive + iterative) · breadth-first search (fewest-edge paths) · digraphs &amp; topological sort (Kahn / DFS post-order) · interactive DFS / BFS / topo demos" },
+    topics:"graph vocabulary &amp; representations (adjacency list vs matrix) · depth-first search (recursive + iterative) · breadth-first search (fewest-edge paths) · digraphs &amp; topological sort (Kahn / DFS post-order)",
+    handouts:[], demos:["graph"] },
   { id:"L09", dir:"sessions/S09-graphs-dijkstra",
     title:"Graphs II: Dijkstra Shortest Paths",
-    topics:"weighted digraphs &amp; the shortest-paths tree · edge relaxation · Dijkstra (greedy + priority queue, O(E log V)) · nonnegative weights / Bellman-Ford · vs BFS / Prim / A* · interactive Dijkstra demo" },
+    topics:"weighted digraphs &amp; the shortest-paths tree · edge relaxation · Dijkstra (greedy + priority queue, O(E log V)) · nonnegative weights / Bellman-Ford · vs BFS / Prim / A*",
+    handouts:[], demos:["dijkstra"] },
+  { id:"S10", exam:true, title:"Midterm Exam",
+    topics:"in class, 110 min Canvas quiz · covers S01–S09 · study guide &amp; practice midterm on Canvas" },
   { id:"L11", dir:"sessions/S11-mst-union-find",
     title:"Union-Find &amp; Minimum Spanning Trees",
-    topics:"union-find (quick-union → weighting → path compression) · MST &amp; the cut property · Kruskal (sort + union-find) · Prim (priority queue) · articulation points · interactive union-find / Kruskal / Prim demos" },
+    topics:"union-find (quick-union → weighting → path compression) · MST &amp; the cut property · Kruskal (sort + union-find) · Prim (priority queue) · articulation points",
+    handouts:[], demos:["union-find","kruskal","prim"] },
   { id:"L12", dir:"sessions/S12-greedy-huffman",
     title:"Greedy Algorithms; Huffman Coding",
-    topics:"the greedy method &amp; the exchange argument · when greedy is optimal (vs DP) · Huffman coding (build the trie) · prefix-free codes &amp; compression · interactive Huffman-build demo" },
+    topics:"the greedy method &amp; the exchange argument · when greedy is optimal (vs DP) · Huffman coding (build the trie) · prefix-free codes &amp; compression",
+    handouts:[], demos:["huffman"] },
   { id:"L13", dir:"sessions/S13-sorting-dc",
     title:"Sorting &amp; Divide-and-Conquer",
-    topics:"divide-and-conquer &amp; the master theorem · mergesort · quicksort (partition, pivots, 3-way) · Ω(n log n) lower bound &amp; quickselect · interactive mergesort / quicksort / quickselect demos" },
+    topics:"divide-and-conquer &amp; the master theorem · mergesort · quicksort (partition, pivots, 3-way) · Ω(n log n) lower bound &amp; quickselect",
+    handouts:[], demos:["mergesort","quicksort","quickselect"] },
   { id:"L14", dir:"sessions/S14-dp-i",
     title:"Dynamic Programming I",
-    topics:"overlapping subproblems + optimal substructure · memoization vs tabulation · Fibonacci → rod cutting · longest common subsequence · the DP recipe · interactive LCS-table demo" },
+    topics:"overlapping subproblems + optimal substructure · memoization vs tabulation · Fibonacci → rod cutting · longest common subsequence · the DP recipe",
+    handouts:[], demos:["fib","fib-race","lcs"] },
   { id:"L15", dir:"sessions/S15-dp-ii",
     title:"Dynamic Programming II",
-    topics:"0/1 knapsack (pseudo-polynomial) · edit distance · grid &amp; interval DP · traceback &amp; space-saving · interactive knapsack / edit-distance table demos" },
+    topics:"0/1 knapsack (pseudo-polynomial) · edit distance · grid &amp; interval DP · traceback &amp; space-saving",
+    handouts:[], demos:["knapsack","edit-distance"] },
   { id:"L16", dir:"sessions/S16-strings-tries",
     title:"Strings: Tries &amp; Substring Search",
-    topics:"R-way tries &amp; TSTs · prefix operations (autocomplete, longest-prefix) · brute-force search · KMP (failure function) &amp; Boyer–Moore · interactive trie &amp; substring-search demos" },
+    topics:"R-way tries &amp; TSTs · prefix operations (autocomplete, longest-prefix) · brute-force search · KMP (failure function) &amp; Boyer–Moore",
+    handouts:[], demos:["trie","string-search"] },
   { id:"L17", dir:"sessions/S17-regex-automata",
     title:"Regular Expressions &amp; Finite Automata",
-    topics:"regexes &amp; the languages they describe · NFAs (ε-transitions) · Thompson's RE→NFA construction · NFA simulation (set of states) · Kleene's theorem · interactive NFA-build &amp; simulate demos" },
+    topics:"regexes &amp; the languages they describe · NFAs (ε-transitions) · Thompson's RE→NFA construction · NFA simulation (set of states) · Kleene's theorem",
+    handouts:[], demos:["nfa-build","nfa-sim"] },
+  { id:"S18", exam:true, title:"Final Exam",
+    topics:"in class, 110 min Canvas quiz · comprehensive, ~two-thirds post-midterm (S11–S17) · study guide &amp; practice final on Canvas" },
 ];
 
-// ───────── interactive explorers (one full sandbox per structure) ─────────
-const EXPLORERS = [
-  { ds:"bst", title:"Binary Search Tree", desc:"search · insert · Hibbard delete · ordered ops: min/max/floor/ceiling/select/rank/range" },
-  { ds:"avl", title:"AVL Tree", desc:"self-balancing BST — insert &amp; delete with rotations; balance factor on every node" },
-  { ds:"two-three", title:"2-3 Tree", desc:"insert by split-and-promote — grows at the root, perfectly balanced, no rotations" },
-  { ds:"btree", title:"B-Tree", desc:"wide nodes = disk blocks — high-fan-out splits keep the tree shallow" },
-  { ds:"redblack", title:"Red-Black BST", desc:"a 2-3 tree encoded as a BST + one color bit — rotate &amp; flipColors" },
-  { ds:"heap", title:"Binary Heap / PQ", desc:"insert (swim) · delete-max (sink) · Θ(n) heapify · heapsort" },
-  { ds:"hash-lp", title:"Hash Table (linear probing)", desc:"hash · probe on collision · resize/rehash · Sedgewick delete" },
-  { ds:"graph", title:"Graph — DFS / BFS / topo-sort", desc:"depth-first, breadth-first layers, and Kahn topological sort on a sample DAG" },
-  { ds:"dijkstra", title:"Dijkstra Shortest Paths", desc:"edge relaxation → the shortest-paths tree, with live distance labels" },
-  { ds:"union-find", title:"Union-Find", desc:"weighted quick-union + path compression on the parent array" },
-  { ds:"kruskal", title:"Kruskal MST", desc:"sort the edges, union-find the cycles — watch accepts and skips" },
-  { ds:"prim", title:"Prim MST", desc:"grow one tree from a start vertex via the cheapest crossing edge" },
-  { ds:"huffman", title:"Huffman Coding", desc:"editable frequencies → merge-by-merge trie build · Encode walks the codes and decodes back" },
-  { ds:"mergesort", title:"Mergesort", desc:"bottom-up runs of 1, 2, 4, … — the merge step in the spotlight" },
-  { ds:"quicksort", title:"Quicksort", desc:"Lomuto partition — pivot placement, then recurse both sides" },
-  { ds:"quickselect", title:"Quickselect", desc:"partition, then recurse into ONE side — expected Θ(n) k-th smallest" },
-  { ds:"fib", title:"Fibonacci — the DP arc", desc:"naive (exponential, counted) vs memoized (2n−1 calls) vs two variables (Θ(1) space) at the same n" },
-  { ds:"lcs", title:"LCS Table", desc:"type any two words — table fill + traceback spelling the subsequence" },
-  { ds:"knapsack", title:"0/1 Knapsack", desc:"take-or-skip value table over editable capacity W, with item traceback" },
-  { ds:"edit-distance", title:"Edit Distance", desc:"type any two words — insert/delete/replace table + the edit script" },
-  { ds:"trie", title:"Trie (prefix tree)", desc:"insert / search / prefix — cost is the key length, independent of n" },
-  { ds:"string-search", title:"Substring Search", desc:"brute force vs KMP on the same editable text/pattern — compare the compare counts" },
-  { ds:"nfa-build", title:"RE → NFA", desc:"type a regex — Thompson/Sedgewick construction wires the ε-edges one by one" },
-  { ds:"nfa-sim", title:"NFA Simulation", desc:"separate regex &amp; text boxes — the active-state set advances char by char to accept/reject" },
-];
-
-const MATERIALS = [
-  { href:"media/big-o-cheatsheet.html", title:"Big-O Cheat Sheet",
-    desc:"Time & space complexity — data structures, sorting, and graph algorithms, auto-colored by order of growth" },
-  { href:"handouts/asymptotic-notation.html", title:"Handout: Asymptotic Notation",
-    desc:"O, Ω, Θ (and o, ω) as sets of functions, with proofs, the best/average/worst-case treatment, and exercises" },
-  { href:"handouts/computing-environment.html", title:"Handout: Computing Environment",
-    desc:"The CSS Linux lab — connect (SSH), transfer files (scp), compile & run C++ incl. template classes, and check leaks with Valgrind" },
-  { href:"handouts/valgrind.html", title:"Handout: Valgrind",
-    desc:"Find memory leaks — build with -g, run it, and read the report (clean vs. a real leak), with annotated transcripts" },
-  { href:"schedule/schedule-canvas.html", title:"Schedule",
-    desc:"Session-by-session topic plan" },
-  { href:"syllabus/syllabus-canvas.html", title:"Syllabus",
-    desc:"Policies, grading, textbooks, office hours" },
-  { href:"assignments/", title:"Assignments",
-    desc:"Programming assignments — PA1 (linked lists), PA2 (three trees + merge leaderboard), PA3 (graph representations + the Dijkstra race), PA4 (mydiff — the DP capstone)" },
-];
-
-document.getElementById("lectures").innerHTML = LECTURES.map(l => `
-  <a class="card${l.wip ? " wip" : ""}" href="${l.dir}/index.html">
+const sessionCell = s => s.exam ? `
+  <div class="card exam">
     <div class="lec">
-      <span class="badge">${l.id}</span>
+      <span class="badge">${s.id}</span>
       <div>
-        <div class="ctitle">${l.title}${l.wip ? ' <span class="wipchip">building</span>' : ""}</div>
-        <div class="ctopics">${l.topics}</div>
-        <div class="go">${l.wip ? "Preview scaffold →" : "Open deck →"}</div>
+        <div class="ctitle">${s.title}</div>
+        <div class="ctopics">${s.topics}</div>
       </div>
     </div>
-  </a>`).join("");
+  </div>` : `
+  <a class="card" href="${s.dir}/index.html">
+    <div class="lec">
+      <span class="badge">${s.id}</span>
+      <div>
+        <div class="ctitle">${s.title}</div>
+        <div class="ctopics">${s.topics}</div>
+        <div class="go">Open deck →</div>
+      </div>
+    </div>
+  </a>`;
 
-document.getElementById("explorers").innerHTML = EXPLORERS.map(e => `
-  <a class="card" href="lib/demo.html?ds=${e.ds}">
-    <div class="ctitle">${e.title}</div>
-    <div class="ctopics">${e.desc}</div>
-    <div class="go">Explore →</div>
-  </a>`).join("");
+const handoutCell = s => {
+  const hs = (s.handouts || []).map(k => HANDOUTS[k]).filter(Boolean);
+  if (!hs.length) return `<div class="cell"><span class="none">—</span></div>`;
+  return `<div class="cell">` + hs.map(h => `
+    <a class="chip h" href="${h.href}"><span class="t">${h.title}</span><span class="d">${h.desc}</span></a>`).join("") + `</div>`;
+};
 
-document.getElementById("materials").innerHTML = MATERIALS.map(m => `
-  <a class="card mat" href="${m.href}">
-    <div class="ctitle">${m.title}</div>
-    <div class="ctopics">${m.desc}</div>
-    <div class="go">Open →</div>
-  </a>`).join("");
+const demoCell = s => {
+  const ds = (s.demos || []).map(k => [k, DEMOS[k]]).filter(([,d]) => d);
+  if (!ds.length) return `<div class="cell"><span class="none">—</span></div>`;
+  return `<div class="cell">` + ds.map(([k, d]) => `
+    <a class="chip demo" href="lib/demo.html?ds=${k}"><span class="t">${d.title}</span><span class="d">${d.desc}</span></a>`).join("") + `</div>`;
+};
+
+document.getElementById("sessions").innerHTML =
+  `<div class="colhead">Sessions</div>
+   <div class="colhead">Handouts</div>
+   <div class="colhead">Demos · <a href="lib/demo.html">full explorer →</a></div>` +
+  SESSIONS.map(s => sessionCell(s) + handoutCell(s) + demoCell(s)).join("");
 </script>
 </body>
 </html>
