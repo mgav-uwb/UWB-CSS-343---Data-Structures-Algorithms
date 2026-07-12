@@ -373,6 +373,8 @@ When we return: the handful of growth rates you'll see all term, then how to bea
 | N³ | cubic | triple loop | 3-sum |
 | 2ᴺ | exponential | all subsets | exhaustive search |
 
+<small>The course-wide version of this table — every structure and algorithm, colored by growth — is the <a href="../../media/big-o-cheatsheet.html">Big-O Cheat Sheet</a>.</small>
+
 --
 
 ## Where each shape comes from
@@ -681,7 +683,7 @@ In `ica01/`: instrument **3-sum** and run the **doubling experiment**.
 
 1. Add the counter to `count3` (skeleton provided)
 2. Confirm the ratio → **8**; predict operations at N = 16000
-3. One sentence: what order of growth, and how the ratio shows it
+3. One sentence: what order of growth, and how the ratio shows it <small>(<a href="../../handouts/asymptotic-notation.html#data">handout §10</a>)</small>
 
 **Start now, finish at home** — submit `threesum_lab.cpp` **tonight, 11:59 PM**.
 

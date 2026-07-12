@@ -38,6 +38,8 @@ The common source for **all of Week 1**:
 
 Read it alongside both lectures.
 
+<small>Companion: the <a href="../../handouts/asymptotic-notation.html">Asymptotic Notation handout</a> — formal proofs + solved exercises.</small>
+
 ---
 
 ### Part 0 · Frame
@@ -688,6 +690,8 @@ The gap is an **open question**: is sub-quadratic 3-sum possible?
 **Memory:** count bytes — `sizeof`, padding, stack vs heap. Space has an order of growth (array vs list: same Θ(N), 4× constant).
 
 **Notation:** O (upper), Ω (lower), Θ (tight) make "order of growth" precise — for large n, up to constants.
+
+<small>Going deeper: the <a href="../../handouts/asymptotic-notation.html">Asymptotic Notation handout</a> (formal definitions, o/ω, the Θ = O ∩ Ω theorem, <a href="../../handouts/asymptotic-notation.html#ex">exercises with solutions</a>) · the <a href="../../media/big-o-cheatsheet.html">Big-O Cheat Sheet</a> for every structure to come.</small>
 
 --
 
