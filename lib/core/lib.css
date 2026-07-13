@@ -41,6 +41,10 @@
 .u-opbar button:disabled { background: #eceef2; border-color: #d7dbe6; color: #a7adba; cursor: not-allowed; filter: none; }
 .u-opbar .u-ops { display: inline-flex; gap: 6px; }
 .u-opbar .u-sep { width: 1px; align-self: stretch; background: #eceef2; margin: 0 3px; }
+/* preset scenarios + compact mode-menu (opsUI:"menu") dropdowns */
+.u-opbar select { font: 600 13px system-ui, sans-serif; color: #2a2f3a; background: #f7f8fb; border: 1px solid #d7dbe6; border-radius: 8px; padding: 6px 7px; cursor: pointer; }
+.u-opbar select:hover { border-color: #7c5cff; }
+.u-opbar .u-run { padding: 7px 16px; }
 
 /* case-selector bar (CaseDemo) */
 .u-casebar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }

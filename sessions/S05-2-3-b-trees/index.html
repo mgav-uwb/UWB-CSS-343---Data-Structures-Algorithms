@@ -51,7 +51,7 @@
        editable "initial" build sequence (Build animates it key by key) plus
        an editable-key Insert, via lib/core/full-demo.js's mini chrome. -->
   <script type="module">
-    import { initDeckDemos, TwoThree, BTree, RedBlack, MultiwayTreeRenderer, TreeRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, TwoThree, RedBlack, MultiwayTreeRenderer, TreeRenderer } from "../../lib/deck.js";
     initDeckDemos({
       "tt-insert": {
         make: () => new TwoThree(),
@@ -67,20 +67,16 @@
         width: 900, height: 230,
       },
       "btree-insert": {
-        make: () => new BTree(5),
-        // the ORDER M box (from the gallery spec): Build rebuilds with the
-        // typed order — M = 3 shows "a 2-3 tree IS a B-tree of order 3" live
-        remake: (vals) => new BTree(Math.max(3, Math.min(parseInt(vals.m, 10) || 5, 8))),
-        inputs: [{ key: "m", label: "order M (3–8)", value: "5", width: 50 }],
-        stateMsg: (s) => `order M = ${s.M} (a node holds up to ${s.M - 1} keys) — change M and press Build`,
+        // the GALLERY spec (demos/registry.js) + slide-local overrides — one
+        // source of truth instead of a hand-clone. spec-config merge: ops by
+        // name, inputs by key, enabled:false removes. The M box (and its
+        // remake) ride in from the base — M = 3 shows "a 2-3 tree IS a
+        // B-tree of order 3" live.
+        use: "btree",
         initial: "1..40:1:ZAG",
-        renderer: (c) => new MultiwayTreeRenderer(c),
-        buildStep: (s, k) => s.insert(k),
-        ops: [
-          { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
-          { name: "Delete", arg: "number", run: (s, v) => s.delete(v) },
-        ],
-        costs: ["compare", "write", "alloc"], chrome: { showCosts: true },
+        inputs: [{ key: "m", width: 50 }],
+        ops: [{ name: "Search", enabled: false }], // slide focuses insert/delete
+        chrome: { showCosts: true },
         width: 900, height: 230,
       },
       "rb-insert": {

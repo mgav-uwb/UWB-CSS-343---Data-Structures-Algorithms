@@ -33,11 +33,20 @@
 </main>
 
 <script type="module">
-  import { mountDemo } from "./deck.js";
+  import { mountDemo, resolveSpec } from "./deck.js";
   import { DEMOS } from "./demos/registry.js";
 
-  const ds = new URLSearchParams(location.search).get("ds") || "avl";
+  const params = new URLSearchParams(location.search);
+  const ds = params.get("ds") || "avl";
   const spec = DEMOS[ds] || DEMOS.avl;
+
+  // ?config=<url-encoded JSON> — a preconfigured sandbox link (same override
+  // grammar as a slide's data-config; see core/spec-config.js)
+  let cfg = null;
+  if (params.get("config")) {
+    try { cfg = JSON.parse(params.get("config")); }
+    catch (err) { console.error("bad ?config= JSON", err); }
+  }
 
   document.getElementById("picker").innerHTML = Object.values(DEMOS)
     .map((d) => `<a href="?ds=${d.id}" class="${d.id === spec.id ? "on" : ""}">${d.title}</a>`).join("");
@@ -49,9 +58,11 @@
   document.title = `CSS 343 — ${spec.title} demo`;
 
   // the deck bridge defaults to its simplified mini chrome — the gallery is
-  // the FULL sandbox tier, so restore scrub + cost counters unless a spec opts out
-  const full = Object.assign({}, spec,
-    { chrome: Object.assign({ mini: false, showScrub: true, showCosts: !!spec.costs }, spec.chrome || {}) });
+  // the FULL sandbox tier, so restore scrub + cost counters unless a spec
+  // (or a ?config= override, which wins last) opts out
+  const full = resolveSpec(
+    { chrome: { mini: false, showScrub: true, showCosts: !!spec.costs } },
+    spec, cfg);
   mountDemo(document.getElementById("mount"), full);
 </script>
 </body>
