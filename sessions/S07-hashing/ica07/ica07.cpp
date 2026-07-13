@@ -28,27 +28,21 @@ int hashCode(int key, int M) { return key % M; }
 // ---- TODO 1 — resize ------------------------------------------------------
 // Double the capacity and REHASH every key into the bigger table, with its own
 // probe loop — do NOT call insert (insert calls resize, so you'd recurse).
-//   1. copy h.slots into a local `old`;
-//   2. make a fresh vector of size 2*h.M, all EMPTY;
-//   3. for each non-EMPTY key in `old`, linear-probe it to its NEW home slot
-//      (hashCode(key, newM), then i = (i+1) % newM over occupied slots);
-//   4. replace h.slots with fresh and set h.M to the new size.
+// Every rehashed key must land on a valid probe chain from its NEW home slot.
 void resize(HashTable& h) {
-    // TODO
+    // TODO — L07's "resize + rehash" demo shows exactly this move.
 }
 
 // ---- TODO 2 — insert ------------------------------------------------------
-// Compute the home slot with hashCode. Linear-probe forward (i = (i+1) % h.M)
-// over occupied slots. If you hit `key` already present, stop (no
-// duplicates). Otherwise place it in the first EMPTY slot, increment h.n,
-// and if the load factor reaches 0.5 (2*h.n >= h.M), call resize(h).
+// Linear probing from the home slot (hashCode); no duplicates; after a
+// successful insert, resize when the load factor reaches 1/2 (2*h.n >= h.M).
 void insert(HashTable& h, int key) {
-    // TODO
+    // TODO — the L07 "linear probing" demo is this loop; mind the wraparound.
 }
 
 // ---- TODO 3 — search -------------------------------------------------------
-// Probe forward from the home slot. Return true if you find `key`; return
-// false as soon as you hit an EMPTY slot (the probe chain ends there).
+// The same walk as insert. What certifies a MISS, and why is stopping there
+// safe? (L07 "search hit vs miss".)
 bool search(const HashTable& h, int key) {
     // TODO
     return false;

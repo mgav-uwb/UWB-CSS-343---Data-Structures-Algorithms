@@ -124,7 +124,7 @@ We want a **worst-case guarantee**, for any input.
 </pre>
 </div>
 
-<small>The **same** keys 1…16: the **plain BST** grows a path, the **AVL** stays flat (live heights: **15 vs 4**). **Reset**, then **Insert** key-by-key to watch them diverge.</small>
+<small>The **same** keys 1…16 into both, in lockstep: press **Insert whole sequence** (⏩ to sweep) — the **plain BST** grows a path (height **15**), the **AVL** stays flat (height **4**). Or **Insert** key-by-key and watch them diverge.</small>
 
 --
 

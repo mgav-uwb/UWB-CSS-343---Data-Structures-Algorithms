@@ -62,7 +62,7 @@
       make: () => new Huffman(),
       initial: CLRS,
       buildAll: (s, keys) => s.build(keys),        // Build = ONE animated merge-by-merge trace
-      renderer: (c) => new TreeRenderer(c, { labels: "size" }),
+      renderer: (c) => new TreeRenderer(c, { labels: "freq" }),
       stateMsg: (s) => `Huffman trie — ${s.inorder()}; the numbers in the box are frequencies for a, b, c, …`,
       chrome: { showCosts: true },
       width: 820, height: 205,
@@ -70,6 +70,7 @@
     initDeckDemos({
       "huffman-build": { ...base(), costs: ["compare", "link", "alloc"] },
       "huffman-codes": { ...base(), height: 195, costs: ["compare", "write"],
+        valPlaceholder: "text to encode",
         ops: [{ name: "Encode", arg: "string", run: (s, v) => s.codesWalk(v) }] },
     });
   </script>

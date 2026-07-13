@@ -55,8 +55,8 @@
   <h2>Tasks</h2>
   <ol>
     <li><code>knapsack</code> — the (n+1)×(W+1) table; skip-or-take per item.</li>
-    <li><code>knapsackItems</code> — walk the finished table backward and recover an optimal item set.</li>
     <li><code>editDistance</code> — insert/delete/substitute; first row and column are the base cases.</li>
+    <li><code>knapsackItems</code> — walk the finished table backward and recover an optimal item set.</li>
   </ol>
   <h2>The tests run themselves</h2>
   <pre>g++ -std=c++17 -g ica15.cpp -o ica15 &amp;&amp; ./ica15</pre>
@@ -74,7 +74,7 @@
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
-    <tr><td>Mechanics (knapsack , traceback , editDistance)</td><td>6</td><td>checked against our own test harness</td></tr>
+    <tr><td>Mechanics (knapsack, editDistance, traceback)</td><td>6</td><td>checked against our own test harness</td></tr>
     <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
   </table>

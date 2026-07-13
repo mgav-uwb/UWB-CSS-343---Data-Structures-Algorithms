@@ -29,8 +29,8 @@ struct Edge { int u, v, w; };
 // nodes toward the root as you go (path-halving parent[x]=parent[parent[x]]
 // or full compression — either is fine). Return the root.
 int find(UF& uf, int x) {
-    // TODO: while parent[x] != x, compress (halve or fully) and move x up.
-    //       return the root.
+    // TODO — L11's "path compression" slides show both variants; the grader
+    //        accepts either, but the walk must actually REPOINT nodes.
     return x;
 }
 
@@ -41,20 +41,22 @@ bool connected(UF& uf, int a, int b) { return find(uf, a) == find(uf, b); }
 // Find both roots. If they differ, link the SMALLER tree (by sz) under the
 // LARGER, and update the surviving root's sz.
 void unite(UF& uf, int a, int b) {
-    // TODO: int ra = find(uf, a), rb = find(uf, b); if (ra == rb) return;
-    //       attach the smaller-sz root under the larger-sz root; add the
-    //       sizes together on the surviving root.
+    // TODO — find both roots; same root means nothing to do. The header says
+    //        which root survives; keep the surviving root's sz honest.
 }
 
 // ---- TODO 3 — kruskal ------------------------------------------------------
 // Sort edges ascending by weight. Build a UF(V). For each edge (in sorted
 // order), if its endpoints are NOT already connected, unite them and add its
-// weight to a running total (you'll accept exactly V-1 edges this way).
-// Return the total MST weight.
+// weight to a running total (on a CONNECTED graph that accepts exactly V-1
+// edges; a disconnected one yields the minimum spanning FOREST).
+// Return the total weight. A ready-made comparator (the lambda syntax is not
+// course material):
+//     sort(edges.begin(), edges.end(),
+//          [](const Edge& a, const Edge& b) { return a.w < b.w; });
 long kruskal(vector<Edge> edges, int V) {
-    // TODO: sort `edges` by .w ascending; UF uf(V); long total = 0; for each
-    //       edge e, if (!connected(uf, e.u, e.v)) { unite(uf, e.u, e.v);
-    //       total += e.w; } return total;
+    // TODO — L11's "Kruskal — the algorithm" slide is this function; your
+    //        union-find above is the cycle check.
     return 0;
 }
 

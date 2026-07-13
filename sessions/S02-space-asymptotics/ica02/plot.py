@@ -39,10 +39,10 @@ def panel(ax, xs, ys, title, xlabel, color):
 N, msT, msM = load("mergesort.csv", "N")
 n, bfT, bfM = load("grid.csv", "n")
 
-ratios("MERGESORT time (operations) vs N  — expect N log N", N, msT)
-ratios("MERGESORT memory (bytes)     vs N  — expect O(N)",     N, msM)
-ratios("GRID BFS  time (operations)  vs n  — expect O(n^2)",   n, bfT)
-ratios("GRID BFS  memory (bytes)     vs n  — expect O(n^2)",   n, bfM)
+ratios("MERGESORT time (operations) vs N", N, msT)
+ratios("MERGESORT memory (bytes)     vs N", N, msM)
+ratios("GRID BFS  time (operations)  vs n", n, bfT)
+ratios("GRID BFS  memory (bytes)     vs n", n, bfM)
 
 fig, ax = plt.subplots(2, 2, figsize=(10, 7))
 panel(ax[0][0], N, msT, "Mergesort — time vs N",   "N (array size)",  "#7c5cff")

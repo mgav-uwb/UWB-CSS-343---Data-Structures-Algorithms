@@ -40,17 +40,16 @@ int bruteForce(const string& text, const string& pat) {
 // Walk `key` from root, creating any missing child nodes along the way
 // (next[c - 'a']); mark the LAST node's isWord = true.
 void insert(TrieNode* root, const string& key) {
-    // TODO: for each char c in key, if root->next[c-'a'] is null, allocate a
-    //       new TrieNode there; then move root to that child. After the walk,
-    //       set root->isWord = true.
+    // TODO — a walk that creates what's missing; the header says what to mark
+    //        at the end. (L16 "trie insert".)
 }
 
 // ---- TODO 2 — search --------------------------------------------------------
 // Walk `key` from root; if any child along the path is missing, return false.
 // At the end (whole key consumed), return whether that node isWord.
 bool search(TrieNode* root, const string& key) {
-    // TODO: walk the path for `key`; return false as soon as a needed child is
-    //       null; if the whole path exists, return root->isWord at the end.
+    // TODO — walk the path; remember the deck's warning: a reachable path is
+    //        NOT the same as a stored word.
     return false;
 }
 
@@ -58,8 +57,7 @@ bool search(TrieNode* root, const string& key) {
 // Walk `prefix` from root; return true if the whole prefix path exists,
 // regardless of isWord (unlike search, a prefix need not itself be a word).
 bool startsWith(TrieNode* root, const string& prefix) {
-    // TODO: walk the path for `prefix`; return false if a needed child is
-    //       missing; return true if the whole path exists.
+    // TODO — one line different from search. Which line, and why?
     return false;
 }
 
@@ -67,10 +65,10 @@ bool startsWith(TrieNode* root, const string& prefix) {
 // The KMP failure function: fail[i] = length of the longest proper prefix of
 // p[0..i] that is also a suffix of p[0..i].
 vector<int> failure(const string& p) {
-    // TODO: standard KMP failure-function construction. fail[0] = 0; for i
-    //       from 1 to p.size()-1, let len = fail[i-1]; while len > 0 and
-    //       p[i] != p[len], back off: len = fail[len-1]; if p[i] == p[len],
-    //       len++; fail[i] = len.
+    // TODO — build it the way L16's "failure function — the builder" slide
+    //        does: the pattern matched against itself, falling back through
+    //        the part of the table already built. Hand-check on AABAA (the
+    //        deck's worked table) before trusting it.
     return {};
 }
 
@@ -78,11 +76,10 @@ vector<int> failure(const string& p) {
 // Knuth-Morris-Pratt substring search using failure(). Return the index of
 // the first occurrence of `pat` in `text`, or -1 if `pat` does not occur.
 int kmp(const string& text, const string& pat) {
-    // TODO: handle the empty-pattern edge case (return 0) if you like; build
-    //       fail = failure(pat); walk text with a match-length counter j:
-    //       while j > 0 and text[i] != pat[j], back off j = fail[j-1]; if
-    //       text[i] == pat[j], j++; if j == pat.size(), a match starts at
-    //       i - pat.size() + 1 — return it.
+    // TODO — L16's "KMP — the search" slide is this function; it mirrors the
+    //        builder loop (empty pattern: a match at 0). Write the real thing —
+    //        delegating to string::find or the given bruteForce forfeits the
+    //        KMP points (checked by eye at grading).
     return -1;
 }
 

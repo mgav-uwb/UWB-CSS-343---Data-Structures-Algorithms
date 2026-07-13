@@ -2,7 +2,7 @@
 //
 //   build:        g++ -std=c++17 -g -o ica14 ica14.cpp
 //   run:          ./ica14
-//   leak-check:   valgrind --leak-check=full ./ica14     (nothing is heap-allocated — should be clean)
+//   leak-check:   valgrind --leak-check=full ./ica14     (no new/delete — should be clean)
 //
 // Four independent DP warm-ups, all using vector (no new/delete):
 //   1-2) Fibonacci: top-down memoization, then bottom-up tabulation.
@@ -33,8 +33,8 @@ long fibNaive(int n) {
 // (fibMemo(n-1) + fibMemo(n-2)), STORE it in memo[n], and return it.
 // Base case: fib(0) = 0, fib(1) = 1.
 long fibMemo(int n, vector<long>& memo) {
-    // TODO: base cases n<=1; if memo[n] != -1 return it; else compute, store
-    //       in memo[n], and return.
+    // TODO — the header is the contract; L14's "Memoization (top-down)" slide
+    //        is the pattern. Don't forget to STORE before returning.
     return 0;
 }
 
@@ -42,8 +42,8 @@ long fibMemo(int n, vector<long>& memo) {
 // Build a table tab[0..n] with tab[0]=0, tab[1]=1 (guard n==0), then fill
 // tab[i] = tab[i-1] + tab[i-2] for i = 2..n. Return tab[n].
 long fibTab(int n) {
-    // TODO: handle n==0 and n==1 directly; else build a vector<long> tab of
-    //       size n+1, tab[0]=0, tab[1]=1, fill up to tab[n], return tab[n].
+    // TODO — bottom-up: base cases first, then fill in dependency order.
+    //        Watch the n==0 edge (a size-1 table has no tab[1]).
     return 0;
 }
 
@@ -54,9 +54,8 @@ long fibTab(int n) {
 // best[0] = 0; for len = 1..n: best[len] = max over cut i = 1..len of
 //   price[i] + best[len - i].
 int rodCut(const vector<int>& price, int n) {
-    // TODO: build vector<int> best of size n+1, best[0]=0; for len=1..n loop
-    //       i=1..len, best[len] = max(best[len], price[i] + best[len-i]);
-    //       return best[n].
+    // TODO — the header's recurrence is the L14 "Rod cutting" slide; your job
+    //        is turning it into the two loops.
     return 0;
 }
 
@@ -65,9 +64,8 @@ int rodCut(const vector<int>& price, int n) {
 // b[0..j). Row/col 0 are 0 (empty prefix). If a[i-1] == b[j-1], L[i][j] =
 // L[i-1][j-1] + 1; else L[i][j] = max(L[i-1][j], L[i][j-1]). Return L[m][n].
 int lcs(const string& a, const string& b) {
-    // TODO: m = a.size(), n = b.size(); build a (m+1) x (n+1) 2-D vector<int>
-    //       L initialized to 0; fill it per the recurrence above (i=1..m,
-    //       j=1..n); return L[m][n].
+    // TODO — the header's recurrence is the L14 LCS table; mind the ±1 between
+    //        table indices (prefix lengths) and string indices.
     return 0;
 }
 
@@ -94,7 +92,8 @@ int main() {
     }
     {
         // Show the exponential blow-up fibMemo avoids: fibNaive(30) alone
-        // makes over a million recursive calls; fibMemo(30) makes at most 31.
+        // makes over a million recursive calls; fibMemo(30) makes 59 calls
+        // (2n−1, the deck's convention), each of its 31 subproblems computed once.
         naiveCallCount = 0;
         long naiveVal = fibNaive(30);
         long naiveCalls = naiveCallCount;
@@ -111,6 +110,7 @@ int main() {
         if (fibTab(n) != fibMemo(n, memo)) allMatch = false;
     }
     check(allMatch, "fibTab(n) == fibMemo(n) for n in {0,1,2,5,10,20,30}");
+    check(fibTab(30) == 832040, "fibTab(30) == 832040");
     check(fibTab(0) == 0 && fibTab(1) == 1, "fibTab base cases: fibTab(0)=0, fibTab(1)=1");
 
     cout << "T3 · rodCut (1-D DP)\n";

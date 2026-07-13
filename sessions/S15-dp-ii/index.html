@@ -58,17 +58,25 @@
       costs: ["compare", "write"], chrome: { showCosts: true }, width: 560, height: 150,
     });
     initDeckDemos({
+      // named, pre-filled input boxes (the gallery pattern): the instance stays
+      // visible while the table animates, and Run works on first click
       "knapsack": { ...table(),
         noBuild: true,
-        stateMsg: () => "items A 3/2 · B 4/3 · C 5/4 · D 6/5 — type a capacity W and press Knapsack",
-        ops: [{ name: "Knapsack W", arg: "number", run: (s, v) => s.knapsack(undefined, v) }],
+        stateMsg: () => "items A 3/2 · B 4/3 · C 5/4 · D 6/5 — set capacity W (1–12), press Knapsack",
+        inputs: [{ key: "w", label: "W (1–12)", value: "5", width: 55 }],
+        ops: [{ name: "Knapsack",
+          run: (s, _v, vals) => s.knapsack(undefined, Math.max(1, Math.min(12, parseInt(vals.w, 10) || 5))) }],
       },
       "edit-distance": { ...table(), width: 620, height: 118,
         noBuild: true,
-        stateMsg: () => 'type two words (e.g. "kitten sitting") and press Edit distance',
-        ops: [{ name: "Edit distance", arg: "string", run: (s, v) => {
-          const w = String(v).trim().split(/[\s,;]+/);
-          return s.editDistance(w[0], w[1]);
+        stateMsg: () => 'ready: editDistance("kitten", "sitting") — edit the words, press Edit distance',
+        inputs: [
+          { key: "a", label: "a", value: "kitten", width: 90 },
+          { key: "b", label: "b", value: "sitting", width: 90 },
+        ],
+        ops: [{ name: "Edit distance", run: (s, _v, vals) => {
+          const word = (t, d) => (String(t ?? "").trim().toLowerCase().replace(/[^a-z]/g, "").slice(0, 12) || d);
+          return s.editDistance(word(vals.a, "kitten"), word(vals.b, "sitting"));
         } }],
       },
     });

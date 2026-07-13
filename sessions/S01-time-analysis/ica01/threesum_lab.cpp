@@ -3,7 +3,7 @@
 // TASK: instrument the 3-sum algorithm so we can SEE its order of growth.
 //   1. In count3(), increment `ops` once each time the inner loop body runs.
 //   2. Build & run; the doubling test prints N, operations, and the ratio.
-//   3. Confirm the ratio approaches 8. Predict operations at N = 16000.
+//   3. Confirm the ratio settles on a constant. Predict operations at N = 16000.
 //
 // Build & run:
 //   g++ -std=c++17 -O2 threesum_lab.cpp -o threesum_lab && ./threesum_lab

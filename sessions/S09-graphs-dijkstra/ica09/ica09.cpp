@@ -29,13 +29,11 @@ struct WGraph {
 // Single-source shortest paths via a lazy min-heap. Returns dist, where
 // dist[v] is the shortest-path distance from src to v (INF if unreachable).
 vector<long> dijkstra(const WGraph& g, int src) {
-    // TODO: make a `dist` vector of size g.V, all INF; set dist[src] = 0.
-    //       Make a min-heap of {dist, vertex} pairs:
-    //         priority_queue<pair<long,int>, vector<pair<long,int>>, greater<>> pq;
-    //       Push {0, src}. While pq is not empty: pop the smallest {d, u};
-    //       if d > dist[u] it's a stale entry — skip it. Otherwise, for each
-    //       edge u -> (v, w) in g.adj[u]: if dist[u] + w < dist[v], update
-    //       dist[v] and push {dist[v], v}. Return dist.
+    // TODO — the L09 "Dijkstra — the algorithm" slide is this function in
+    //        pseudocode; translate it. A lazy min-heap of {dist, vertex} pairs:
+    //          priority_queue<pair<long,int>, vector<pair<long,int>>, greater<>> pq;
+    //        T8 stress-tests the one subtle line — ask yourself what a POPPED
+    //        entry might no longer be.
     return {};
 }
 
@@ -63,14 +61,16 @@ int main() {
               "dist = {0, 2, 3, 6} from source 0");
     }
 
-    cout << "T2 · two-hop beats direct — Dijkstra finds the detour\n";
+    cout << "T2 · two-hop beats direct — Dijkstra finds the detour (L09's practice graph)\n";
     {
-        WGraph g(3);
+        WGraph g(4);
         g.addEdge(0, 1, 4);   // direct: 0->1 costs 4
         g.addEdge(0, 2, 1);
         g.addEdge(2, 1, 2);   // detour: 0->2->1 costs 3
+        g.addEdge(1, 3, 3);   // and 3 rides the detour: 0->2->1->3 costs 6
         vector<long> d = dijkstra(g, 0);
-        check(d.size() == 3 && d[1] == 3, "dist[1] == 3 (via the 0->2->1 detour, not the direct edge)");
+        check(d.size() == 4 && d[1] == 3, "dist[1] == 3 (via the 0->2->1 detour, not the direct edge)");
+        check(d.size() == 4 && d[3] == 6, "dist[3] == 6 (the detour propagates downstream)");
     }
 
     cout << "T3 · unreachable vertex has dist == INF\n";

@@ -34,7 +34,7 @@ long long bfsGrid(int n) {
         peakQueue = max(peakQueue, (int)frontier.size());
         auto [r, c] = frontier.front(); frontier.pop();
         for (int d = 0; d < 4; d++) {
-            // TODO 1: timeOps++;            // checked one neighbor
+            // TODO 1: count this neighbor check
             int nr = r + dr[d], nc = c + dc[d];
             if (nr >= 0 && nr < n && nc >= 0 && nc < n && !visited[nr][nc]) {
                 visited[nr][nc] = 1; frontier.push({nr, nc});
@@ -43,8 +43,8 @@ long long bfsGrid(int n) {
     }
 
     long long memBytes = 0;
-    // TODO 2: memBytes = (long long)n * n * sizeof(char)                 // visited grid
-    //                  + (long long)peakQueue * sizeof(pair<int,int>);   // peak queue
+    // TODO 2: memBytes = the visited grid's bytes (n×n chars) plus the peak
+    //         queue bytes (peakQueue entries, each a pair<int,int>).
     return memBytes;
 }
 

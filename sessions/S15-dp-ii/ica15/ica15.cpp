@@ -25,9 +25,8 @@ using namespace std;
 //   - else: K[i][w] = max(K[i-1][w], value[i-1] + K[i-1][w - weight[i-1]])
 // Return K[n][W].
 int knapsack(const vector<int>& value, const vector<int>& weight, int W) {
-    // TODO: let n = value.size(). Build K as a (n+1) x (W+1) 2-D vector of
-    //       int, initialized to 0. Fill it row by row using the recurrence
-    //       above. Return K[n][W].
+    // TODO — the recurrence above is L15's; mind the table-vs-array indexing
+    //        (the deck flags this exact off-by-one).
     return 0;
 }
 
@@ -44,9 +43,7 @@ int knapsack(const vector<int>& value, const vector<int>& weight, int W) {
 //                                           D[i-1][j-1])     (substitute)
 // Return D[m][n].
 int editDistance(const string& a, const string& b) {
-    // TODO: let m = a.size(), n = b.size(). Build D as an (m+1) x (n+1) 2-D
-    //       vector of int. Fill the base cases, then fill the rest using the
-    //       recurrence above. Return D[m][n].
+    // TODO — base cases first (they are NOT all zero here), then the fill.
     return 0;
 }
 
@@ -58,10 +55,8 @@ int editDistance(const string& a, const string& b) {
 // reduce w by weight[i-1]; either way, move to i-1. Return the 0-indexed
 // item indices taken (any order — the test sorts before comparing).
 vector<int> knapsackItems(const vector<int>& value, const vector<int>& weight, int W) {
-    // TODO: rebuild K (same as knapsack()). Then trace back from (n, W):
-    //       walk i from n down to 1; if K[i][w] != K[i-1][w], item i-1 was
-    //       taken (push it, subtract weight[i-1] from w); decrement i either
-    //       way. Return the collected indices.
+    // TODO — rebuild K, then the backward walk from the header (L15's
+    //        "traceback" slide works the exact move).
     return {};
 }
 

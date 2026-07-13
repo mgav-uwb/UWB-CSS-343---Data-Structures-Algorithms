@@ -54,16 +54,20 @@
                                 force, then KMP on the same pair and compare
                                 the compare counters -->
   <script type="module">
-    import { initDeckDemos, Trie, StringSearch, TreeRenderer, ArrayRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, Trie, StringSearch, TrieRenderer, ArrayRenderer } from "../../lib/deck.js";
+    import { expandRepeats } from "../../lib/core/sequence.js";
     const pair = (s, v) => {   // "TEXT PATTERN" | "PATTERN" → set text/pattern
-      const w = String(v).trim().toUpperCase().split(/\s+/);
+      // A^11B shorthand works, like the gallery — the note's adversarial pair
+      // is "A^11B A^3B" instead of typing twelve As
+      const w = expandRepeats(String(v)).trim().toUpperCase().split(/\s+/);
       s.build(w.length >= 2 ? [w[0], w[1]] : ["", w[0]]);
     };
     initDeckDemos({
       "trie": {
         make: () => { const t = new Trie(); t.build([]); return t; },
         noBuild: true,
-        renderer: (c) => new TreeRenderer(c, {}),
+        valPlaceholder: "word",
+        renderer: (c) => new TrieRenderer(c, { rowH: 44 }),
         stateMsg: (t) => `${t.inorder()} — type a word: Insert / Search / Prefix`,
         ops: [
           { name: "Insert", arg: "string", run: (s, v) => s.insert(String(v).trim().toLowerCase()) },
@@ -81,7 +85,8 @@
           (c) => { const r = new ArrayRenderer(c, { mode: "cells", pointers: false }); return { draw: (snap) => r.draw(snap?.lps ?? [], {}) }; },
         ],
         labels: ["the text", "KMP's failure table (lps) — its Θ(m) aux; index = pattern position"],
-        stateMsg: (s) => `${s.inorder()} — type "TEXT PATTERN" (or just a pattern), then pick an algorithm`,
+        valPlaceholder: "TEXT PATTERN",
+        stateMsg: (s) => `${s.inorder()} — type "TEXT PATTERN" (or just a pattern; A^11B expands), then pick an algorithm`,
         ops: [
           { name: "Brute force", arg: "string", run: (s, v) => { pair(s, v); return s.bruteForce(); } },
           { name: "KMP", arg: "string", run: (s, v) => { pair(s, v); return s.kmp(); } },

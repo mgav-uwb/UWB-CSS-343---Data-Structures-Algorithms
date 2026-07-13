@@ -403,7 +403,7 @@ Into the heap `a = [ 90 80 70 30 60 50 ]`, **insert 85**. Where does it land?
 </pre>
 </div>
 
-<small>The **array** (top) and the tree (bottom) are the same data — no pointers. **Insert** appends, then **swims**: each compare is a parent–child check, each swap lifts the key one level.</small>
+<small>The **array** (top) and the tree (bottom) are the same data — no pointers. This is the your-turn heap: **Insert 85** and check your prediction, then **95** (all the way up) — each compare is a parent–child check, each swap lifts the key one level.</small>
 
 ---
 

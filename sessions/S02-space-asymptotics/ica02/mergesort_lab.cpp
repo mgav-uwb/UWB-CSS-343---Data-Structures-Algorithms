@@ -24,19 +24,19 @@ long long peakBufBytes = 0;   // peak auxiliary bytes (TODO 2)
 
 void merge(vector<int>& a, int lo, int mid, int hi) {
     vector<int> tmp(hi - lo + 1);                         // the O(N) scratch buffer
-    // TODO 2: peakBufBytes = max(peakBufBytes, (long long)(tmp.size() * sizeof(int)));
+    // TODO 2: track the LARGEST buffer ever live (this tmp, in bytes)
 
     int i = lo, j = mid + 1, k = 0;
     while (i <= mid && j <= hi) {
-        // TODO 1: timeOps++;
+        // TODO 1: count this placement
         tmp[k++] = (a[i] <= a[j]) ? a[i++] : a[j++];
     }
     while (i <= mid) {
-        // TODO 1: timeOps++;
+        // TODO 1: count this placement
         tmp[k++] = a[i++];
     }
     while (j <= hi) {
-        // TODO 1: timeOps++;
+        // TODO 1: count this placement
         tmp[k++] = a[j++];
     }
 

@@ -32,11 +32,9 @@ struct NFA {
 // states themselves (zero edges is allowed) as well as everything you can
 // reach from them.
 set<int> epsClosure(const NFA& nfa, const set<int>& states) {
-    // TODO: start `result` as a copy of `states`. Use a stack/queue of
-    //       "states left to expand" (seeded with `states`). Pop a state s,
-    //       and for every t in nfa.eps[s]: if t is not already in `result`,
-    //       insert it and push it for further expansion. Return `result`
-    //       once nothing new is left to expand.
+    // TODO — a DFS/BFS over nfa.eps, exactly like L08's graph reachability
+    //        (L17 traces it on the A*B machine). One classic bug to avoid:
+    //        expanding a state you've already expanded.
     return {};
 }
 
@@ -133,15 +131,17 @@ int main() {
     check(!c2.empty() && c2.size() == 1 && c2.count(2),
           "epsClosure({2}) on A*B is just {2} (state 2 has no eps-edges)");
 
-    cout << "T2 · simulate — A*B accepts B, AB, AAAB\n";
+    cout << "T2 · simulate — A*B accepts B, AB, AAB, AAAB\n";
     check(simulate(ab, "B"), "\"B\" accepted (zero reps of A*)");
     check(simulate(ab, "AB"), "\"AB\" accepted");
+    check(simulate(ab, "AAB"), "\"AAB\" accepted (the deck's worked trace)");
     check(simulate(ab, "AAAB"), "\"AAAB\" accepted");
 
-    cout << "T3 · simulate — A*B rejects A, BA, AABB\n";
+    cout << "T3 · simulate — A*B rejects A, BA, AABB, AC\n";
     check(!simulate(ab, "A"), "\"A\" rejected (missing the B)");
     check(!simulate(ab, "BA"), "\"BA\" rejected (wrong order)");
     check(!simulate(ab, "AABB"), "\"AABB\" rejected (extra B)");
+    check(!simulate(ab, "AC"), "\"AC\" rejected (dead set — C matches nothing)");
 
     cout << "T4 · simulate — A*B rejects the empty string\n";
     check(!simulate(ab, ""), "\"\" rejected (need at least a B)");

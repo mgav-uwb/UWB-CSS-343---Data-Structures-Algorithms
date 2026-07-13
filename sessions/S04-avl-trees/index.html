@@ -73,15 +73,20 @@
         costs: ["compare", "rotation"], chrome: { showCosts: true },
         width: 820, height: 300,
       },
-      // side-by-side contrast (DualDemo) — same keys, heights diverge
+      // side-by-side contrast (DualDemo) — same keys, heights diverge.
+      // initial:"" (matching the gallery): Reset really empties both trees, so
+      // the slide's "Reset, then Insert key-by-key" instruction works; the
+      // sequence button (+ ⏩) replays the full 1..16 divergence
       "avl-vs-bst": {
         panels: [
           { title: "plain BST", make: () => new BST(), renderer: (c) => new TreeRenderer(c, { labels: "none" }) },
           { title: "AVL (rebalances)", make: () => new AVL(), renderer: (c) => new TreeRenderer(c, { labels: "bf" }) },
         ],
         op: (s, v) => s.insert(v),
-        initial: "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16",
+        initial: "",
         sequence: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+        speedControl: true,
+        finishButton: true,
         width: 400, height: 250,
       },
     });

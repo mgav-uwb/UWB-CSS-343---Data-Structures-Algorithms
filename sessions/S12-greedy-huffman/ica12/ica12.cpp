@@ -39,9 +39,8 @@ using MinPQ = priority_queue<Node*, vector<Node*>, Cmp>;
 // node with freq = x->freq + y->freq and children x, y. The last remaining
 // node is the root of the Huffman tree.
 Node* buildHuffman(const vector<pair<char, int>>& freqs) {
-    // TODO: push new Node(f, c) for every (c, f) in freqs into a MinPQ; while
-    //       pq.size() > 1, pop the two smallest x, y and push
-    //       new Node(x->freq + y->freq, x, y); return the last node (root).
+    // TODO — the header is the whole algorithm in words; the L12 "Huffman —
+    //        the algorithm" slide has the pseudocode. MinPQ above is your heap.
     return nullptr;
 }
 
@@ -50,10 +49,8 @@ Node* buildHuffman(const vector<pair<char, int>>& freqs) {
 // leaf, record codes[node->sym] = path (use "0" if the tree is a single leaf,
 // i.e. path is empty). Otherwise recurse into both children.
 void extractCodes(Node* node, const string& path, map<char, string>& codes) {
-    // TODO: if node is null, return. If node is a leaf, set
-    //       codes[node->sym] = path (or "0" if path is empty) and return.
-    //       Otherwise recurse: extractCodes(node->left, path + "0", codes)
-    //       and extractCodes(node->right, path + "1", codes).
+    // TODO — a short recursive walk; the header states the leaf rule and the
+    //        single-leaf edge case. (L12 "reading the codes off the tree".)
 }
 
 // ==========================================================================

@@ -45,43 +45,44 @@ void destroy(Node* t) {                              // free the whole tree
 
 // ---- TODO 1 — balance factor and height maintenance ----------------------
 int bf(Node* t) {
-    // TODO: return height(left) - height(right); return 0 for a null node.
+    // TODO — L04's "balance factor" definition; decide what a null node returns.
     return 0;
 }
 void fix(Node* t) {
-    // TODO: set t->height = 1 + max(height(t->left), height(t->right)).
+    // TODO — one line; height() above is null-safe.
 }
 
 // ---- TODO 2 — rotations (each O(1); remember to fix() heights) ------------
 Node* rotateRight(Node* y) {
-    // TODO: x = y->left; move x->right under y; hang y under x; fix y then x;
-    //       return x (the new subtree root).
+    // TODO — L04's rotation diagram IS this function. Re-fix() the two nodes
+    //        whose subtrees changed (order matters); return the new root.
     return y;
 }
 Node* rotateLeft(Node* x) {
-    // TODO: the mirror image of rotateRight.
+    // TODO — the mirror image of rotateRight.
     return x;
 }
 
 // ---- TODO 3 — rebalance: the four cases (LL / RR / LR / RL) ---------------
 Node* rebalance(Node* t) {
-    // TODO: fix(t) first, then:
-    //   if bf(t) >  1: if bf(t->left)  < 0  t->left  = rotateLeft(t->left);   return rotateRight(t);
-    //   if bf(t) < -1: if bf(t->right) > 0  t->right = rotateRight(t->right); return rotateLeft(t);
-    //   otherwise return t.
+    // TODO — fix(t) first; then bf(t) (and the taller CHILD's bf, for the
+    //        double cases) selects among LL / RR / LR / RL — the L04
+    //        "rebalance, four cases" slide. Return the subtree's new root.
     return t;
 }
 
 // ---- TODO 4 — insert: BST insert, then rebalance on the way up ------------
 Node* insert(Node* t, int k) {
-    // TODO: if empty, return new Node(k). Recurse left/right by comparison
-    //       (ignore duplicates). Then return rebalance(t).
+    // TODO — plain BST insert (ignore duplicates), then hand the node to
+    //        rebalance on the way back up.
     return t;
 }
 
 // ---- TODO 5 — checks (stretch: also write erase with rebalancing) --------
 bool isAVL(Node* t) {
-    // TODO: true if |bf(t)| <= 1 AND both subtrees are AVL (recursively).
+    // TODO — "act on the node, recurse on the subtrees" (L03). An honest
+    //        answer matters: the battery and grader both feed a hand-built
+    //        UNBALANCED tree; a lazy constant fails it.
     return true;
 }
 bool contains(Node* t, int k) {
@@ -143,6 +144,12 @@ int main() {
     check(isAVL(s), "isAVL holds everywhere");
     check(height(s) <= 5, "height <= 5 for 16 keys");
     destroy(s);
+    {   // honesty check: a hand-built path (never touched by insert) must FAIL
+        Node* bad = new Node(1); bad->right = new Node(2); bad->right->right = new Node(3);
+        bad->right->right->height = 0; bad->right->height = 1; bad->height = 2;
+        check(!isAVL(bad), "isAVL rejects a hand-built unbalanced path");
+        destroy(bad);
+    }
 
     // -- T8: THE APPLICATION — worst-case input, sorted stream --------------
     // a ticket registry hands out strictly increasing ids; sorted input is the
@@ -152,7 +159,7 @@ int main() {
     const int N = 1023;                          // 2^10 - 1 ids
     Node* root = nullptr;
     for (int k = 1; k <= N; ++k) root = insert(root, k);
-    int bound = (int)ceil(1.44 * log2((double)N));         // ~14
+    int bound = (int)floor(1.44 * log2((double)N));        // = 14, matching the handout
     cout << "     AVL height = " << height(root) << "   (a plain BST would be " << N - 1 << ")\n";
     check(sizeOf(root) == N, "all 1023 keys inserted");
     check(height(root) <= bound, "height <= 1.44*log2(N) = " + to_string(bound));

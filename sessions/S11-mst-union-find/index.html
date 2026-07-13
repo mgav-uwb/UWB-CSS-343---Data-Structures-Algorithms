@@ -60,6 +60,8 @@
     const mst = () => ({
       make: () => new WeightedGraph({ directed: false }),
       initial: WMST,
+      initialPlaceholder: "u v w, …",
+      initialTitle: "weighted edge triples \"u v w\", comma-separated",
       buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: false }),
       stateMsg: (g) => `undirected weighted graph — ${g.inorder()}; triples "u v w" in the box are the edges`,
@@ -70,15 +72,25 @@
       "union-find": {
         make: () => new UnionFind(),
         initial: "10", loadRaw: true,              // Build = n fresh singletons (intentionally instant)
-        renderer: (c) => new ArrayRenderer(c, { mode: "cells" }),
-        stateMsg: (s) => `${s.inorder()} — cell i shows parent[i]; a root points at itself`,
+        initialWidth: 50, initialPlaceholder: "n",
+        initialTitle: "how many elements — Build creates n singleton sets",
+        valPlaceholder: "p q  (e.g. 3 7)", valInitial: "3 7",
+        // the gallery's dual view: the FOREST that parent[] encodes (top) plus
+        // the raw array (bottom) — one trace drives both
+        renderer: [
+          (c) => new ForestRenderer(c, { R: 13, rowH: 42 }),
+          (c) => new ArrayRenderer(c, { mode: "cells", pointers: false }),
+        ],
+        labels: ["the forest — each set is a tree, its root is the set's name",
+                 "parent[] — cell i holds parent[i]; parent[i] = i marks a root"],
+        stateMsg: (s) => `${s.inorder()} — flat forest: every element its own root until you Union (a PAIR, e.g. 3 7)`,
         ops: [
           { name: "Union", arg: "pair", run: (s, v) => s.union(v[0], v[1]) },
           { name: "Connected", arg: "pair", run: (s, v) => s.connected(v[0], v[1]) },
           { name: "Find", arg: "number", run: (s, v) => s.find(v) },
         ],
         costs: ["read", "write", "compare"], chrome: { showCosts: true },
-        width: 960, height: 150,
+        width: 960, height: [128, 52],
       },
       "mst-tour": { // static view of tonight's undirected graph for Part 2
         make: () => { const g = new WeightedGraph({ directed: false }); g.build(); return g; },
@@ -94,7 +106,7 @@
         labels: ["", "the union-find forest — same root ⇒ the edge would close a cycle ⇒ skip"],
         height: [185, 120],
         ops: [{ name: "Kruskal", run: (s) => s.kruskal() }] },
-      "prim": { ...mst(), height: 210, ops: [
+      "prim": { ...mst(), height: 210, valPlaceholder: "start vertex", ops: [
         { name: "Kruskal", run: (s) => s.kruskal() },
         { name: "Prim from", arg: "number", run: (s, v) => s.prim(v) },
         { name: "Dijkstra from", arg: "number", run: (s, v) => s.dijkstra(v) },

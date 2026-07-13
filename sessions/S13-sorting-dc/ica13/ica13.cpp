@@ -6,7 +6,7 @@
 //
 // You implement five divide-and-conquer primitives on vector<int>: merge and
 // mergesort (top-down merge sort), partition and quicksort (Lomuto scheme),
-// and quickselect (Hoare's selection algorithm). The unit-test battery and
+// and quickselect (partition-based selection). The unit-test battery and
 // main() are GIVEN — do not edit them. Run early and often: the tests report
 // [PASS]/[FAIL] one by one.
 
@@ -22,30 +22,24 @@ using namespace std;
 // Merge two adjacent sorted runs a[lo..mid] and a[mid+1..hi] into one sorted
 // run a[lo..hi], using a temp buffer.
 void merge(vector<int>& a, int lo, int mid, int hi) {
-    // TODO: copy a[lo..hi] into a temp vector<int>; walk two pointers, one
-    //       starting at the left run (temp index lo..mid) and one at the
-    //       right run (temp index mid+1..hi); write the smaller of the two
-    //       fronts back into a[lo..hi] in order, advancing the winning
-    //       pointer; when one run is exhausted, copy the rest of the other.
+    // TODO — L13's "merge" slide is this function; a temp buffer and two
+    //        walking pointers. Which run wins a tie matters for stability.
 }
 
 // ---- TODO 2 — mergesort ---------------------------------------------------
 // Top-down merge sort: split a[lo..hi] at the midpoint, recursively sort each
 // half, then merge them.
 void mergesort(vector<int>& a, int lo, int hi) {
-    // TODO: base case — if lo >= hi, a single element (or empty range) is
-    //       already sorted, return. Otherwise compute mid = lo + (hi-lo)/2,
-    //       recurse on [lo,mid] and [mid+1,hi], then merge(a, lo, mid, hi).
+    // TODO — three lines: base case, split at the midpoint, recurse + merge.
 }
 
 // ---- TODO 3 — partition (Lomuto) ------------------------------------------
 // Partition a[lo..hi] around pivot = a[hi]. Return the pivot's final index i
 // such that everything in a[lo..i-1] <= a[i] and everything in a[i+1..hi] >= a[i].
 int partition(vector<int>& a, int lo, int hi) {
-    // TODO: let pivot = a[hi]; let i = lo - 1 (boundary of the "<= pivot"
-    //       region); for j = lo..hi-1: if a[j] <= pivot, increment i and
-    //       swap a[i] with a[j]; after the loop, swap a[i+1] with a[hi]
-    //       (placing the pivot right after the "<= pivot" region); return i+1.
+    // TODO — Lomuto, exactly as traced on the L13 partition slides (pivot =
+    //        a[hi], one scanning index). Trace your code on [3 7 1 8 2 5]
+    //        and compare with the deck before trusting it.
     return 0;
 }
 
@@ -53,18 +47,17 @@ int partition(vector<int>& a, int lo, int hi) {
 // Partition a[lo..hi], then recursively sort the two sides (excluding the
 // pivot, which is already in its final position).
 void quicksort(vector<int>& a, int lo, int hi) {
-    // TODO: base case — if lo >= hi, return (0 or 1 elements). Otherwise
-    //       p = partition(a, lo, hi); recurse on [lo, p-1] and [p+1, hi].
+    // TODO — base case, partition, recurse on the two sides (the pivot is
+    //        already home).
 }
 
 // ---- TODO 5 — quickselect --------------------------------------------------
-// Return the k-th smallest element (0-indexed) of a[lo..hi] by recursing into
-// only the side of the partition that contains rank k (Hoare's quickselect).
+// Return the k-th smallest element (0-indexed, ABSOLUTE index) of a[lo..hi]
+// by recursing into ONLY the side of the partition that contains rank k —
+// partition-based selection, reusing your Lomuto partition.
 int quickselect(vector<int>& a, int lo, int hi, int k) {
-    // TODO: p = partition(a, lo, hi); let k be the ABSOLUTE index being sought
-    //       (0-indexed into the whole array, same convention as a[lo..hi]).
-    //       if k == p, return a[p]; else if k < p, recurse into [lo, p-1];
-    //       else recurse into [p+1, hi].
+    // TODO — one partition tells you the pivot's exact rank; compare it to k.
+    //        (L13 "quickselect" slides.)
     return 0;
 }
 

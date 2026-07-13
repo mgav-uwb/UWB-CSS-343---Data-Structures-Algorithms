@@ -68,6 +68,11 @@
       },
       "btree-insert": {
         make: () => new BTree(5),
+        // the ORDER M box (from the gallery spec): Build rebuilds with the
+        // typed order — M = 3 shows "a 2-3 tree IS a B-tree of order 3" live
+        remake: (vals) => new BTree(Math.max(3, Math.min(parseInt(vals.m, 10) || 5, 8))),
+        inputs: [{ key: "m", label: "order M (3–8)", value: "5", width: 50 }],
+        stateMsg: (s) => `order M = ${s.M} (a node holds up to ${s.M - 1} keys) — change M and press Build`,
         initial: "1..40:1:ZAG",
         renderer: (c) => new MultiwayTreeRenderer(c),
         buildStep: (s, k) => s.insert(k),

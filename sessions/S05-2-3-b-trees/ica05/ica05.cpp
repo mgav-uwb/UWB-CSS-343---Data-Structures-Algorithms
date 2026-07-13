@@ -60,9 +60,9 @@ bool contains(Node* t, int k) {                 // search is given
 // sorted and children aligned. x has 1 or 2 keys before the call; 2 or 3 after.
 // (For a leaf insert, rc is nullptr.)
 void addKey(Node* x, int k, Node* rc) {
-    // TODO: find where k belongs, shifting larger keys — and their right
-    //       children — up by one slot; place k and set the child to its right
-    //       to rc; then x->n++.
+    // TODO — an insertion-into-a-tiny-sorted-array problem: larger keys (and
+    //        the children to THEIR right) shift up one slot. Draw x before and
+    //        after on paper first; don't forget x->n.
 }
 
 // ---- TODO 2 — split ------------------------------------------------------
@@ -70,9 +70,9 @@ void addKey(Node* x, int k, Node* rc) {
 // key[2] (and its children) into a NEW right node, and PROMOTE key[1] via
 // `mid`. Return the new right node. After this, x and the new node are 2-nodes.
 Node* split(Node* x, int& mid) {
-    // TODO: mid = x->key[1]; make a new node from x->key[2] with children
-    //       x->child[2], x->child[3]; leave x with only key[0] (n = 1) and
-    //       null its moved child pointers; return the new node.
+    // TODO — the L05 "where the three pieces go" slide is the picture: which
+    //        key stays, which promotes (via `mid`), which starts the new right
+    //        node — and which two children follow it there. Null out what moved.
     return nullptr;
 }
 
@@ -146,7 +146,7 @@ int main() {
 
     cout << "T3 · a leaf splits, the root grows up\n";
     Node* s = build({50, 30, 70});                       // [30|50|70] → promote 50
-    check(s->n == 1 && s->key[0] == 50, "root is the promoted middle key 50");
+    check(sizeOf(s) == 3 && s->n == 1 && s->key[0] == 50, "root is the promoted middle key 50 (all 3 keys present)");
     check(s->child[0] && s->child[0]->key[0] == 30 &&
           s->child[1] && s->child[1]->key[0] == 70, "children are [30] and [70]");
     check(leafDepth(s) == 1, "all leaves at depth 1");
@@ -154,7 +154,7 @@ int main() {
 
     cout << "T4 · a cascading split (root split from below)\n";
     Node* c = build({50, 30, 70, 10, 20});               // 20 cascades: root becomes [20|50]
-    check(valid23(c) && sortedInorder(c) && leafDepth(c) >= 0, "valid 2-3, sorted, balanced");
+    check(sizeOf(c) == 5 && valid23(c) && sortedInorder(c) && leafDepth(c) >= 0, "valid 2-3, sorted, balanced");
     check(sizeOf(c) == 5, "all 5 keys present");
     destroy(c);
 
@@ -182,8 +182,8 @@ int main() {
     check(sortedInorder(root) && valid23(root), "sorted + valid 2-3");
     int dep = leafDepth(root);
     cout << "     2-3 tree depth = " << dep << "   (a plain BST would be " << N - 1 << ")\n";
-    check(dep >= 0, "perfectly balanced (all leaves same depth)");
-    check(dep <= (int)ceil(log2((double)N)), "depth <= log2(N) — logarithmic");
+    check(sizeOf(root) == N && dep >= 0, "perfectly balanced (all leaves same depth)");
+    check(dep >= 1 && dep <= (int)ceil(log2((double)N)), "depth <= log2(N) — logarithmic");
     check(contains(root, 500) && !contains(root, 9999), "contains: hit 500, miss 9999");
     destroy(root);
 

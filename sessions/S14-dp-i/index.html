@@ -77,10 +77,16 @@
         make: () => new DP(),
         noBuild: true,
         renderer: (c) => new MatrixRenderer(c, {}),
-        stateMsg: () => 'type two words (e.g. "SUNDAY SATURDAY") and press LCS',
-        ops: [{ name: "LCS", arg: "string", run: (s, v) => {
-          const w = String(v).trim().split(/[\s,;]+/);
-          return s.lcs(w[0], w[1]);
+        // named, pre-filled word boxes (the gallery pattern): the instance
+        // stays visible while the table animates, and Run works on first click
+        stateMsg: () => 'ready: LCS("SUNDAY", "SATURDAY") — edit the words, press LCS',
+        inputs: [
+          { key: "a", label: "a", value: "SUNDAY", width: 95 },
+          { key: "b", label: "b", value: "SATURDAY", width: 95 },
+        ],
+        ops: [{ name: "LCS", run: (s, _v, vals) => {
+          const word = (t, d) => (String(t ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 12) || d);
+          return s.lcs(word(vals.a, "SUNDAY"), word(vals.b, "SATURDAY"));
         } }],
         costs: ["compare", "write"], chrome: { showCosts: true }, width: 560, height: 140,
       },

@@ -62,6 +62,9 @@
     const base = () => ({
       make: () => new Graph(),
       initial: DAG,
+      initialPlaceholder: "u v, u v, …",
+      initialTitle: "directed edge pairs \"u v\", comma-separated",
+      valPlaceholder: "start vertex",
       buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: true }),
       stateMsg: (g) => `directed graph — ${g.inorder()}; pairs "u v" in the box are the edges`,

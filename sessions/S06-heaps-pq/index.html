@@ -64,7 +64,8 @@
       "heap-insert": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "1..15:1:ZIG",
+        // the deck's your-turn heap — predict where 85 lands, then Insert 85 here
+        initial: "90,80,70,30,60,50",
         renderer: dualRenderer(),
         buildStep: (s, k) => s.insert(k),
         ops: [

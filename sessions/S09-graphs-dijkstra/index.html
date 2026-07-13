@@ -59,6 +59,9 @@
     const base = () => ({
       make: () => new WeightedGraph(),
       initial: WDAG,
+      initialPlaceholder: "u v w, …",
+      initialTitle: "weighted directed edge triples \"u v w\", comma-separated",
+      valPlaceholder: "start vertex",
       buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: true }),
       stateMsg: (g) => `weighted digraph — ${g.inorder()}; triples "u v w" in the box are the edges`,
