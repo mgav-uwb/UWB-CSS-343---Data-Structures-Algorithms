@@ -29,25 +29,23 @@ struct MinHeap {
 // Restore the heap after appending: while node k is SMALLER than its parent
 // (index k/2), swap up. Stop at the root or when the parent dominates.
 void swim(MinHeap& h, int k) {
-    // TODO: while k is not the root (k > 1) AND a[k] < its parent a[k/2],
-    //       swap them and move k up to k/2.
+    // TODO — the L06 "insert (swim)" slides trace exactly this loop.
 }
 
 // ---- TODO 2 — sink -------------------------------------------------------
 // Restore the heap after replacing the root: while node k is LARGER than a
 // child, swap with the SMALLER child. Stop at a leaf or when k dominates both.
 void sink(MinHeap& h, int k) {
-    // TODO: let n = h.size(); while node k has a left child (2k <= n): pick
-    //       the SMALLER of its children; if a[k] <= that child, stop; else swap
-    //       a[k] with it and move k down to that child.
+    // TODO — careful: a node has up to TWO children, and the right one may
+    //        not exist. (L06 "delMax (sink)" slides, min-heap flavor.)
 }
 
 // ---- TODO 3 — heapify ----------------------------------------------------
 // Build a heap from a RAW array in Θ(n): load the data (a complete tree, not
 // yet a heap), then sink every internal node from n/2 down to 1 (bottom-up).
 void heapify(MinHeap& h, const vector<int>& data) {
-    // TODO: reset h.a to just the sentinel (h.a.resize(1)); push each value of
-    //       `data`; then for k = size()/2 down to 1, sink(h, k).
+    // TODO — load first, repair after. Why do the repairs start at size()/2
+    //        and run DOWN to 1? (L06 proves it — and grades on it.)
 }
 
 // ---- TODO 4 — heapsort ----------------------------------------------------
@@ -61,13 +59,9 @@ void heapify(MinHeap& h, const vector<int>& data) {
 // h.size() (the FULL vector) — reusing it here would sink past the tail
 // you've already placed, so do the shrinking-range sink inline instead.
 vector<int> heapsort(const vector<int>& data) {
-    // TODO: heapify(h, data) into a local MinHeap h; then repeatedly, for a
-    //       shrinking `end` from h.size() down to 2: swap h.a[1] with h.a[end],
-    //       decrement end, then sink node 1 but bounded by `end` (not h.size())
-    //       — do NOT call sink(h,1) directly, write the bounded version inline.
-    //       Finally build vector<int>(h.a.begin()+1, h.a.end()) and reverse it.
-    //       Do NOT just call delMin() in a loop and collect into a new vector:
-    //       that is O(n) extra space, not the in-place algorithm above.
+    // TODO — why can't you call sink(h, 1) here? Write the bounded version
+    //        inline. (And no delMin()-into-a-new-vector: that's O(n) extra
+    //        space, not the in-place algorithm the header describes.)
     return {};
 }
 
@@ -142,7 +136,7 @@ int main() {
     vector<int> sorted6 = heapsort(unsorted);
     check((int)sorted6.size() == 10, "heapsort returns all 10 elements");
     check(ascending(sorted6), "heapsort result is ascending");
-    check(sorted6.front() == 0 && sorted6.back() == 9, "first is 0, last is 9");
+    check(!sorted6.empty() && sorted6.front() == 0 && sorted6.back() == 9, "first is 0, last is 9");
     vector<int> want6 = unsorted; sort(want6.begin(), want6.end());
     check(sorted6 == want6, "heapsort matches std::sort on the same input");
 

@@ -122,7 +122,7 @@ Read a regex by breaking it at the **top-level** `|` and `*`.
    (AB)*   — which of  "ABAB",  "ABA",  ""  does it match?
 ```
 
-<small>`(AB)*` = zero or more copies of "AB": **"ABAB" ✓** (two copies), **"ABA" ✗** (dangling A), **"" ✓** (zero copies). Read `*` as "any number, including none."</small>
+<small>`(AB)*` = zero or more copies of "AB": **"ABAB" ✓** (two copies), **"ABA" ✗** (dangling A), **"" ✓** (zero copies). Read `*` as "any number, including none."</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -130,7 +130,7 @@ Read a regex by breaking it at the **top-level** `|` and `*`.
 
 Over the alphabet {A, B}: all strings that **end in B**.
 
-<small>**`(A|B)*B`** — anything, then one final B. Check: "B" ✓ (star = zero), "AB" ✓, "AABB" ✓; "BA" ✗ (ends in A), "" ✗ (needs at least the B). A common wrong answer is `A*B` — it rejects "BAB", which does end in B.</small>
+<small>**`(A|B)*B`** — anything, then one final B. Check: "B" ✓ (star = zero), "AB" ✓, "AABB" ✓; "BA" ✗ (ends in A), "" ✗ (needs at least the B). A common wrong answer is `A*B` — it rejects "BAB", which does end in B.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -254,7 +254,7 @@ Same machine. Which of these does it accept?
    "0110"        "111"        ""
 ```
 
-<small>**"0110"**: A →0 B →1 A →1 A →0 **B → ACCEPT** (ends in 0). **"111"**: A →1 A →1 A →1 **A → reject**. **""**: never leaves A — **reject** (the empty string doesn't end in 0). The state always equals "did the string so far end in 0?" — that's the machine's whole memory.</small>
+<small>**"0110"**: A →0 B →1 A →1 A →0 **B → ACCEPT** (ends in 0). **"111"**: A →1 A →1 A →1 **A → reject**. **""**: never leaves A — **reject** (the empty string doesn't end in 0). The state always equals "did the string so far end in 0?" — that's the machine's whole memory.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -307,7 +307,7 @@ It's just a **digraph of states** plus a match rule per state:
    };
 ```
 
-Simulation = **graph reachability** (ε-closure) + one match step per input char.
+Simulation = **graph reachability** (ε-closure) + one match step per input char. <small>(*One* match char per state — that's Sedgewick's encoding, Part 3's first slide.)</small>
 
 --
 
@@ -542,7 +542,7 @@ A **DFS over ε-edges** — the L08 graph search, reused on the automaton.
 
 Same `A*B` machine. Trace `"B"` and `"BA"`:
 
-<small>**"B"**: start {0,1,2}; read B: 2 matches → {3} = accept → **ACCEPT** (zero A's — the ε-skip at work). **"BA"**: after B, {3}; read A: state 3 is the accept state, it matches nothing → **{ } → REJECT**. The accept state has no outgoing edges — reaching it early only helps if the input *ends* there.</small>
+<small>**"B"**: start {0,1,2}; read B: 2 matches → {3} = accept → **ACCEPT** (zero A's — the ε-skip at work). **"BA"**: after B, {3}; read A: state 3 is the accept state, it matches nothing → **{ } → REJECT**. The accept state has no outgoing edges — reaching it early only helps if the input *ends* there.</small> <!-- .element: class="fragment" -->
 
 --
 

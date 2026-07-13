@@ -212,6 +212,7 @@ Items with (value, weight); knapsack holds weight W. Take each item whole or not
 
 ```text
    greedy by value/weight ratio → can be far from optimal
+   (a 3-item counterexample is worked in L15)
    0/1 knapsack needs DYNAMIC PROGRAMMING (next week)
 ```
 
@@ -466,7 +467,7 @@ Frequencies `x:1  y:1  z:2  w:4`. Build the Huffman tree:
    merge 4+4 → 8   → root
 ```
 
-<small>Codes: `w = 0` (freq 4, shallow), `z = 10`, `x = 110`, `y = 111`. The rarest (x, y) sink deepest; total = 4·1 + 2·2 + 1·3 + 1·3 = **14 bits**.</small>
+<small>Codes: `w = 0` (freq 4, shallow), `z = 10`, `x = 110`, `y = 111`. The rarest (x, y) sink deepest; total = 4·1 + 2·2 + 1·3 + 1·3 = **14 bits**.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -480,6 +481,33 @@ When two nodes share the lowest frequency, **either** may be picked:
 ```
 
 Like the MST: the optimal **cost** is unique; the optimal **tree** may not be.
+
+--
+
+## Proof 1 — the two rarest go deepest
+
+**Exchange:** in any optimal tree `T`, let `a, b` = sibling leaves at **max depth**. Swap the rarest symbol `x` with `a`:
+
+```text
+   Δcost = (fx·da + fa·dx) − (fx·dx + fa·da)
+         = (fa − fx) · (dx − da)
+             ≥ 0     ·   ≤ 0        →  Δcost ≤ 0
+```
+
+Same for `y`↔`b` → **some optimal tree has x, y as deepest siblings** — exactly Huffman's first merge. ∎
+
+--
+
+## Proof 2 — merging shrinks the problem
+
+Merge `x, y` into one symbol `z` with `fz = fx + fy`. For any tree `T` where x, y are siblings under `z`'s spot:
+
+```text
+   cost(T)  =  cost(T′)  +  fx + fy
+   (every x- or y-bit is a z-bit PLUS one extra level)
+```
+
+The `fx + fy` term is a **constant** → optimal `T′` ⟺ optimal `T`. Induction on n−1 symbols finishes it. ∎
 
 ---
 
@@ -552,7 +580,7 @@ Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
    decode the bits:  1010
 ```
 
-<small>Walk from the root: `1,0,1` hits leaf **d**; restart; `0` hits leaf **f** — the bits decode to **"df"**. Four bits, two symbols, no separators.</small>
+<small>Walk from the root: `1,0,1` hits leaf **d**; restart; `0` hits leaf **f** — the bits decode to **"df"**. Four bits, two symbols, no separators.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -592,33 +620,6 @@ The **more skewed** the frequencies, the **bigger** the win.
 | **Huffman** | **frequency** skew | needs frequencies |
 
 Real compressors **combine** them (e.g. RLE/LZ **then** Huffman).
-
---
-
-## Proof 1 — the two rarest go deepest
-
-**Exchange:** in any optimal tree `T`, let `a, b` = sibling leaves at **max depth**. Swap the rarest symbol `x` with `a`:
-
-```text
-   Δcost = (fx·da + fa·dx) − (fx·dx + fa·da)
-         = (fa − fx) · (dx − da)
-             ≥ 0     ·   ≤ 0        →  Δcost ≤ 0
-```
-
-Same for `y`↔`b` → **some optimal tree has x, y as deepest siblings** — exactly Huffman's first merge. ∎
-
---
-
-## Proof 2 — merging shrinks the problem
-
-Merge `x, y` into one symbol `z` with `fz = fx + fy`. For any tree `T` where x, y are siblings under `z`'s spot:
-
-```text
-   cost(T)  =  cost(T′)  +  fx + fy
-   (every x- or y-bit is a z-bit PLUS one extra level)
-```
-
-The `fx + fy` term is a **constant** → optimal `T′` ⟺ optimal `T`. Induction on n−1 symbols finishes it. ∎
 
 --
 

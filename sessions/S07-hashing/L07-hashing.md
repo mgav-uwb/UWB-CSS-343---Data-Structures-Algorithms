@@ -169,7 +169,7 @@ Part 3 does **chaining**; Part 4 does **open addressing**. Both are only as good
 For integer keys, the workhorse:
 
 ```text
-   h(k) = k mod M            M = 97:  h(12345) = 60
+   h(k) = k mod M            M = 97:  h(12345) = 26
 ```
 
 - **M prime** mixes **all** the bits of `k`
@@ -347,7 +347,7 @@ Keep **α = O(1)** → every operation is **O(1)** expected.
 
 **Insert 50.** Which bucket, how many compares, and what does the chain look like?
 
-<small>h(50) = 50 mod 7 = 1 → walk bucket 1: 1 ≠ 50, 15 ≠ 50 (2 compares) → link 50: [1] → 1 → 15 → 50. Chain length 3; every other bucket untouched.</small>
+<small>h(50) = 50 mod 7 = 1 → walk bucket 1: 1 ≠ 50, 15 ≠ 50 (2 compares) → link 50: [1] → 1 → 15 → 50. Chain length 3; every other bucket untouched.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -455,6 +455,19 @@ A **hit** stops on the key; a **miss** pays the **whole cluster** plus the empty
 
 --
 
+## Practice — where does it land?
+
+`M = 7`, `h(k) = k mod 7`, linear probing. Table currently:
+
+```text
+   [ _ 8 15 _ _ _ 20 ]     insert 22?
+     0 1  2 3 4 5  6
+```
+
+<small>h(22) = 22 mod 7 = 1 → slot 1 holds 8 → probe 2 (holds 15) → probe 3 (empty) → 22 goes in slot 3. Two collisions, then it lands.</small> <!-- .element: class="fragment" -->
+
+--
+
 ## 🎬 Demo — linear probing
 
 <div class="algo-viz" data-algo="hash-probe">
@@ -489,7 +502,7 @@ Delete 14 by **emptying its slot** — and you punch a **hole in the cluster**:
 
 ## Deletion — two fixes
 
-1. **Tombstone:** mark the slot "deleted" — searches **walk through** it, inserts may **reuse** it. Simple; tombstones accumulate until a rehash.
+1. **Tombstone:** mark the slot "deleted" — searches **walk through** it, inserts may **reuse** it. Simple; tombstones accumulate until the table is rebuilt (Part 6's resize).
 2. **Re-insert the cluster** (Sedgewick): empty the slot, then take every key **after the hole** in the cluster and insert it again — the run is rebuilt hole-free.
 
 ```text
@@ -513,19 +526,6 @@ Delete 14 by **emptying its slot** — and you punch a **hole in the cluster**:
 </div>
 
 <small>**Delete 14** and watch the repair: the hole opens, then **25 and 36 re-insert** to close the run. Then **Search 25** — still reachable. Compare with the chaining demo's delete: one unlink vs a cluster rebuild.</small>
-
---
-
-## Practice — where does it land?
-
-`M = 7`, `h(k) = k mod 7`, linear probing. Table currently:
-
-```text
-   [ _ 8 15 _ _ _ 20 ]     insert 22?
-     0 1  2 3 4 5  6
-```
-
-<small>h(22) = 22 mod 7 = 1 → slot 1 holds 8 → probe 2 (holds 15) → probe 3 (empty) → 22 goes in slot 3. Two collisions, then it lands.</small>
 
 --
 
@@ -557,11 +557,11 @@ A cluster doesn't just slow its own keys — it **grows faster the longer it is*
    cluster of length L  (slots s … s+L−1)
 
    a new key homed ANYWHERE in those L slots
-   — or at the first slot past them —
-   lands at slot s+L  →  length L+1
+   — or in the free slot at either end —
+   extends the run  →  length L+1
 ```
 
-Growth probability ≈ **(L+1)/M** — the rich get richer. Long runs also **merge** into longer ones.
+Growth probability ≈ **(L+2)/M** — the rich get richer. Long runs also **merge** into longer ones.
 
 --
 
@@ -593,16 +593,16 @@ Colliding keys get **different strides** → even same-home keys part ways → e
 
 ## Double hashing — worked
 
-`M = 10`, `h(x) = x mod 10`, `h2(x) = 7 − (x mod 7)`:
+`M = 11` (prime), `h(x) = x mod 11`, `h2(x) = 7 − (x mod 7)`:
 
 ```text
-   89 → 9                      [ _ _ _ _ _ _ _ _ _ 89]
-   18 → 8                      [ _ _ _ _ _ _ _ _ 18 89]
-   49 → 9 taken; h2(49)=7      (9+7)%10 = 6  → slot 6
-   58 → 8 taken; h2(58)=5      (8+5)%10 = 3  → slot 3
+   89 → 1                      [ _ 89 _ _ _ _ _ _ _ _ _ ]
+   18 → 7                      [ _ 89 _ _ _ _ _ 18 _ _ _ ]
+   40 → 7 taken; h2(40)=2      (7+2)%11 = 9  → slot 9
+   29 → 7 taken; h2(29)=6      (7+6)%11 = 2  → slot 2
 ```
 
-49 and 58 both collided — but stepped by **7** and **5** into different regions. No cluster forms.
+40 and 29 both collided with 18 at slot **7** — but stepped by **2** and **6** into different regions. No cluster forms.
 
 --
 

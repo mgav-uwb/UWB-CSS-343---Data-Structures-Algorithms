@@ -168,7 +168,7 @@ Insert `to, tea, ten` into an empty trie:
    which nodes are word-marked?
 ```
 
-<small>Five: `t` → `o●` and `t` → `e` → `a●`, `n●`. The three ● word-ends are o, a, n; `t` and `e` are shared, unmarked path nodes. Searching "te" walks a valid path but `e` isn't a word → NOT found.</small>
+<small>Five: `t` → `o●` and `t` → `e` → `a●`, `n●`. The three ● word-ends are o, a, n; `t` and `e` are shared, unmarked path nodes. Searching "te" walks a valid path but `e` isn't a word → NOT found.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -225,7 +225,7 @@ Store the R children as a **little BST** per node — each trie node becomes 3 l
    };
 ```
 
-**Θ(L + log R)** search, far less space than R-way.
+**Θ(L·log R)** worst-case search (**~Θ(L)** in practice), far less space than R-way.
 
 --
 
@@ -240,7 +240,7 @@ Three links per node: `left` (< c), `mid` (== c → next char), `right` (> c).
    only 'mid' consumes a character; left/right pick among siblings
 ```
 
-Θ(L + log R) — the log R is the sibling search, once per character.
+**Θ(L·log R)** worst case — a log R sibling search **once per character** (~Θ(L) in practice: most nodes have few children).
 
 --
 
@@ -377,17 +377,6 @@ Tries support more than exact prefixes:
 - **IP routing** — longest-prefix match
 - **T9** predictive text, **contacts** search
 
---
-
-## Prefix operations — recap
-
-One structure, in Θ(L), answers:
-
-- **search / contains** — is this exact word stored?
-- **keysWithPrefix(p)** — autocomplete
-- **longestPrefixOf(q)** — IP routing, word segmentation
-- **wildcard / fuzzy** — spell-check, "did you mean?"
-
 ---
 
 ### Part 3 · Brute-force substring search
@@ -460,18 +449,6 @@ The nested loop is the Θ(nm): up to `n` starts × up to `m` compares.
 
 --
 
-## First match or all matches?
-
-- **first** occurrence — stop at the first full match (what we've shown)
-- **all** occurrences — after a match, **continue** searching from the next position
-- **count** — the same, tallying matches
-
-```text
-   KMP for "all": on a match, set j = fail[m-1] and keep going
-```
-
---
-
 ## Brute force — the cost
 
 ```text
@@ -525,6 +502,19 @@ We matched `"ABAB"`. `"AB"` is a prefix of the pattern that's also a **suffix** 
 
 --
 
+## The failure function
+
+Precompute, for the **pattern**, how much of a partial match survives a mismatch:
+
+```text
+   fail[j] = length of the longest PROPER PREFIX of pattern[0..j]
+             (first j+1 chars) that is also a SUFFIX of it
+```
+
+After matching `j` characters, on a mismatch fall back to `j = fail[j−1]` — **don't touch i**.
+
+--
+
 ## Failure function — worked
 
 Pattern `"AABAA"`:
@@ -549,20 +539,7 @@ Pattern `"ABABAC"` — fill the table:
    fail:   ?  ?  ?  ?  ?  ?
 ```
 
-<small>`fail = [0, 0, 1, 2, 3, 0]` — the ABAB self-overlap grows (A, AB, ABA…), and the C at the end matches no prefix, so it resets to 0. A mismatch at `j=5` falls back to `j = fail[4] = 3`.</small>
-
---
-
-## The failure function / DFA
-
-Precompute, for the **pattern**, how far to fall back on a mismatch:
-
-```text
-   fail[j] = length of the longest proper prefix of pattern[0..j)
-             that is also a suffix of it
-```
-
-On a mismatch at pattern index j, reset `j = fail[j]` (don't touch i).
+<small>`fail = [0, 0, 1, 2, 3, 0]` — the ABAB self-overlap grows (A, AB, ABA…), and the C at the end matches no prefix, so it resets to 0. A mismatch at `j=5` falls back to `j = fail[4] = 3`.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -609,6 +586,18 @@ int kmp(const string& t, const string& p, vector<int>& fail) {
 ```
 
 `i` only ever **increases** → the text is read once → **Θ(n)**.
+
+--
+
+## First match or all matches?
+
+- **first** occurrence — stop at the first full match (the code above)
+- **all** occurrences — after a match, **continue** searching from the next position
+- **count** — the same, tallying matches
+
+```text
+   KMP for "all": on a match, set j = fail[m-1] and keep going
+```
 
 --
 
@@ -672,6 +661,8 @@ The text pointer stays at 5 — `text[0..4]` are never re-read.
 --
 
 ## Boyer-Moore: skip ahead
+
+<small>(survey — idea and one trace; we implement only brute force and KMP)</small>
 
 Compare the pattern **right-to-left**; on a mismatch, use the **bad character** to jump far ahead:
 
@@ -796,8 +787,8 @@ Preprocess `m` (small, reused), then scan `n` (huge) → **Θ(n + f(m))**.
 In `ica16/ica16.cpp`:
 
 - a **trie** — `insert`, `search`, `startsWith` (prefix)
-- **brute-force** substring search
 - **KMP** — failure function + no-backup search
+- (brute-force search is **given** — your KMP must match its answers)
 
 Build `-g`, run the self-tests, Valgrind-clean.
 

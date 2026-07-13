@@ -17,7 +17,7 @@
      queries); HIBBARD deletion (successor); analysis — dual-to-quicksort, internal
      path length, Prop C (hits ~1.39 log₂ N), Prop D (miss/insert ~1.39 log₂ N), Prop E
      (ops ∝ height), average HEIGHT ~2.99 log₂ N (≠ path length), cost summary.
-  Huffman (SP26 bundled it here) → relocated to S16 (greedy); not covered in this deck.
+  Huffman (SP26 bundled it here) → relocated to S12 (greedy); not covered in this deck.
 
   INTERACTIVE DEMOS — EVERY Sedgewick/SP26 figure becomes a demo (build under viz/,
   load in index.html, init in Reveal.initialize(...).then(...) like L02). Each is on
@@ -86,6 +86,8 @@ A **tree** is nodes joined by **links** (edges); each link is **null** or points
 --
 
 ## Anatomy of a (binary) tree
+
+<small>binary = at most two children per node — defined formally in Part 2; the vocabulary is the same for all trees</small>
 
 <img src="figures/fig-01-anatomy-binary-tree.webp" alt="Anatomy of a tree: root, a left link, the right child of the root, a subtree, and null links" style="width:46%">
 
@@ -184,8 +186,8 @@ Classic uses:
 
 - **expression trees** (Part 4)
 - **binary search trees** (Part 5+)
-- **heaps** (S4)
-- **Huffman trees** (greedy, S16)
+- **heaps** (S06)
+- **Huffman trees** (greedy, S12)
 
 --
 
@@ -240,7 +242,7 @@ The whole lecture in one line: **a binary tree's height ranges from log n to n**
           /   \                                 \
          o     o                                 o
         / \   / \                                 \
-       o   o o   o        (n = 8)                  o
+       o   o o   o        (n = 7)                  o
                                                     \ ... a path
  
 [ interactive demo — open this deck on the course site ]
@@ -280,8 +282,8 @@ So the flat-array layout only pays off for **(near-)complete** trees.
 
 When the array fills, grow it like a **dynamic array**:
 
-- **double** the capacity when it fills — amortized **O(1)** per append
-- a **heap** (S4) stays complete, so an append at index **n** never leaves a gap
+- **double** the capacity when it fills — appends stay cheap **on average** (each doubling pays for the n cheap appends before it; the argument is made precise when we build heaps, S06)
+- a **heap** (S06) stays complete, so an append at index **n** never leaves a gap
 
 --
 
@@ -323,7 +325,7 @@ When the array fills, grow it like a **dynamic array**:
 - **post-order** — left, right, node
 - **level-order** — top-to-bottom, left-to-right, using a **queue** (like BFS)
 
-**In-order of a BST visits the keys in sorted order** — we lean on this later.
+**In-order of a *search* tree (BST, Part 5) visits the keys in sorted order** — we lean on this later.
 
 --
 
@@ -786,7 +788,7 @@ The **predecessor** works just as well — the **largest key in the left subtree
 
 **Which to use?**
 
-- picking the **same side every time** skews the shape (repeated Hibbard deletes → ~**√n** height)
+- picking the **same side every time** skews the shape (a long mix of random inserts + one-sided Hibbard deletes → ~**√n** *average path length*)
 - **alternate** them, or take the one from the **taller** subtree, to stay balanced
 - balanced trees (**S04**) make the choice moot
 
@@ -919,7 +921,7 @@ Depth = # of ancestors. Sum the probabilities: **two harmonic sums**, one per si
 
 $$\sum \tfrac{1}{|i-j|+1} \approx \ln i + \ln (N-i) \le 2\ln N$$
 
-<small>The harmonic sum 1 + ½ + ⅓ + ⋯ + 1/k ≈ ln k does all the work.</small>
+<small>The harmonic sum 1 + ½ + ⅓ + ⋯ + 1/k ≈ ln k does all the work. Averaged over the positions *i*, the bound is also achieved: the mean is 2 ln N − O(1), hence **~2 ln N**.</small>
 
 --
 

@@ -127,7 +127,7 @@ Given a **weighted digraph** and a **source** s, find the **minimum-total-weight
 - **single-source** — one s → shortest paths to **all** vertices (what Dijkstra computes)
 - **single-pair** — one s → one t
 
-Surprisingly, single-pair is **no easier**: the best known method is to run Dijkstra and **stop when t settles**.
+Surprisingly, single-pair is **no easier**: the best known method is to run Dijkstra and **stop when t settles** (when its distance becomes final — Part 3).
 
 --
 
@@ -229,7 +229,7 @@ Negative weights break the greedy logic — Part 4 shows the **exact line of the
 </pre>
 </div>
 
-<small>Same 8 vertices as L08, now with **weights**. The demos run on this graph — the triples above are its build string.</small>
+<small>The same 8 vertices as L08's DAG — with a **reworked, weighted** edge set. The demos run on this graph — the triples above are its build string.</small>
 
 ---
 
@@ -400,7 +400,7 @@ while (PQ not empty) {
     if (settled[u]) continue;     // stale entry — skip
     settled[u] = true;
     for (Edge e : adj[u])         // relax out-edges
-        if (dist[u] + e.w < dist[e.to]) {
+        if (!settled[e.to] && dist[u] + e.w < dist[e.to]) {
             dist[e.to] = dist[u] + e.w;
             PQ.push({ dist[e.to], e.to });
         }
@@ -445,7 +445,7 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
    from 0: which vertex settles 2nd?  what is dist[1]?
 ```
 
-<small>Settle 0 (0) → relax: 1=4, 2=1. Nearest unsettled is **2** (dist 1) → **settles 2nd**; relax 2→1: 1+2=3 &lt; 4 → **dist[1]=3**. Then settle 1 (3), then 3 (6). This graph is **ICA test T2**.</small>
+<small>Settle 0 (0) → relax: 1=4, 2=1. Nearest unsettled is **2** (dist 1) → **settles 2nd**; relax 2→1: 1+2=3 &lt; 4 → **dist[1]=3**. Then settle 1 (3), then 3 (6). This graph is **ICA test T2**.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -458,7 +458,7 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
    from 0: which vertex settles 3rd?  what is dist[5]?
 ```
 
-<small>Settle order starts 0 (0), 2 (2), **1 (3)** — the detour 0→2→1 beats the direct 4. And **dist[5] = 13** via 0→2→1→3→4→5 = 2+1+5+2+3: every hop an improving relaxation.</small>
+<small>Settle order starts 0 (0), 2 (2), **1 (3)** — the detour 0→2→1 beats the direct 4. And **dist[5] = 13** via 0→2→1→3→4→5 = 2+1+5+2+3: every hop an improving relaxation.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -721,7 +721,7 @@ Same relaxation, smarter order — faster **point-to-point** (GPS).
 
 ## A* — when is it still exact?
 
-Correct whenever `h` is **admissible** — it never **overestimates** the remaining cost:
+Correct whenever `h` is **admissible** (never **overestimates** the remaining cost) — and, for our settle-once Dijkstra shape, **consistent** (h drops by at most the edge weight per step):
 
 ```text
    straight-line distance ≤ real road distance   ✓
@@ -766,6 +766,13 @@ Every one of them is still the **settle → relax** core.
 | **A\*** | `dist[u] + h(u)` |
 
 Choose the priority → choose the algorithm. <small>(And DFS was the same loop with a stack — L08.)</small>
+
+--
+
+## Deliverables
+
+- **PA2 due tonight** — submit before the deadline
+- **PA3 out** — see the Assignments page
 
 --
 

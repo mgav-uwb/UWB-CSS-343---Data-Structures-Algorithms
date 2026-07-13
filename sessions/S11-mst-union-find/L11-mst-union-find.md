@@ -80,12 +80,12 @@ struct UF {
     // are p and q in the same component?
     bool connected(int p, int q);
     // merge the components of p and q
-    void  union(int p, int q);
+    void  unite(int p, int q);
     int   find(int p);        // component id of p
 };
 ```
 
-`connected(p,q)` is just `find(p) == find(q)`. Everything hinges on **find**.
+`connected(p,q)` is just `find(p) == find(q)`. Everything hinges on **find**. <small>(The operation is *union*; the method is `unite` because `union` is a C++ keyword.)</small>
 
 --
 
@@ -216,13 +216,13 @@ Trees become nearly flat → future finds are faster.
 ```text
    before find(4):     after find(4):
         8                    8
-        |                  / | \
-        3                 4  3  9      4, 3 now point
-        |                                straight at root 8
-        4
+       / \                 / | \
+      3   9               4  3  9      4 now points
+      |                                  straight at root 8
+      4
 ```
 
-The walk `4 → 3 → 8` repoints 4 (and 3) directly at root 8 — the next `find(4)` is **one hop**.
+The walk `4 → 3 → 8` repoints every visited node at root 8 — here only 4 actually moves (3 was already there). The next `find(4)` is **one hop**.
 
 --
 
@@ -237,7 +237,7 @@ Same three unions, both schemes: `union(4,3)`, `union(3,8)`, `union(9,4)`
    what does each forest look like — and how tall?
 ```
 
-<small>**Plain:** 4→3, 3→8, then root(9)=9 under root(4)=8 → the tree `8{3{4}, 9}` — **height 2**. **Weighted:** 3 under 4 (tie), then 8 under 4 (size 2 vs 1), then 9 under 4 → the star `4{3, 8, 9}` — **height 1**. Weighting flattens as you build.</small>
+<small>**Plain:** 4→3, 3→8, then root(9)=9 under root(4)=8 → the tree `8{3{4}, 9}` — **height 2**. **Weighted:** 3 under 4 (tie), then 8 under 4 (size 2 vs 1), then 9 under 4 → the star `4{3, 8, 9}` — **height 1**. Weighting flattens as you build.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -464,7 +464,7 @@ Stop after **V − 1** edges. Cheapest-first, skip cycles.
 
 ```text
    if (uf.connected(u, v)) skip;          // cycle → cycle property
-   else { addEdge(u, v); uf.union(u, v); } // safe → cut property
+   else { addEdge(u, v); uf.unite(u, v); } // safe → cut property
 ```
 
 This is why we built union-find first.
@@ -479,7 +479,7 @@ UF uf(V);
 for (Edge e : edges) {
     if (!uf.connected(e.u, e.v)) {
         mst.push_back(e);
-        uf.union(e.u, e.v);
+        uf.unite(e.u, e.v);
         if (mst.size() == V - 1) break;
     }
 }
@@ -529,7 +529,7 @@ Kruskal has added `2-1, 5-6, 0-2, 3-4, 4-5` so far — components `{0,1,2}`, `{3
    1-3 (5):  accept or skip?
 ```
 
-<small>`0-1`: both endpoints already in `{0,1,2}` → **SKIP** (would close the cycle 0-2-1). `1-3`: 1 is in `{0,1,2}`, 3 is in `{3,4,5,6}` — different components → **ADD**, merging them (only 7 remains outside).</small>
+<small>`0-1`: both endpoints already in `{0,1,2}` → **SKIP** (would close the cycle 0-2-1). `1-3`: 1 is in `{0,1,2}`, 3 is in `{3,4,5,6}` — different components → **ADD**, merging them (only 7 remains outside).</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -662,7 +662,7 @@ Prim's tree so far is `{0, 2}` (via edge 0-2). Edges leaving it:
    which does Prim add next?
 ```
 
-<small>The **lightest** crossing edge: `2-1 (1)` → vertex 1 joins the tree. Prim always takes the cheapest edge leaving the current tree, regardless of which tree vertex it starts from.</small>
+<small>The **lightest** crossing edge: `2-1 (1)` → vertex 1 joins the tree. Prim always takes the cheapest edge leaving the current tree, regardless of which tree vertex it starts from.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -703,7 +703,7 @@ Different objectives → different trees. <small>(On tonight's 8-vertex graph th
 | grows | a **forest** (merges) | **one tree** |
 | picks | globally cheapest edge | cheapest edge leaving the tree |
 | needs | **union-find** + sort | **priority queue** |
-| cost | O(E log E) | O(E log V) |
+| cost | O(E log E) **= O(E log V)** | O(E log V) |
 | best for | **sparse** graphs | **dense** graphs |
 
 --

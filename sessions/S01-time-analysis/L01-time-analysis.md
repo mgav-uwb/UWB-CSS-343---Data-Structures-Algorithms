@@ -102,7 +102,7 @@ So for this input the answer is **4**.
 But the pattern is real:
 
 - **Computational geometry** — testing whether any 3 of *N* points are collinear reduces to 3-sum.
-- 3-sum is the textbook example of a problem with **no known sub-quadratic algorithm** — a genuine open question.
+- 3-sum is the textbook example of a problem with **no known strongly sub-quadratic algorithm** (nothing beats $N^2$ by more than log factors) — a genuine open question.
 
 --
 
@@ -214,7 +214,7 @@ Left: the raw curve. Right: the **log-log plot — a straight line of slope 3**.
 
 ## Why a log-log plot?
 
-Take logs of a power law $T(N) = aN^{b}$:
+Take logs of a power law $T(N) = aN^{b}$ (lg = log₂):
 
 $$\lg T(N) = b\lg N + \lg a$$
 
@@ -480,7 +480,7 @@ long twoSumFast(vector<int> a) {           // ~ N log N
 }
 ```
 
-`rankOf(x, a)` = binary search: how many elements of sorted `a` are `< x`. The `> i` test skips self-pairs and avoids double-counting.
+`rankOf(x, a)` = binary search: the **index** of `x` in sorted `a`, or **−1 if absent**. The `> i` test then counts each real pair once (and −1 rejects non-pairs).
 
 --
 
@@ -629,7 +629,7 @@ When you're standing on the floor, **stop optimizing**.
 
 ---
 
-### Part 6 · The shortcut & what's next
+### Part 6 · The shortcut · wrap
 
 <small>(~6 min)</small>
 

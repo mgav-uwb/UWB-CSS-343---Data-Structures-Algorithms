@@ -28,8 +28,8 @@ struct Graph {
 // Mark u visited, append it to `order`, then recurse into each UNVISITED
 // neighbor (in g.adj[u]).  The given dfs() wrapper below calls this.
 void dfsVisit(const Graph& g, int u, vector<bool>& seen, vector<int>& order) {
-    // TODO: seen[u] = true; order.push_back(u);
-    //       for (int v : g.adj[u]) if (!seen[v]) dfsVisit(g, v, seen, order);
+    // TODO — three lines; the header comment is the whole contract.
+    //        (L08 "DFS — the code" if you're stuck.)
 }
 // GIVEN — the DFS wrapper (uses your dfsVisit):
 vector<int> dfs(const Graph& g, int s) {
@@ -43,8 +43,7 @@ vector<int> dfs(const Graph& g, int s) {
 // Breadth-first search from s using a queue<int>; return vertices in dequeue
 // order. Mark a vertex seen when you ENQUEUE it (not when you dequeue).
 vector<int> bfs(const Graph& g, int s) {
-    // TODO: seen[s]=true; q.push(s); while q not empty: pop u, append to order,
-    //       for each unseen neighbor v: mark seen, push v.
+    // TODO — a queue<int> and a seen[] vector; the header states when to mark.
     return {};
 }
 
@@ -53,8 +52,7 @@ vector<int> bfs(const Graph& g, int s) {
 // repeatedly output one and decrement its neighbors (enqueue any that hit 0).
 // Return the order (its size is < V when the graph has a cycle).
 vector<int> topoSort(const Graph& g) {
-    // TODO: build indeg[]; queue in-degree-0 vertices; pop u → append u →
-    //       for each neighbor v: if (--indeg[v] == 0) push v.  Return order.
+    // TODO — the header is Kahn's algorithm in words (L08 "Kahn's algorithm").
     return {};
 }
 

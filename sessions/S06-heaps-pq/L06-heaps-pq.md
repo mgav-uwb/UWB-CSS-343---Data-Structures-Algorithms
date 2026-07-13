@@ -196,7 +196,7 @@ For a heap in `a[1..15]` (1-indexed):
 - the parent of `a[11]` is at index **?**
 - is `a[8]` a leaf? (n = 15)
 
-<small>children of 6: **12, 13** · parent of 11: **5** · a[8] leaf? its children would be 16, 17 > 15 → **yes, a leaf**.</small>
+<small>children of 6: **12, 13** · parent of 11: **5** · a[8] leaf? its children would be 16, 17 > 15 → **yes, a leaf**.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -312,7 +312,7 @@ Allocate the array to fit the **last level**: capacity `2^(h+1) − 1`. Height `
    h = 3:  capacity 15,  n ∈ [8..15]   →  ≥ 53% used
 ```
 
-Pointer nodes (key + 2 pointers) cost ≈ **3×** the memory — *always*.
+Pointer nodes (key + 2 pointers) cost **3–6×** the memory — *always* (24 B/node vs 4–8 B/slot, L02's arithmetic).
 
 --
 
@@ -324,7 +324,7 @@ A max-heap holds 15 **distinct** keys in `a[1..15]`:
 2. where can the **smallest** be?
 3. how do you **verify** an array is a heap — at what cost?
 
-<small>1: 2nd — a child of the root (index 2 or 3); 3rd — depth ≤ 2 (indices 2..7). 2: a leaf — indices 8..15. 3: check a[k] ≥ a[2k], a[2k+1] for k = 1..7 — Θ(n).</small>
+<small>1: 2nd — a child of the root (index 2 or 3); 3rd — depth ≤ 2 (indices 2..7). 2: a leaf — indices 8..15. 3: check a[k] ≥ a[2k], a[2k+1] for k = 1..7 — Θ(n).</small> <!-- .element: class="fragment" -->
 
 ---
 
@@ -386,7 +386,7 @@ Insert **95**: it lands at index 7 — the **right child of 70** — then beats 
 
 Into the heap `a = [ 90 80 70 30 60 50 ]`, **insert 85**. Where does it land?
 
-<small>append at index 7 (child of 70) → 85 beats 70, swap up to index 3 → 85 loses to parent 90, STOP. Final: [ 90 80 85 30 60 50 70 ]; 85 sits at index 3, having swum one level.</small>
+<small>append at index 7 (child of 70) → 85 beats 70, swap up to index 3 → 85 loses to parent 90, STOP. Final: [ 90 80 85 30 60 50 70 ]; 85 sits at index 3, having swum one level.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -468,7 +468,7 @@ int delMax(MaxHeap& h) {
 
 Part 4 left us `a = [ 95 80 90 30 60 50 70 ]` (after inserting 95). Now run **delMax**. What comes back, and what remains?
 
-<small>swap 95 ↔ 70 (last), shrink → [ 70 80 90 30 60 50 ] → sink: 70 loses to the larger child 90, swap → 70 at index 3 beats its child 50, STOP. Returns 95; heap = [ 90 80 70 30 60 50 ] — exactly where Part 4 started: delMax undid the insert.</small>
+<small>swap 95 ↔ 70 (last), shrink → [ 70 80 90 30 60 50 ] → sink: 70 loses to the larger child 90, swap → 70 at index 3 beats its child 50, STOP. Returns 95; heap = [ 90 80 70 30 60 50 ] — exactly where Part 4 started: delMax undid the insert.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -784,7 +784,7 @@ Heapsort is the only one **guaranteed** `n log n` **and** in place — which is 
 
 ## Indexed priority queues
 
-Dijkstra and Prim need to **decrease a key already in the PQ** ("this vertex just got closer"). A plain heap can't *find* that key — Part 3: no search order!
+*Eager* Dijkstra and Prim **decrease a key already in the PQ** ("this vertex just got closer"). A plain heap can't *find* that key — Part 3: no search order! (The *lazy* alternative — push a duplicate, skip stale entries — is L09's default.)
 
 An **indexed PQ** adds a map `item → array position`, updated on every swap:
 
@@ -859,7 +859,7 @@ All are binary heaps: push/pop Θ(log n), build Θ(n), peek Θ(1).
 
 ## Tie-in: Huffman coding
 
-Huffman builds an optimal prefix code by **greedily merging the two least-frequent symbols**:
+**Problem (L12):** encode symbols in as few total bits as possible — frequent symbols deserve short codes. Huffman builds the optimal code by **greedily merging the two least-frequent symbols**:
 
 ```text
    PQ = min-heap of (frequency, node) per symbol
@@ -870,13 +870,6 @@ Huffman builds an optimal prefix code by **greedily merging the two least-freque
 ```
 
 A **priority queue is the engine** — `n` symbols → Θ(n log n).
-
---
-
-## Deliverables
-
-- **PA1 due tonight** — submit before the deadline
-- **PA2 out** — see `../../assignments/PA2/`
 
 ---
 
@@ -904,12 +897,18 @@ A **priority queue is the engine** — `n` symbols → Θ(n log n).
 
 --
 
+## Deliverables
+
+- **PA1 due tonight** — submit before the deadline
+- **PA2 out** — see the Assignments page
+
+--
+
 ## ICA 6 — your turn
 
-Implement the **min-heap** core in `ica06/ica06.cpp` from a skeleton:
+Implement the **min-heap** core in `ica06/ica06.cpp` from a skeleton — you write the four engines (`insert`/`delMin` wrappers are **given**):
 
-- `insert` via **swim**
-- `delMin` via **sink** (swap with the **smaller** child)
+- **swim** · **sink** (follow the **smaller** child)
 - `heapify` a given array **bottom-up**
 - `heapsort` — sort **in place**, ascending
 

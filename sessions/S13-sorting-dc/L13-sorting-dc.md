@@ -95,9 +95,9 @@ Mergesort: `T(n) = 2 T(n/2) + Θ(n)`.
 For `T(n) = a·T(n/b) + f(n)`, compare `f(n)` to `n^(log_b a)`:
 
 ```text
-   case 1: f smaller  → T(n) = Θ(n^(log_b a))
-   case 2: f equal    → T(n) = Θ(n^(log_b a) · log n)
-   case 3: f larger   → T(n) = Θ(f(n))
+   case 1: f smaller (by a polynomial factor) → Θ(n^(log_b a))
+   case 2: f equal                            → Θ(n^(log_b a) · log n)
+   case 3: f larger  (by a polynomial factor) → Θ(f(n))
 ```
 
 The winner (leaves vs root work) sets the cost.
@@ -158,7 +158,7 @@ Compare **leaf work** `n^(log_b a)` vs **combine work** `f(n)` — the bigger wi
    T(n) = 3T(n/2) + Θ(n)    →  ?
 ```
 
-<small>First: `n^(log₂4)=n²` vs `n` → leaves win → **Θ(n²)** (case 1). Second: `n^(log₂3)≈n^1.58` vs `n` → leaves win → **Θ(n^1.58)** (case 1, Karatsuba's cost).</small>
+<small>First: `n^(log₂4)=n²` vs `n` → leaves win → **Θ(n²)** (case 1). Second: `n^(log₂3)≈n^1.58` vs `n` → leaves win → **Θ(n^1.58)** (case 1, Karatsuba's cost).</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -177,14 +177,14 @@ The paradigm is everywhere — not just sorting.
 
 ## Why D&C often wins
 
-Splitting a problem turns a **product** into a **sum**:
+Solve directly: **n²**. Split — *if* the combine is cheap — and the recurrence tells the story:
 
 ```text
-   n² work at one level  →  two halves: 2·(n/2)² = n²/2  (half!)
-   recurse → the savings compound → n log n
+   T(n) = 2T(n/2) + Θ(n)     (halve, then a LINEAR combine)
+        → n log n            (master theorem, case 2)
 ```
 
-Balanced splits + cheap combine = the n log n sweet spot.
+Balanced splits + **cheap combine** = the n log n sweet spot. (A quadratic combine would eat the savings — splitting alone isn't magic.)
 
 --
 
@@ -414,7 +414,7 @@ Lomuto, **pivot = last**:
    what are the two sides?
 ```
 
-<small>5&lt;7 (i=0) · 9 no · 3&lt;7 → swap → `5 3 9 8 6` · 8 no · 6&lt;7 → swap → `5 3 6 8 9` · place pivot: swap a[3],a[5] → **`5 3 6 [7] 9 8`** — pivot at rank 3, left `5 3 6`, right `9 8`.</small>
+<small>5&lt;7 (i=0) · 9 no · 3&lt;7 → swap → `5 3 9 8 6` · 8 no · 6&lt;7 → swap → `5 3 6 8 9` · place pivot: swap a[3],a[5] → **`5 3 6 [7] 9 8`** — pivot at rank 3, left `5 3 6`, right `9 8`.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -538,7 +538,7 @@ Each pivot (5, 2, 8, …) locks in; the sides sort recursively, in place.
 | divide | trivial (split) | **partition** (work) |
 | combine | **merge** (work) | trivial (in place) |
 | time | Θ(n log n) always | Θ(n log n) avg, Θ(n²) worst |
-| space | Θ(n) | **Θ(log n)** (stack) |
+| space | Θ(n) | **Θ(log n)** stack expected (Θ(n) worst) |
 | stable | **yes** | no |
 
 --
@@ -640,7 +640,7 @@ Partition; the pivot lands at some rank `p`. Recurse only into the **side contai
    else:      recurse RIGHT   (one side only!)
 ```
 
-Average **Θ(n)** — n + n/2 + n/4 + … = 2n.
+Average **Θ(n)** — roughly n + n/2 + n/4 + … = 2n.
 
 --
 
@@ -664,7 +664,7 @@ Find rank **k = 3** (0-indexed, the 4th smallest):
 
 ```text
    [ 3 7 1 8 2 5 ]   partition (pivot 5)
-   → [ 3 1 2 ] 5 [ 8 7 ]   pivot 5 lands at rank 3
+   → [ 3 1 2 ] 5 [ 7 8 ]   pivot 5 lands at rank 3
    rank 3 == k → answer = 5   (one partition, done!)
 ```
 
@@ -693,7 +693,7 @@ If k had been 1, we'd recurse into the **left** only; if 5, the **right** only.
    [ 7 2 9 4 1 6 3 ]   (7 elements) — find the MEDIAN
 ```
 
-<small>The median has rank 3 (0-indexed) — 3 elements below, 3 above. `quickselect(3)` on this array returns **4** (sorted: 1 2 3 **4** 6 7 9), in ~n comparisons on average, not n log n.</small>
+<small>The median has rank 3 (0-indexed) — 3 elements below, 3 above. `quickselect(3)` on this array returns **4** (sorted: 1 2 3 **4** 6 7 9), in ~n comparisons on average, not n log n.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -747,7 +747,7 @@ Library sorts are **hybrids** tuned for practice:
 | binary search | T(n)=T(n/2)+O(1) | O(log n) |
 | **mergesort** | 2T(n/2)+O(n) | Θ(n log n) |
 | **quicksort** | 2T(n/2)+O(n) avg | Θ(n log n) |
-| **quickselect** | T(n/2)+O(n) | Θ(n) |
+| **quickselect** | T(n/2)+O(n) avg | Θ(n) avg |
 
 One paradigm, read by one theorem.
 

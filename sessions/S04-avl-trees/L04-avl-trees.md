@@ -107,7 +107,7 @@ We want a **worst-case guarantee**, for any input.
 
 ## 🎬 Demo — plain BST vs AVL
 
-<div class="algo-viz" data-algo="avl-vs-bst" data-example="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16">
+<div class="algo-viz" data-algo="avl-vs-bst">
 <pre class="viz-fallback">
   SAME keys 1..16, inserted in order:
   plain BST → a path                AVL → rebalances as it goes
@@ -118,7 +118,7 @@ We want a **worst-case guarantee**, for any input.
        3                             2   6   10    14
         \                           / \ / \  / \   / \
          4  … height 15            1  3 5 7 9 11 13  15…16
-            (= n−1)                height 4 ≈ 1.44·log2 n
+            (= n−1)                height 4 = log2 16 (bound ≤ 1.44·log2 n ≈ 5.8)
  
 [ interactive demo — open this deck on the course site ]
 </pre>
@@ -147,19 +147,7 @@ You _could_ periodically rebuild into perfect balance — but:
 - between rebuilds the tree can already be a **Θ(n)** path
 - the **per-operation** worst case is what we must bound
 
-AVL fixes balance **incrementally** — O(log n) per op, always.
-
---
-
-## The goal
-
-Keep the tree short on **every** insert, cheaply — no periodic rebuild:
-
-- a **local** invariant each node can check
-- restorable in **O(1)** work per level
-- strong enough to force **height = Θ(log n)**
-
-That invariant is keeping the tree **balanced** (L03's shape) — heights differ by ≤ 1 at every node.
+AVL instead: a **local** invariant — heights differ by **≤ 1** at every node (L03's *balanced*) — restored **incrementally**, O(1) work per level: **O(log n) per op, always**.
 
 ---
 
@@ -787,14 +775,14 @@ M(h) = N(h) + 1
 
 M(0) = 2 = Fib(3)    M(1) = 3 = Fib(4)
   ⇒  M(h) = Fib(h+3)
-  ⇒  N(h) = Fib(h+3) − 1  ≈  φ^h    (φ = 1.618…)
+  ⇒  N(h) = Fib(h+3) − 1  ≥  φ^h    (φ = 1.618…)
 ```
 
 --
 
 ## Solve for the height
 
-An AVL tree with n nodes and height h has **n ≥ N(h) ≈ φ^h**. Taking logs (base φ = 1.618):
+An AVL tree with n nodes and height h has **n ≥ N(h) ≥ φ^h** (easy induction, using φ² = φ+1). Taking logs (base φ = 1.618):
 
 $$h \le 1.44 \log_2 n$$
 
@@ -819,7 +807,7 @@ So **log₂ n ≤ h ≤ 1.44 log₂ n** — the height is **Θ(log n)**, tight t
 | --------------------------- | --------------- |
 | perfectly balanced          | **1.00** log₂ n |
 | **AVL** (balanced)          | **1.44** log₂ n |
-| red-black (a later session) | **2.00** log₂ n |
+| red-black (S05)             | **2.00** log₂ n |
 
 AVL is **stricter** than red-black → shorter trees, faster lookups (but more rotations on update — Part 7).
 
@@ -885,7 +873,7 @@ Rule of thumb: **search-heavy → AVL**; **update-heavy → red-black**.
 | ------------------ | --------- | --------------- | ------------- |
 | height (worst)     | n − 1     | **1.44 log₂ n** | 2 log₂ n      |
 | search             | Θ(n)      | **Θ(log n)**    | Θ(log n)      |
-| rotations / insert | 0         | **≤ 1**         | ≤ 1 + recolor |
+| rotations / insert | 0         | **≤ 1** (single or double) | ≤ 2 + recolors |
 | rotations / delete | 0         | **O(log n)**    | ≤ 3           |
 | extra per node     | —         | 1 int           | 1 bit         |
 
@@ -955,6 +943,6 @@ In `ica04/ica04.cpp` — node, helpers, and a **self-running test battery** are 
 ## ICA 04 — memory & submit
 
 - **memory:** the first **leak-graded** ICA — **2 of 10 pts** = Valgrind-clean (handout on the Handouts page)
-- **grading:** `ica04/solution/GRADING.md` — 5 mechanics · 2 battery · 1 isAVL+contains · 2 Valgrind · +1 EC
+- **grading:** 5 mechanics · 2 battery · 1 isAVL+contains · 2 Valgrind · +1 EC (full table in the ICA 04 page)
 - **submit:** `ica04.cpp` in the Canvas quiz — resubmits allowed, **due Fri 11:59 pm**
 

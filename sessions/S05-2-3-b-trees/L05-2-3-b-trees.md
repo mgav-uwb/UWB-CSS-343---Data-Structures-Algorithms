@@ -55,16 +55,6 @@ It works — but rotations are fiddly: LL/RR/LR/RL on insert, and delete can **c
 
 --
 
-## Tonight: three trees, one idea
-
-- **2-3 tree** — the *idea*: perfect balance, no rotations
-- **red-black BST** — how we *code* it: a BST + one color bit
-- **B / B+ trees** — how databases *scale* it: fat nodes on disk
-
-All reach the same **Θ(log n)** guarantee as AVL — a completely different way.
-
---
-
 ## A different idea: fatter nodes
 
 What if a node could hold **more than one key** — and have **more than two children**?
@@ -154,7 +144,7 @@ So the "same depth" invariant is preserved by *construction*, not repaired.
 
 ---
 
-### Part 2 · 2-3 insert: split & promote
+### Part 2 · 2-3 insert & delete
 
 <small>(≈30 min)</small>
 
@@ -345,7 +335,7 @@ Insert **65** into:
    [20|30]   [60|70]
 ```
 
-<small>65 > 40 → leaf `[60|70]` is full → temp `[60|65|70]` → **split**, promote **65** → root becomes `[40|65]`, leaves `[20|30] [60] [70]`. Every leaf still at depth 1. ✓</small>
+<small>65 > 40 → leaf `[60|70]` is full → temp `[60|65|70]` → **split**, promote **65** → root becomes `[40|65]`, leaves `[20|30] [60] [70]`. Every leaf still at depth 1. ✓</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -361,7 +351,7 @@ Insert **65** into:
 </pre>
 </div>
 
-<small>Watch a **full leaf split**: the **middle key promotes** up, the node becomes two 2-nodes, every leaf stays level. Full sandbox on the **Explore** page.</small>
+<small>Watch a **full leaf split**: the **middle key promotes** up, the node becomes two 2-nodes, every leaf stays level. Full sandbox on the **Demos** page.</small>
 
 --
 
@@ -388,7 +378,7 @@ Search down for the key. Two cases:
 - it's in a **leaf** → remove it directly
 - it's **internal** → swap with the **in-order predecessor** (rightmost key of its left subtree — always a leaf), remove *that* copy instead
 
-Either way, removal always happens at a leaf — same discipline as insert's "always land in a leaf."
+Either way, removal always happens at a leaf — same discipline as insert's "always land in a leaf." <small>(L03's Hibbard delete used the *successor*; this is its mirror — both are valid.)</small>
 
 --
 
@@ -433,16 +423,16 @@ The parent **loses** a key — which may underflow **it** too, cascading up. If 
 Delete's natural shape needs one thing insert didn't: a way back **up**. The simplest fix is a `parent` pointer on `Node` (insert never needed one — it only ever walked down).
 
 ```cpp
-// n: the node that just underflowed to 0 keys (never
+// x: the node that just underflowed to 0 keys (never
 // null — it's always a real node). borrowFrom/mergeWith
 // are the moves worked out on the last 2 slides.
-void fixUnderflow(Node* n) {
-    while (n->parent && n->n == 0) {
-        Node* p = n->parent;
-        Node* sib = richSiblingOf(p, n);  // has 2 keys?
-        if (sib) { borrowFrom(p, n, sib); return; }
-        mergeWith(p, n);        // Step 2b
-        n = p;                  // may cascade
+void fixUnderflow(Node* x) {
+    while (x->parent && x->n == 0) {
+        Node* p = x->parent;
+        Node* sib = richSiblingOf(p, x);  // has 2 keys?
+        if (sib) { borrowFrom(p, x, sib); return; }
+        mergeWith(p, x);        // Step 2b
+        x = p;                  // may cascade
     }
 }
 ```
@@ -632,10 +622,12 @@ Try it yourself — the red-black demo above has a working **Delete** button.
 
 ## Proof, part 1 — bounding b
 
+**Claim: height ≤ 2 log₂ n.** Let **b** = black links on a root-to-null path — the *same* on every path, by invariant 3.
+
 **Collapse every red link into its parent** — two nodes glued by red merge into one 2-3 node, recovering the **2-3 tree** this encoding started from.
 
 - the tree's **black** links = the 2-3 tree's **edges**, so `b` = **that 2-3 tree's height**
-- Part 2 showed a 2-3 tree's height is `≤ log₂ n` (worst case, all 2-nodes)
+- Part 1 showed a 2-3 tree's height is `≤ log₂ n` (worst case, all 2-nodes)
 
 So: **b ≤ log₂ n**.
 
@@ -672,6 +664,14 @@ Guaranteed **Θ(log n)**, height **≤ 2 log₂ n**, with plain-BST code plus re
 | best for | **read**-heavy | **write**-heavy |
 
 Both guaranteed Θ(log n) — AVL searches a bit faster, red-black updates a bit faster.
+
+---
+
+## ☕ Break
+
+<small>(10 min)</small>
+
+When we return: the same split-and-promote idea, sized for the disk.
 
 ---
 
@@ -746,9 +746,9 @@ The min-children rule keeps nodes **at least half full** → guaranteed shallow.
 
 ```cpp
 struct BTreeNode {
-    int   key[M - 1];     // sorted keys
-    BTreeNode* child[M];  // one more than keys
-    int   n;              // current # of keys
+    int   key[M];           // sorted keys (≤ M-1; one spare slot mid-overflow)
+    BTreeNode* child[M+1];  // one more than keys
+    int   n;                // current # of keys
     bool  leaf;
 };
 ```
@@ -873,7 +873,7 @@ Bigger blocks or smaller keys → larger M → shallower tree.
 
 ## Sizing example
 
-Order **M = 256**, height **3**:
+Order **M = 256**, **3 levels** (= 3 disk reads):
 
 ```text
    level 0:  1 node

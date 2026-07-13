@@ -120,13 +120,13 @@ The 8-byte pointer must sit at an 8-byte boundary, so the compiler inserts **4 b
 Same three fields, two orders:
 
 ```cpp
-struct A { char a; int b; char c; };   // 12 bytes
-struct B { int b; char a; char c; };   //  8 bytes
+struct A { char a; int b; char c; };
+struct B { int b; char a; char c; };
 ```
 
-`A` pads after `a` (to 4-align `b`) **and** after `c`; `B` lets the two `char`s share the tail — no interior padding.
+**Vote: `sizeof(A)`? `sizeof(B)`?**
 
-**Order fields large → small to shrink padding** — here a free **33%**.
+<small>`A` = **12**: pads after `a` (to 4-align `b`) **and** after `c`. `B` = **8**: the two `char`s share the tail — no interior padding. **Order fields large → small to shrink padding** — here a free 33%.</small> <!-- .element: class="fragment" --> Same data, same alignment rules, 33% smaller — just from order. This is an actionable habit for PA1: group same-size fields together, biggest first. (It doesn't help `Node` because one int + one pointer can't be rearranged below the 8-byte slot.)
 
 --
 
@@ -459,7 +459,9 @@ Find $c$ and $n_0$. For $n \ge 1$:
 
 $$2n^2 + 8n + 5 \le 2n^2 + 8n^2 + 5n^2 = 15n^2$$
 
-So $c = 15$, $n_0 = 1$ works. (A tighter $c$ like 3 works for larger $n_0$.)
+So $c = 15$, $n_0 = 1$ works.
+
+(A tighter $c$ like 3 works, for a larger $n_0$.)
 
 --
 
@@ -469,7 +471,7 @@ So $c = 15$, $n_0 = 1$ works. (A tighter $c$ like 3 works for larger $n_0$.)
 - only for **large n** (≥ n₀)
 - constants and lower-order terms **vanish**
 
-$$3n^2 + 100n \;=\; O(n^2) \qquad 5n \;=\; O(n^2)$$
+$$3n^2 + 100n = O(n^2) \qquad 5n = O(n^2)$$
 
 --
 

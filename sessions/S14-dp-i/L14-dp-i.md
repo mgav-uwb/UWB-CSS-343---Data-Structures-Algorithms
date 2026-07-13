@@ -90,10 +90,10 @@ The **same** subproblem is needed by many callers:
 
 ```text
    fib(5) needs fib(3) …  and so does fib(4)
-   LCS(i,j) needs LCS(i−1,j−1) … shared by its neighbors too
+   best rod cut of length 3 … needed after a 1-cut AND after a 2-cut
 ```
 
-Same subproblem, **many parents** → compute once, reuse many times.
+Same subproblem, **many parents** → compute once, reuse many times. (Part 3's two-string table takes this to m·n subproblems.)
 
 --
 
@@ -118,8 +118,8 @@ Same recursion tree, but each node computed **once**.
 Cost = (**# distinct subproblems**) × (cost each):
 
 ```text
-   fib:  n subproblems × O(1)  = Θ(n)     (was ≈ φⁿ)
-   LCS:  m·n subproblems × O(1) = Θ(mn)   (was ≈ 2ᵐ)
+   fib:          n subproblems × O(1)  = Θ(n)   (was ≈ φⁿ)
+   rod cutting:  n subproblems × O(n)  = Θ(n²)  (was ≈ 2ⁿ)
 ```
 
 The speedup is exactly the **repeats you avoid** — and overlap means *many* repeats.
@@ -380,7 +380,7 @@ Prices `[_, 2, 5, 7, 8]` (lengths 1..4). Fill `best[1..4]`:
    best[3] = ?     best[4] = ?
 ```
 
-<small>`best[1]`=2 · `best[2]`=max(2+2, 5)=**5** · `best[3]`=max(2+5, 5+2, 7)=**7** · `best[4]`=max(2+7, 5+5, 7+2, 8)=**10** — two length-2 pieces again. Every cell reuses the smaller cells.</small>
+<small>`best[1]`=2 · `best[2]`=max(2+2, 5)=**5** · `best[3]`=max(2+5, 5+2, 7)=**7** · `best[4]`=max(2+7, 5+5, 7+2, 8)=**10** — two length-2 pieces again. Every cell reuses the smaller cells.</small> <!-- .element: class="fragment" -->
 
 ---
 
@@ -548,7 +548,7 @@ Filling LCS of `A="AB"`, `B="CB"` — compute `dp[2][2]`:
     B    0  0  ?      A[2-1]='B', B[2-1]='B'
 ```
 
-<small>`A[1]='B'` matches `B[1]='B'` → **diagonal + 1** = dp[1][1] + 1 = 0 + 1 = **1**. LCS is "B", length 1.</small>
+<small>`A[1]='B'` matches `B[1]='B'` → **diagonal + 1** = dp[1][1] + 1 = 0 + 1 = **1**. LCS is "B", length 1.</small> <!-- .element: class="fragment" -->
 
 ---
 
@@ -586,12 +586,13 @@ Recognizing the shape suggests the subproblem.
 
 ## The recipe, on tonight's examples
 
-| step | Fibonacci | LCS |
-|---|---|---|
-| subproblem | `fib(i)` | LCS of prefixes `i, j` |
-| recurrence | `fib(i-1)+fib(i-2)` | match? diag+1 : max(up,left) |
-| base | `fib(0)=0, fib(1)=1` | empty prefix → 0 |
-| answer | `fib(n)` | `L[m][n]` (+ traceback) |
+| step | Fibonacci | rod cutting | LCS |
+|---|---|---|---|
+| subproblem | `fib(i)` | `best[len]` | LCS of prefixes `i, j` |
+| recurrence | `fib(i-1)+fib(i-2)` | max over first cut | match? diag+1 : max(up,left) |
+| base | `fib(0)=0, fib(1)=1` | `best[0]=0` | empty prefix → 0 |
+| order | `i` ascending | `len` ascending | row by row |
+| answer | `fib(n)` | `best[n]` (+ cuts) | `L[m][n]` (+ traceback) |
 
 --
 
@@ -725,7 +726,7 @@ Then: **subproblem → recurrence → cache** — exponential collapses to polyn
 
 In `ica14/ica14.cpp`:
 
-- **memoized** + **tabulated** Fibonacci (compare call counts)
+- **memoized** + **tabulated** Fibonacci (the naive version's call counter shows what you saved)
 - **rod cutting** (max value) with a DP table
 - **LCS length** with the 2-D table
 

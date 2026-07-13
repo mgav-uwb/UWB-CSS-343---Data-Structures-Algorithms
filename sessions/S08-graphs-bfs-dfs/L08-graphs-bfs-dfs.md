@@ -289,7 +289,7 @@ Same diamond, but vertex 0 stores its list as `[2, 1]`:
    what is the DFS visit order now?
 ```
 
-<small>Answer: dive 0 → 2 → 3, backtrack, then 1 (its edge to 3 is skipped) — order **0 2 3 1**. The **set** of visited vertices never changes; the **order** depends on how each adjacency list is stored.</small>
+<small>Answer: dive 0 → 2 → 3, backtrack, then 1 (its edge to 3 is skipped) — order **0 2 3 1**. The **set** of visited vertices never changes; the **order** depends on how each adjacency list is stored.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -520,7 +520,7 @@ Both directions → **dist[v] = δ(v)**. ∎
    BFS from 0 — what is dist[6]?
 ```
 
-<small>Layers: {0} → {1, 2} → {3, 4} → {5, 7} → {6}. So **dist[6] = 4** (e.g. 0→1→3→5→6). Vertex 7 sits at distance 3 — closer than 6, found a full layer earlier.</small>
+<small>Layers: {0} → {1, 2} → {3, 4} → {5, 7} → {6}. So **dist[6] = 4** (e.g. 0→1→3→5→6). Vertex 7 sits at distance 3 — closer than 6, found a full layer earlier.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -560,9 +560,11 @@ Same cost, one data-structure apart — different questions.
 ```text
    FRONTIER f;  f.add(start);
    while (!f.empty()) {
-       u = f.remove();                 // visit u
+       u = f.remove();
+       if (done[u]) continue;          // skip duplicates
+       done[u] = true;                 // visit u — final on REMOVE
        for (v : adj[u])
-           if (!seen[v]) { seen[v] = true; f.add(v); }
+           if (!done[v]) f.add(v);     // may re-add — that's fine
    }
 ```
 
@@ -701,7 +703,7 @@ Output order = a topological order. Θ(V + E).
    in-degrees?  first three vertices output?
 ```
 
-<small>In-degrees: 0:0 · 1:1 · 2:1 · 3:2 · 4:2 · 5:2 · 6:1 · 7:1. Only source: 0. Output 0 frees 1 and 2; taking the smaller first: **0, 1, 2** — and the full run continues 3, 4, 5, 6, 7.</small>
+<small>In-degrees: 0:0 · 1:1 · 2:1 · 3:2 · 4:2 · 5:2 · 6:1 · 7:1. Only source: 0. Output 0 frees 1 and 2; taking the smaller first: **0, 1, 2** — and the full run continues 3, 4, 5, 6, 7.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -820,7 +822,7 @@ In a **digraph**, *connected* splits in two:
 - **weakly** — connected once you ignore directions
 - **strongly** — directed paths **both ways**, every pair
 
-Kosaraju / Tarjan find the strong components — built on tonight's DFS post-order.
+Finding the strong components takes two DFS passes over tonight's post-order — beyond this course, but built entirely from tonight's tools.
 
 ---
 
@@ -846,7 +848,7 @@ In `ica08/ica08.cpp`, on an **adjacency-list** `Graph`:
 
 - implement **DFS** (`dfsVisit`) and **BFS** (mark on enqueue)
 - **stretch (extra credit):** `topoSort` — Kahn
-- core tests: T1–T3, T6; **T4–T5 test the stretch**
+- core tests: T1–T3 + T6's DFS/BFS checks; **T4–T5 (and T6's topo check) test the stretch**
 
 Build `-g`, run the tests, **Valgrind-clean** (leak-graded).
 

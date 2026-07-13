@@ -156,7 +156,7 @@ Compute `K[3][4]` (items A, B, C available; capacity 4). C = value 5, weight 4:
    K[3][4] = ?
 ```
 
-<small>skip = `K[2][4]` = **4** (B alone — A+B weigh 5, too much for capacity 4) · take = 5 + `K[2][0]` = 5 + 0 = **5** → `K[3][4]` = **5**: C alone beats B alone at capacity 4, matching the table's +C row.</small>
+<small>skip = `K[2][4]` = **4** (B alone — A+B weigh 5, too much for capacity 4) · take = 5 + `K[2][0]` = 5 + 0 = **5** → `K[3][4]` = **5**: C alone beats B alone at capacity 4, matching the table's +C row.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -331,7 +331,7 @@ The cheapest of the three operations wins — here, replace.
                          D[1][0] )  // replace i→s
 ```
 
-<small>= 1 + min(**1**, **2**, **1**) = **2** — e.g. replace k→s then delete i. Check it against the table slide: row `i`, column `s` = 2. ✓</small>
+<small>= 1 + min(**1**, **2**, **1**) = **2** — e.g. replace k→s then delete i. Check it against the table slide: row `i`, column `s` = 2. ✓</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -388,9 +388,9 @@ The two 2-D string DPs are close cousins:
 |---|---|---|
 | goal | **max** common length | **min** edits |
 | transition | match: diag+1; else max(up,left) | match: diag; else 1+min(3) |
-| relates | `edits ≥ m + n − 2·LCS` | — |
+| relates | `edits ≤ m + n − 2·LCS` | — |
 
-Same table, opposite objective (max vs min).
+Same table, opposite objective (max vs min). <small>(kitten/sitting: 3 ≤ 6+7−2·4 = 5 ✓ — a replace beats a delete+insert pair, hence ≤; with only insert/delete it's exactly =.)</small>
 
 --
 
@@ -431,7 +431,7 @@ Same DP, different constants. **Needleman–Wunsch** alignment *is* weighted edi
 
 ---
 
-### Part 3 · DP on grids & intervals
+### Part 3 · More DP patterns: grids, intervals, sequences
 
 <small>(~26 min)</small>
 
