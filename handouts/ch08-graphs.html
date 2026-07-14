@@ -1,0 +1,1192 @@
+<!doctype html>
+<!-- CSS 343 course chapter - Graphs I: representation, DFS, BFS, topological sort.
+     Self-contained primary reading. Math renders via MathJax (CDN). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chapter 8: Graphs I - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 { font-size: 20px; margin: 34px 0 10px; padding-top: 6px; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      pre .cm { color: #7a8296; }
+      .code-tabs { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+      .ct-tabs { display: flex; flex-wrap: wrap; background: #eef1f6; border-bottom: 1px solid var(--line); }
+      .ct-tab { font-family: system-ui, sans-serif; font-size: 12.5px; padding: 6px 13px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; }
+      .ct-tab.on { color: var(--ink); background: #fff; border-bottom-color: var(--demo); font-weight: 600; }
+      .code-tabs pre { margin: 0; border: none; border-radius: 0; border-left: none; }
+      .code-tabs pre[hidden] { display: none; }
+      .ct-src { font-family: system-ui, sans-serif; font-size: 11.5px; color: var(--dim); margin: 0; padding: 5px 13px; border-top: 1px solid var(--line); background: #fafbfc; }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .proof { margin: 10px 0 4px; padding-left: 14px; border-left: 2px solid var(--line); color: #2c2f37; }
+      .proof .qed { float: right; }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      figure { margin: 18px 0 6px; text-align: center; }
+      figure svg { max-width: 100%; height: auto; }
+      figcaption { font-family: system-ui, sans-serif; font-size: 13px; color: var(--dim); margin: 7px auto 0; max-width: 92%; }
+      details { margin: 8px 0 8px 2px; font-size: 15px; }
+      summary { cursor: pointer; color: var(--accent); font-family: system-ui, sans-serif; font-size: 14px; }
+      details[open] summary { margin-bottom: 6px; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        details { display: block; } details summary { display: none; }
+        .demo { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This chapter uses MathJax for its mathematics and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Chapter 8 &mdash; Graphs I: Representation, DFS, BFS &amp; Topological Sort</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Course text, primary reading for Lecture 8.
+      </div>
+      <div class="src">
+        The most general structure in the course: vertices joined by edges. How
+        to store a graph (the adjacency list), two ways to explore it
+        (depth-first and breadth-first) with proofs of what each computes, and
+        the marquee application on directed acyclic graphs (topological sort, two
+        ways). With worked traces, proofs of the \(\Theta(V+E)\) bounds and of
+        BFS shortest paths, links to the interactive demos, and exercises.
+      </div>
+
+      <p class="lead">
+        Trees were graphs with a restriction: connected and acyclic, exactly one
+        path between any two nodes. This chapter removes the restriction. A
+        <strong>graph</strong> is any set of vertices connected by edges &mdash;
+        cycles allowed, multiple paths allowed, disconnected pieces allowed
+        &mdash; and that generality is why graphs model road maps, social
+        networks, the web, task dependencies, and circuits alike. The price of
+        the generality is that we can go in circles, so every algorithm here
+        carries a <em>visited</em> set; and the reward is that two tiny variations
+        of one search &mdash; change only the container that holds the frontier
+        &mdash; answer strikingly different questions.
+      </p>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#vocab">Vertices, edges, and vocabulary</a></li>
+          <li><a href="#counting">Counting edges: the handshake lemma and trees</a></li>
+          <li><a href="#repr">Representing a graph</a></li>
+          <li><a href="#dfs">Depth-first search</a></li>
+          <li><a href="#bfs">Breadth-first search</a></li>
+          <li><a href="#topo">Directed acyclic graphs and topological sort</a></li>
+          <li><a href="#toolkit">The graph toolkit</a></li>
+          <li><a href="#ex">Exercises (with solutions)</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="vocab">1. Vertices, edges, and vocabulary</h2>
+      <div class="def">
+        <span class="tag">Definition (graph)</span>
+        A <strong>graph</strong> \(G = (V, E)\) is a set \(V\) of
+        <strong>vertices</strong> and a set \(E\) of <strong>edges</strong>, each
+        edge joining a pair of vertices. In an <strong>undirected</strong> graph
+        an edge \(\{u,v\}\) connects \(u\) and \(v\) symmetrically; in a
+        <strong>directed</strong> graph (a <em>digraph</em>) an edge \((u,v)\),
+        written \(u \to v\), goes one way only, and \(u\to v\) does not imply
+        \(v\to u\).
+      </div>
+      <p>
+        Undirected edges model symmetric relations &mdash; friendship, two-way
+        roads; directed edges model one-way relations &mdash; web links, one-way
+        streets, &ldquo;must happen before.&rdquo; The distinction matters for
+        every algorithm, and topological sort (<a href="#topo">&sect;6</a>) only
+        makes sense on a digraph. Here is a small undirected graph used
+        throughout this section:
+      </p>
+      <pre>  0 &mdash;&mdash; 1       V = { 0, 1, 2, 3 }
+  |  / |       E = { 0&ndash;1, 0&ndash;2, 1&ndash;2, 1&ndash;3 }
+  | /  |
+  2    3       4 vertices, 4 edges, a cycle 0&ndash;1&ndash;2&ndash;0</pre>
+      <p>The shared vocabulary for the rest of the unit:</p>
+      <ul>
+        <li><strong>adjacent</strong> &mdash; two vertices joined by an edge;</li>
+        <li><strong>degree</strong> of a vertex &mdash; the number of edges at it
+          (for a digraph, <em>in-degree</em> and <em>out-degree</em> separately);</li>
+        <li><strong>path</strong> &mdash; a sequence of edges leading from one
+          vertex to another; its <em>length</em> is the number of edges;</li>
+        <li><strong>cycle</strong> &mdash; a path that returns to its start;</li>
+        <li><strong>connected</strong> (undirected) &mdash; a path exists between
+          every pair of vertices.</li>
+      </ul>
+
+      <!-- ============================================================ -->
+      <h2 id="counting">2. Counting edges: the handshake lemma and trees</h2>
+      <p>
+        Two counting facts about edges anchor the cost analyses later, and place
+        trees within the family of graphs.
+      </p>
+      <div class="thm">
+        <span class="tag">Lemma (handshake)</span>
+        In an undirected graph, \(\displaystyle\sum_{v \in V} \deg(v) = 2\,|E|\).
+        In a digraph, \(\displaystyle\sum_{v} \text{in-deg}(v) =
+        \sum_{v} \text{out-deg}(v) = |E|\).
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Count the pairs (vertex, edge incident to it) two
+        ways. Grouping by vertex, vertex \(v\) contributes \(\deg(v)\) pairs, for
+        a total of \(\sum_v \deg(v)\). Grouping by edge, each undirected edge has
+        exactly two endpoints and so contributes exactly \(2\) pairs, for a total
+        of \(2|E|\). The two counts are equal. For a digraph, count (vertex,
+        out-edge) pairs: each edge has one tail, so the out-degree sum is \(|E|\);
+        symmetrically for heads and the in-degree sum.
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        On the running graph (&sect;3) the total degrees are
+        \(3, 3, 2, 5, 3, 3, 1, 2\), summing to \(22 = 2\cdot 11\). The lemma
+        looks like trivia but it is precisely why
+        &ldquo;scan every vertex&rsquo;s entire neighbor list&rdquo; costs
+        \(V + 2E\), i.e. \(\Theta(V+E)\) &mdash; we cash it in for the cost of DFS
+        and BFS. (The average degree \(2E/V\) also measures how sparse a graph
+        is.)
+      </p>
+      <h3>How many edges can a graph have?</h3>
+      <p>
+        In a simple undirected graph (no self-loops, no repeated edges), the edge
+        count ranges from \(0\) to one edge per pair of vertices:
+      </p>
+      \[
+        0 \;\le\; |E| \;\le\; \binom{V}{2} = \frac{V(V-1)}{2} = \Theta(V^2).
+      \]
+      <p>
+        A graph is <strong>sparse</strong> when \(|E| = O(V)\) and
+        <strong>dense</strong> when \(|E| = \Theta(V^2)\). Real graphs are almost
+        always sparse: a road intersection meets a handful of streets, a person
+        has hundreds of friends and not billions. This single fact will choose
+        our representation in <a href="#repr">&sect;3</a>.
+      </p>
+      <h3>Trees are the sparsest connected graphs</h3>
+      <div class="thm">
+        <span class="tag">Proposition (trees)</span>
+        A <strong>tree</strong> is a connected acyclic graph. Every tree on \(V\)
+        vertices has exactly \(V - 1\) edges. Moreover, any two of the three
+        properties {connected, acyclic, \(|E| = V-1\)} imply the third.
+      </div>
+      <div class="proof">
+        <strong>Proof that a tree has \(V-1\) edges (induction on \(V\)).</strong>
+        A tree with \(V \ge 2\) vertices has a <em>leaf</em>, a vertex of degree
+        \(1\): otherwise every vertex has degree \(\ge 2\), and following unused
+        edges out of vertices can never get stuck, so by the pigeonhole argument
+        of <a href="#topo">&sect;6</a> a walk must repeat a vertex and expose a
+        cycle &mdash; contradicting acyclicity. Remove a leaf and its one edge:
+        the result is still connected and acyclic, a tree on \(V-1\) vertices,
+        which by induction has \(V-2\) edges. Adding the removed edge back gives
+        \(V-1\). The base case \(V=1\) has \(0\) edges. The
+        &ldquo;two-of-three&rdquo; claims follow similarly: adding one edge to a
+        tree creates a cycle, and removing one disconnects it.
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        So a tree is the minimum connected graph &mdash; drop any edge and it
+        falls apart, add any edge and it gains a cycle. All the tree structures
+        of earlier chapters were graphs with these restrictions; this chapter
+        works without them. (The fact previews the minimum spanning tree of
+        Chapter 11: the cheapest set of edges that keeps a graph connected is
+        necessarily a tree.)
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="repr">3. Representing a graph</h2>
+      <p>Two representations, chosen by whether the graph is dense or sparse.</p>
+      <h3>Adjacency matrix</h3>
+      <p>
+        A \(V \times V\) matrix with \(a[u][v] = 1\) when \(u\)&ndash;\(v\) is an
+        edge and \(0\) otherwise:
+      </p>
+      <pre>       0 1 2 3
+    0 [0 1 1 0]      edge 0&ndash;1?  &rarr; a[0][1] = 1   (O(1) lookup)
+    1 [1 0 1 1]
+    2 [1 1 0 0]
+    3 [0 1 0 0]      space: Theta(V^2)</pre>
+      <p>
+        &ldquo;Is there an edge \(u\)&ndash;\(v\)?&rdquo; is a single array
+        access. The fatal flaw is space: \(\Theta(V^2)\) regardless of how few
+        edges exist. For a social network of a billion people with a few hundred
+        friends each, the matrix is \(10^{18}\) cells, almost all zero &mdash;
+        impossible. Matrices suit only small or dense graphs.
+      </p>
+      <h3>Adjacency list</h3>
+      <p>One list of neighbors per vertex:</p>
+      <pre>  0 &rarr; [1, 2]        space: Theta(V + E)
+  1 &rarr; [0, 2, 3]     iterate 1's neighbors: O(deg 1)
+  2 &rarr; [0, 1]        edge query 0&ndash;2: scan 0's list
+  3 &rarr; [1]</pre>
+      <p>
+        The list stores only the edges that exist, so its space is
+        \(\Theta(V+E)\) &mdash; proportional to the actual graph. Iterating a
+        vertex&rsquo;s neighbors, the inner loop of every search, is
+        \(O(\deg u)\), which is optimal. Its one weakness is the edge query
+        &ldquo;is \(u\)&ndash;\(v\) an edge?&rdquo; (scan a list), but graph
+        algorithms rarely ask that &mdash; they iterate neighbors. Hence the
+        adjacency list is the default.
+      </p>
+      <table>
+        <tr><th></th><th>matrix</th><th>list</th></tr>
+        <tr><td>space</td><td>\(\Theta(V^2)\)</td><td><strong>\(\Theta(V+E)\)</strong></td></tr>
+        <tr><td>edge query \(u\)&ndash;\(v\)</td><td><strong>\(O(1)\)</strong></td><td>\(O(\deg u)\)</td></tr>
+        <tr><td>iterate neighbors</td><td>\(O(V)\)</td><td><strong>\(O(\deg u)\)</strong></td></tr>
+        <tr><td>best for</td><td>dense</td><td>sparse</td></tr>
+      </table>
+      <p>
+        Since real graphs are sparse and algorithms iterate neighbors, we use the
+        adjacency list throughout. In C++ it is a vector of vectors:
+      </p>
+      <div class="code-tabs" data-snippet="graphs/graph-adt">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">struct Graph {
+    int V;                        // number of vertices
+    vector&lt;vector&lt;int&gt;&gt; adj;      // adj[u] = u&#x27;s neighbors
+    Graph(int n) : V(n), adj(n) {}
+    void addEdge(int u, int v) {
+        adj[u].push_back(v);
+        adj[v].push_back(u);      // omit this line for a digraph
+    }
+};</pre>
+<pre class="ct-pane" data-lang="java" hidden>class Graph {
+    int V;                                  // number of vertices
+    List&lt;List&lt;Integer&gt;&gt; adj;                // adj.get(u) = u&#x27;s neighbors
+    Graph(int n) {
+        V = n;
+        adj = new ArrayList&lt;&gt;();
+        for (int i = 0; i &lt; n; i++) adj.add(new ArrayList&lt;&gt;());
+    }
+    void addEdge(int u, int v) {
+        adj.get(u).add(v);
+        adj.get(v).add(u);                  // omit this line for a digraph
+    }
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden>class Graph:
+    def __init__(self, n):
+        self.V = n
+        self.adj = [[] for _ in range(n)]   # adj[u] = u&#x27;s neighbors
+
+    def add_edge(self, u, v):
+        self.adj[u].append(v)
+        self.adj[v].append(u)               # omit this line for a digraph</pre>
+<pre class="ct-pane" data-lang="rs" hidden>struct Graph {
+    adj: Vec&lt;Vec&lt;usize&gt;&gt;,               // adj[u] = u&#x27;s neighbors
+}
+impl Graph {
+    fn new(n: usize) -&gt; Self {
+        Graph { adj: vec![Vec::new(); n] }
+    }
+    fn add_edge(&amp;mut self, u: usize, v: usize) {
+        self.adj[u].push(v);
+        self.adj[v].push(u);            // omit this line for a digraph
+    }
+}</pre>
+<p class="ct-src">source: <code>code/graphs/graph-adt.cpp &middot; code/graphs/graph-adt.java &middot; code/graphs/graph-adt.py &middot; code/graphs/graph-adt.rs</code></p>
+<!--/ct--></div>
+      <p>
+        This tiny struct is everything DFS, BFS, and topological sort need. One
+        directed graph anchors every worked example and demo in this chapter:
+      </p>
+      <figure>
+        <svg viewBox="0 0 420 300" role="img" aria-label="The running directed acyclic graph on eight vertices, drawn with vertices evenly spaced around a circle in index order, the same layout as the interactive demo.">
+          <defs>
+            <marker id="ah" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="#4a5163"/>
+            </marker>
+          </defs>
+          <g stroke="#4a5163" stroke-width="1.8" fill="none" marker-end="url(#ah)">
+            <line x1="230" y1="46" x2="269" y2="62"/>  <!-- 0->1 -->
+            <line x1="218" y1="58" x2="281" y2="209"/>  <!-- 0->3 -->
+            <line x1="202" y1="58" x2="139" y2="209"/>  <!-- 0->5 -->
+            <line x1="298" y1="91" x2="314" y2="130"/>  <!-- 1->2 -->
+            <line x1="289" y1="93" x2="289" y2="207"/>  <!-- 1->3 -->
+            <line x1="314" y1="170" x2="298" y2="209"/>  <!-- 2->3 -->
+            <line x1="269" y1="238" x2="230" y2="254"/>  <!-- 3->4 -->
+            <line x1="274" y1="214" x2="146" y2="86"/>  <!-- 3->7 -->
+            <line x1="190" y1="254" x2="151" y2="238"/>  <!-- 4->5 -->
+            <line x1="202" y1="242" x2="139" y2="91"/>  <!-- 4->7 -->
+            <line x1="122" y1="209" x2="106" y2="170"/>  <!-- 5->6 -->
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+            <g fill="#fff" stroke="#2a2d36" stroke-width="1.6">
+              <circle cx="210" cy="38" r="19"/>  <circle cx="289" cy="71" r="19"/>
+              <circle cx="322" cy="150" r="19"/>  <circle cx="289" cy="229" r="19"/>
+              <circle cx="210" cy="262" r="19"/>  <circle cx="131" cy="229" r="19"/>
+              <circle cx="98" cy="150" r="19"/>  <circle cx="131" cy="71" r="19"/>
+            </g>
+            <g fill="#1a1c22" stroke="none">
+              <text x="210" y="43">0</text>  <text x="289" y="76">1</text>
+              <text x="322" y="155">2</text>  <text x="289" y="234">3</text>
+              <text x="210" y="267">4</text>  <text x="131" y="234">5</text>
+              <text x="98" y="155">6</text>  <text x="131" y="76">7</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption>
+          The running graph: \(V = 8\), \(E = 11\), every edge pointing from a
+          lower to a higher index &mdash; a directed acyclic graph. Vertices are
+          spaced evenly around a circle in index order, matching the interactive
+          demo. Adjacency list:
+          \(0\to\{1,3,5\}\), \(1\to\{2,3\}\), \(2\to\{3\}\), \(3\to\{4,7\}\),
+          \(4\to\{5,7\}\), \(5\to\{6\}\).
+        </figcaption>
+      </figure>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=graph">DFS / BFS / topological-sort demo</a>.
+        All three searches below run on this graph; the edge list is editable, so
+        you can watch a search on your own graph. What you trace on paper is
+        exactly what the demo animates.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="dfs">4. Depth-first search</h2>
+      <p>
+        The basic search problem: given a start vertex \(s\), visit every vertex
+        reachable from \(s\), each exactly once. Trees never revisit a node
+        because there is one path to each; graphs break that &mdash; a cycle
+        would send a naive search around forever, and multiple paths would visit a
+        vertex several times. The fix is a \(\texttt{seen}\) array: mark a vertex
+        the first time you reach it and never process it twice. Both searches in
+        this chapter rely on it.
+      </p>
+      <p>
+        <strong>Depth-first search</strong> follows one path as far as it can,
+        then backtracks and tries the next &mdash; preorder tree traversal
+        generalized to graphs, with the recursion itself doing the backtracking:
+      </p>
+      <div class="code-tabs" data-snippet="graphs/dfs-recursive">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">void dfs(Graph&amp; g, int u, vector&lt;bool&gt;&amp; seen) {
+    seen[u] = true;                 // visit u
+    for (int v : g.adj[u])          // each neighbor
+        if (!seen[v])
+            dfs(g, v, seen);        // recurse; backtrack on return
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>void dfs(Graph g, int u, boolean[] seen) {
+    seen[u] = true;                 // visit u
+    for (int v : g.adj.get(u))      // each neighbor
+        if (!seen[v])
+            dfs(g, v, seen);        // recurse; backtrack on return
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden>def dfs(g, u, seen):
+    seen[u] = True                  # visit u
+    for v in g.adj[u]:              # each neighbor
+        if not seen[v]:
+            dfs(g, v, seen)         # recurse; backtrack on return</pre>
+<pre class="ct-pane" data-lang="rs" hidden>fn dfs(g: &amp;Graph, u: usize, seen: &amp;mut Vec&lt;bool&gt;) {
+    seen[u] = true;                 // visit u
+    for &amp;v in &amp;g.adj[u] {           // each neighbor
+        if !seen[v] {
+            dfs(g, v, seen);        // recurse; backtrack on return
+        }
+    }
+}</pre>
+<p class="ct-src">source: <code>code/graphs/dfs-recursive.cpp &middot; code/graphs/dfs-recursive.java &middot; code/graphs/dfs-recursive.py &middot; code/graphs/dfs-recursive.rs</code></p>
+<!--/ct--></div>
+      <div class="ex">
+        <span class="tag">Example (a DFS trace)</span>
+        On the directed diamond \(0\to1,\ 0\to2,\ 1\to3,\ 2\to3\) with lists
+        \(0\to[1,2]\):
+        <pre>  dfs(0): visit 0 &rarr; dfs(1): visit 1 &rarr; dfs(3): visit 3
+          back to 1 (done) &rarr; back to 0
+          &rarr; dfs(2): visit 2 &rarr; 3 already seen, SKIP
+  visit order:  0  1  3  2</pre>
+        From \(0\) the search dives into \(1\), then \(3\) (a dead end), backs up
+        to \(1\) (done) and to \(0\), then into \(2\); when \(2\) examines its
+        edge to \(3\), that vertex is already visited, so the edge is skipped
+        &mdash; the cycle guard at work. The whole \(1\)-branch finishes before
+        \(2\) is touched: that is what &ldquo;depth-first&rdquo; means.
+        <br><span class="note">If instead \(0\)&rsquo;s list were \([2,1]\), the
+        order would be \(0\ 2\ 3\ 1\). The <em>set</em> of visited vertices is
+        fixed by the graph; the <em>order</em> depends on how the adjacency lists
+        are stored, so any order some DFS could produce is a valid DFS order.</span>
+      </div>
+
+      <h3>DFS visits exactly the reachable set</h3>
+      <div class="thm">
+        <span class="tag">Theorem (DFS = reachability)</span>
+        Calling \(\texttt{dfs}(s)\) marks a vertex \(v\) if and only if there is a
+        path from \(s\) to \(v\).
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong>
+        (\(\Rightarrow\)) DFS only ever recurses along an edge out of an
+        already-marked vertex, starting from \(s\); so following the recursive
+        calls that led to \(v\) traces an actual path \(s \rightsquigarrow v\).
+        Every mark is genuinely reachable. <br>
+        (\(\Leftarrow\)) Suppose some reachable vertex is <em>missed</em>. Take a
+        path \(s \rightsquigarrow w\) to a missed vertex \(w\), and let \(q\) be
+        the <em>first</em> missed vertex along it, with \(p\) the vertex just
+        before \(q\) (so \(p\) was visited, and \(p \to q\) is an edge). But
+        \(\texttt{dfs}(p)\) loops over <em>all</em> of \(p\)&rsquo;s out-edges,
+        including \(p \to q\); it therefore either found \(q\) unvisited and
+        recursed into it (marking \(q\)) or found \(q\) already visited. Either
+        way \(q\) is marked &mdash; contradicting &ldquo;\(q\) missed.&rdquo; So
+        nothing reachable is missed. <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        The &ldquo;first missed vertex on a path&rdquo; argument is the template
+        for many graph proofs. A single DFS reaches one connected piece; to cover
+        a disconnected graph, restart DFS from every not-yet-seen vertex, and each
+        restart discovers one <strong>connected component</strong>.
+      </p>
+
+      <h3>Cost: cashing in the handshake lemma</h3>
+      <div class="thm">
+        <span class="tag">Proposition (DFS cost)</span>
+        DFS runs in \(\Theta(V + E)\) time on an adjacency list.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> The \(\texttt{seen}\) check guarantees each
+        vertex is processed once. Processing \(v\) does \(O(1)\) work plus a scan
+        of its neighbor list, which is \(\deg(v)\) entries. Summing over vertices,
+        \[
+          \sum_{v}\bigl(1 + \deg(v)\bigr)
+          = \underbrace{\sum_v 1}_{V} + \underbrace{\sum_v \deg(v)}_{2E}
+          = V + 2E = \Theta(V+E),
+        \]
+        the degree sum being \(2E\) by the handshake lemma (exactly \(E\) for a
+        digraph&rsquo;s out-degrees). <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        This is optimal: any correct search must at least look at every vertex and
+        every edge. BFS&rsquo;s cost proof, next section, is word-for-word the
+        same &mdash; the two searches differ only in the frontier container, not
+        in the accounting.
+      </p>
+
+      <h3>Iterative DFS, and a recursion-depth caveat</h3>
+      <p>
+        Recursion uses the program&rsquo;s call stack; the same search can manage
+        an explicit stack instead:
+      </p>
+      <div class="code-tabs" data-snippet="graphs/dfs-iterative">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">void dfs(Graph&amp; g, int s) {
+    stack&lt;int&gt; st; st.push(s);
+    vector&lt;bool&gt; seen(g.V, false);
+    while (!st.empty()) {
+        int u = st.top(); st.pop();
+        if (seen[u]) continue;
+        seen[u] = true;             // visit u
+        for (int v : g.adj[u])
+            if (!seen[v]) st.push(v);
+    }
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>void dfs(Graph g, int s) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    st.push(s);
+    boolean[] seen = new boolean[g.V];
+    while (!st.isEmpty()) {
+        int u = st.pop();
+        if (seen[u]) continue;
+        seen[u] = true;             // visit u
+        for (int v : g.adj.get(u))
+            if (!seen[v]) st.push(v);
+    }
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden>def dfs(g, s):
+    st = [s]
+    seen = [False] * g.V
+    while st:
+        u = st.pop()
+        if seen[u]:
+            continue
+        seen[u] = True              # visit u
+        for v in g.adj[u]:
+            if not seen[v]:
+                st.append(v)</pre>
+<pre class="ct-pane" data-lang="rs" hidden>fn dfs(g: &amp;Graph, s: usize) {
+    let mut st = vec![s];
+    let mut seen = vec![false; g.adj.len()];
+    while let Some(u) = st.pop() {
+        if seen[u] { continue; }
+        seen[u] = true;             // visit u
+        for &amp;v in &amp;g.adj[u] {
+            if !seen[v] { st.push(v); }
+        }
+    }
+}</pre>
+<p class="ct-src">source: <code>code/graphs/dfs-iterative.cpp &middot; code/graphs/dfs-iterative.java &middot; code/graphs/dfs-iterative.py &middot; code/graphs/dfs-iterative.rs</code></p>
+<!--/ct--></div>
+      <p>
+        The two versions visit the same set (the order can differ, since the
+        stack reverses each neighbor list). The iterative form matters in
+        production: recursive DFS&rsquo;s depth equals the longest path it
+        explores, and the call stack is small (often about a megabyte), so a
+        graph with a million-vertex path overflows it. The explicit stack lives on
+        the heap, which is far larger &mdash; prefer it for arbitrarily deep
+        graphs.
+      </p>
+
+      <h3>Edge classification and cycle detection</h3>
+      <p>As DFS runs it classifies every edge \(u \to v\) it examines:</p>
+      <ul>
+        <li>a <strong>tree edge</strong> leads to an unvisited vertex (DFS
+          recurses) &mdash; these form the DFS tree;</li>
+        <li>a <strong>back edge</strong> leads to a vertex still on the recursion
+          stack (an ancestor of \(u\)) &mdash; it closes a loop back to that
+          ancestor, so it is the signature of a <strong>cycle</strong>;</li>
+        <li>an edge to a vertex already <em>finished</em> is harmless (no cycle).</li>
+      </ul>
+      <p>
+        Cycle detection in a digraph is therefore exactly &ldquo;did DFS find a
+        back edge?&rdquo;, tracked with three states per vertex (unvisited /
+        on-stack / finished). We use this in <a href="#topo">&sect;6</a>.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=graph">DFS demo</a>. Watch the dive-and-
+        backtrack rhythm and the recursion stack (the second row) grow on the
+        dive and shrink as calls return. From \(0\) the order is
+        \(0\ 1\ 3\ 5\ 6\ 4\ 7\ 2\); starting instead from \(2\), the vertices
+        \(0\) and \(1\) are never reached and stay unmarked &mdash; the
+        reachability theorem made visible.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="bfs">5. Breadth-first search</h2>
+      <p>
+        <strong>Breadth-first search</strong> visits all vertices at distance
+        \(1\) from the start, then all at distance \(2\), and so on &mdash;
+        expanding in rings. Swap DFS&rsquo;s stack for a <em>queue</em> (FIFO) and
+        the search fans out level by level instead of diving. That single change
+        makes BFS compute shortest paths in unweighted graphs, which we now prove.
+      </p>
+      <div class="code-tabs" data-snippet="graphs/bfs">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">void bfs(Graph&amp; g, int s) {
+    queue&lt;int&gt; q; q.push(s);
+    vector&lt;bool&gt; seen(g.V, false); seen[s] = true;
+    while (!q.empty()) {
+        int u = q.front(); q.pop();     // visit u
+        for (int v : g.adj[u])
+            if (!seen[v]) {
+                seen[v] = true;         // mark on ENQUEUE
+                q.push(v);
+            }
+    }
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>void bfs(Graph g, int s) {
+    Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+    q.add(s);
+    boolean[] seen = new boolean[g.V];
+    seen[s] = true;
+    while (!q.isEmpty()) {
+        int u = q.poll();               // visit u
+        for (int v : g.adj.get(u))
+            if (!seen[v]) {
+                seen[v] = true;         // mark on ENQUEUE
+                q.add(v);
+            }
+    }
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden>from collections import deque
+
+def bfs(g, s):
+    q = deque([s])
+    seen = [False] * g.V
+    seen[s] = True
+    while q:
+        u = q.popleft()                 # visit u
+        for v in g.adj[u]:
+            if not seen[v]:
+                seen[v] = True          # mark on ENQUEUE
+                q.append(v)</pre>
+<pre class="ct-pane" data-lang="rs" hidden>use std::collections::VecDeque;
+
+fn bfs(g: &amp;Graph, s: usize) {
+    let mut q = VecDeque::from([s]);
+    let mut seen = vec![false; g.adj.len()];
+    seen[s] = true;
+    while let Some(u) = q.pop_front() {  // visit u
+        for &amp;v in &amp;g.adj[u] {
+            if !seen[v] {
+                seen[v] = true;          // mark on ENQUEUE
+                q.push_back(v);
+            }
+        }
+    }
+}</pre>
+<p class="ct-src">source: <code>code/graphs/bfs.cpp &middot; code/graphs/bfs.java &middot; code/graphs/bfs.py &middot; code/graphs/bfs.rs</code></p>
+<!--/ct--></div>
+      <div class="aside">
+        <span class="tag">Mark on enqueue, not on dequeue</span>
+        A vertex must be marked the instant it is <em>enqueued</em>, not when it
+        is later dequeued. Otherwise two different neighbors could each enqueue it
+        before either is processed, so it enters the queue twice, is processed
+        twice, and receives a wrong distance. In the diamond both \(1\) and \(2\)
+        point at \(3\); marking on enqueue guarantees each vertex is queued
+        exactly once &mdash; essential for correctness and for the
+        \(\Theta(V+E)\) bound (the same \(V + \sum\deg\) sum as DFS).
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a BFS trace)</span>
+        The same diamond \(0\to1,\ 0\to2,\ 1\to3,\ 2\to3\):
+        <pre>  queue [0]              dist: 0&rarr;0
+  pop 0 &rarr; enq 1, 2      queue [1,2]   dist: 1&rarr;1, 2&rarr;1
+  pop 1 &rarr; enq 3         queue [2,3]   dist: 3&rarr;2
+  pop 2 &rarr; 3 seen, skip  queue [3]
+  pop 3 &rarr; done
+  visit order:  0 1 2 3       distances:  0 1 1 2</pre>
+        BFS pops \(0\), fans out to \(1\) and \(2\) (layer \(1\)), then reaches
+        \(3\) (layer \(2\)). Vertex \(3\) is discovered from \(1\) first; when
+        \(2\) later sees it, it is already queued, so \(2\)&rsquo;s edge is
+        skipped. The distances \(0,1,1,2\) are the fewest-edge counts. (DFS on the
+        same graph gave \(0\ 1\ 3\ 2\) &mdash; same edges, different frontier,
+        different order.)
+      </div>
+
+      <h3>Why the distances are shortest</h3>
+      <p>The proof rests on a structural invariant of the queue.</p>
+      <div class="thm">
+        <span class="tag">Lemma (the queue is sorted by distance)</span>
+        At every moment, the vertices in the queue have distances that take at
+        most two consecutive values \(d\) and \(d+1\), with all the \(d\)s ahead
+        of all the \(d+1\)s. Consequently vertices are dequeued in non-decreasing
+        order of distance.
+      </div>
+      <div class="proof">
+        <strong>Proof (induction on the steps).</strong> Initially the queue is
+        \([s]\), one value. Assume it reads \([\,d\ \cdots\ d\mid d{+}1\ \cdots\
+        d{+}1\,]\). Dequeuing the front, a distance-\(d\) vertex \(u\), we enqueue
+        its undiscovered neighbors; each such neighbor is reached by one edge from
+        a distance-\(d\) vertex, so it is assigned distance \(d+1\) and appended
+        at the back, preserving the shape. Once the last \(d\) is dequeued the
+        queue holds only \((d+1)\)s, and the argument repeats with \(d\) advanced.
+        No third value ever appears before the current ones are gone.
+        <span class="qed">&#8718;</span>
+      </div>
+      <div class="thm">
+        <span class="tag">Theorem (BFS shortest paths)</span>
+        For every vertex \(v\) reachable from \(s\), the label \(\texttt{dist}[v]\)
+        computed by BFS equals \(\delta(v)\), the length of a fewest-edge path
+        from \(s\) to \(v\).
+      </div>
+      <div class="proof">
+        <strong>Proof (two inequalities).</strong>
+        (\(\ge\)) BFS assigns \(\texttt{dist}[v]\) only by following actual edges,
+        so there is a real \(s\to v\) path of exactly \(\texttt{dist}[v]\) edges;
+        no real path can be shorter than the shortest, giving
+        \(\texttt{dist}[v] \ge \delta(v)\). <br>
+        (\(\le\)) Take a shortest path
+        \(s = v_0 \to v_1 \to \cdots \to v_k = v\) with \(k = \delta(v)\), and
+        show \(\texttt{dist}[v_i] \le i\) by induction. It holds for \(v_0\)
+        (\(\texttt{dist}[s]=0\)). Assume \(\texttt{dist}[v_{i-1}] \le i-1\). When
+        \(v_{i-1}\) is dequeued it scans the edge to \(v_i\); either \(v_i\) is
+        still undiscovered, so it is discovered now with
+        \(\texttt{dist}[v_i] = \texttt{dist}[v_{i-1}] + 1 \le i\), or it was
+        discovered earlier, and by the queue lemma an earlier discovery means a
+        distance no larger, so again \(\texttt{dist}[v_i] \le i\). Thus
+        \(\texttt{dist}[v] = \texttt{dist}[v_k] \le k = \delta(v)\). The two
+        inequalities give \(\texttt{dist}[v] = \delta(v)\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        The argument uses that every edge adds exactly one to the distance; it
+        breaks the moment edges carry different weights, which is why weighted
+        shortest paths need a different algorithm (Dijkstra, Chapter 9).
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=graph">BFS demo</a>. Run BFS from \(0\) and
+        read the distance labels ring by ring; on the running graph they fill in
+        as \(\{0\}\), \(\{1,3,5\}\), \(\{2,4,6,7\}\), so
+        \(\texttt{dist}[6] = \texttt{dist}[7] = 2\) &mdash; every vertex sits
+        within two edges of \(0\). Then run DFS from the same
+        start without rebuilding, and compare: ring-by-ring versus
+        dive-and-backtrack on identical edges is the whole thesis of the chapter.
+      </div>
+
+      <h3>DFS versus BFS, and one loop behind both</h3>
+      <table>
+        <tr><th></th><th>DFS</th><th>BFS</th></tr>
+        <tr><td>frontier</td><td>stack / recursion</td><td>queue</td></tr>
+        <tr><td>shape</td><td>deep, then backtrack</td><td>wide, in layers</td></tr>
+        <tr><td>finds</td><td>reachability, cycles, topo order</td><td><strong>shortest (unweighted)</strong></td></tr>
+        <tr><td>memory</td><td>\(O(\text{longest path})\)</td><td>\(O(\text{widest layer})\)</td></tr>
+        <tr><td>cost</td><td>\(\Theta(V+E)\)</td><td>\(\Theta(V+E)\)</td></tr>
+      </table>
+      <p>
+        They are the same algorithm with a different frontier container. Making
+        that explicit reveals a whole family:
+      </p>
+      <pre>Frontier f;  f.add(start);
+while (!f.empty()) {
+    u = f.remove();
+    if (done[u]) continue;          <span class="cm">// skip a stale duplicate</span>
+    done[u] = true;                 <span class="cm">// finalize u on REMOVE</span>
+    for (v : adj[u])
+        if (!done[v]) f.add(v);
+}</pre>
+      <table>
+        <tr><th>frontier</th><th>removes</th><th>you get</th></tr>
+        <tr><td>stack (LIFO)</td><td>deepest first</td><td>DFS</td></tr>
+        <tr><td>queue (FIFO)</td><td>oldest first</td><td>BFS</td></tr>
+        <tr><td>priority queue by path cost</td><td>cheapest first</td><td>Dijkstra (Chapter 9)</td></tr>
+        <tr><td>priority queue by a heuristic</td><td>most promising first</td><td>A\* (games, AI)</td></tr>
+      </table>
+      <p>
+        One detail is load-bearing: a vertex is finalized when it <em>leaves</em>
+        the frontier, not when it enters, and the frontier may briefly hold
+        duplicates that the <code>continue</code> skips. For a stack or queue that
+        is cosmetic; for the priority-queue rows it is the whole game &mdash;
+        finalizing a vertex the moment it is added would lock in the first cost
+        seen, which is the classic bug Dijkstra must avoid. When you meet a new
+        graph problem, the question is less &ldquo;which algorithm?&rdquo; than
+        &ldquo;what should the frontier prioritize?&rdquo;
+      </p>
+      <h3>Grids are implicit graphs</h3>
+      <p>
+        A grid or maze is a graph whose vertices are cells and whose edges join
+        each cell to its four neighbors &mdash; but you never build the adjacency
+        list. The neighbors of cell \((r,c)\) are \((r\pm1, c)\) and
+        \((r, c\pm1)\), computed on the fly, skipping walls. The same BFS code
+        then gives the fewest moves from a start cell to every reachable cell
+        &mdash; the workhorse behind maze solving, game pathfinding, and image
+        flood-fill.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="topo">6. Directed acyclic graphs and topological sort</h2>
+      <div class="def">
+        <span class="tag">Definition (DAG, topological order)</span>
+        A <strong>directed acyclic graph</strong> (DAG) is a digraph with no
+        directed cycle. A <strong>topological order</strong> of a digraph is a
+        listing of its vertices such that every edge points forward: for each edge
+        \(u \to v\), \(u\) appears before \(v\).
+      </div>
+      <p>
+        A DAG models &ldquo;must happen before&rdquo; relationships &mdash; course
+        prerequisites, compilation order, spreadsheet formulas, package installs
+        &mdash; and a topological order is a schedule that respects all of them:
+        do the vertices left to right and every prerequisite is already done. The
+        diamond \(0\to1,\ 0\to2,\ 1\to3,\ 2\to3\) has two topological orders,
+        \(0\,1\,2\,3\) and \(0\,2\,1\,3\), since \(1\) and \(2\) are independent.
+        When does an order exist?
+      </p>
+      <p>
+        A cycle destroys it immediately: \(a \to b \to \cdots \to a\) would demand
+        \(a\) before \(b\) before \(\cdots\) before \(a\), which no linear order
+        satisfies. So a topological order exists only if the graph is a DAG. The
+        converse &mdash; every DAG has one &mdash; is proved constructively by an
+        algorithm, and the algorithm rests on one lemma.
+      </p>
+      <div class="thm">
+        <span class="tag">Lemma (every DAG has a source)</span>
+        A <strong>source</strong> is a vertex of in-degree \(0\). Every non-empty
+        DAG has at least one source.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Start at any vertex and, while the current vertex
+        has some incoming edge \(u \to v\), step backward to \(u\). If this walk
+        never got stuck, after \(V\) steps it would have listed \(V+1\) vertices;
+        among only \(V\) distinct vertices, two must coincide (pigeonhole), and a
+        repeat on a backward walk exhibits a directed cycle &mdash; impossible in
+        a DAG. So the walk gets stuck, at a vertex with no incoming edge: a
+        source. (Symmetrically, walking forward proves every DAG has a
+        <em>sink</em>, an out-degree-\(0\) vertex.) <span class="qed">&#8718;</span>
+      </div>
+
+      <h3>Kahn&rsquo;s algorithm</h3>
+      <p>
+        Repeatedly output a source and remove it, freeing its dependents:
+      </p>
+      <pre>compute the in-degree of every vertex
+queue all vertices with in-degree 0
+repeat until the queue is empty:
+    dequeue u  &rarr;  OUTPUT u
+    for each edge u &rarr; v:  in-degree(v)--
+        if in-degree(v) becomes 0:  enqueue v</pre>
+      <div class="ex">
+        <span class="tag">Example (Kahn on the diamond)</span>
+        <pre>  0&rarr;1  0&rarr;2  1&rarr;3  2&rarr;3     in-deg: 0:0  1:1  2:1  3:2
+
+  queue [0]                 (only source: 0)
+  out 0 &rarr; dec 1, 2 &rarr; both hit 0 &rarr; queue [1, 2]
+  out 1 &rarr; dec 3 &rarr; 3:1
+  out 2 &rarr; dec 3 &rarr; 3:0 &rarr; queue [3]
+  out 3
+  order:  0 1 2 3    (all 4 output &rArr; the graph is acyclic)</pre>
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (Kahn is correct, \(\Theta(V+E)\))</span>
+        On a DAG, Kahn&rsquo;s algorithm outputs all \(V\) vertices in a valid
+        topological order, in \(\Theta(V+E)\) time. On a graph with a cycle it
+        outputs fewer than \(V\) vertices.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> By the source lemma a DAG always has an
+        in-degree-\(0\) vertex available, so the algorithm never stalls early;
+        deleting a vertex from a DAG leaves a DAG (removing vertices and edges
+        cannot create a cycle), so by induction it proceeds to the end and outputs
+        every vertex. An edge \(u \to v\) is processed &mdash; and \(v\)&rsquo;s
+        in-degree decremented &mdash; only when \(u\) is output; \(v\) is not
+        output until its in-degree reaches \(0\), i.e. until <em>all</em> its
+        predecessors are out, so \(u\) precedes \(v\): every edge points forward.
+        Cost: computing in-degrees scans all lists once (\(\Theta(V+E)\)); each
+        vertex is enqueued and dequeued once, and each edge is decremented exactly
+        once, so the loop is \(\Theta(V+E)\). Finally, if the graph has a cycle,
+        the cycle&rsquo;s vertices each wait on another in the cycle, so none ever
+        reaches in-degree \(0\); the algorithm halts with fewer than \(V\) outputs
+        &mdash; which is a ready-made cycle detector.
+        <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (Kahn on the running DAG)</span>
+        In-degrees: \(0{:}0,\ 1{:}1,\ 2{:}1,\ 3{:}3,\ 4{:}1,\ 5{:}2,\ 6{:}1,\
+        7{:}2\). The only source is \(0\); outputting it drops \(1\) to in-degree
+        \(0\) (and \(3\) to \(2\), \(5\) to \(1\)); each output in turn frees the
+        next index, and breaking ties by smaller index gives the order
+        \(0\ 1\ 2\ 3\ 4\ 5\ 6\ 7\).
+      </div>
+
+      <h3>Topological sort via DFS post-order</h3>
+      <p>
+        A second route uses DFS. Run DFS (restarting at every unvisited vertex so
+        all vertices finish); record each vertex&rsquo;s <em>finish</em> time when
+        its call returns; the answer is the <em>reverse</em> of finish order.
+      </p>
+      <pre>dfs(u): ... recurse into all of u's unvisited neighbors ...
+        on FINISHING u, push u onto a stack
+answer = pop the stack   <span class="cm">// reverse of finish order</span></pre>
+      <div class="ex">
+        <span class="tag">Example (DFS post-order on the diamond)</span>
+        <pre>  dfs(0) &rarr; dfs(1) &rarr; dfs(3): 3 finishes   (finish #1)
+           1 finishes                   (finish #2)
+           dfs(2): 3 seen &rarr; 2 finishes  (finish #3)
+           0 finishes                   (finish #4)
+
+  finish order:  3 1 2 0
+  REVERSE     :  0 2 1 3     &check; a topological order</pre>
+        Deepest vertices finish first; \(0\) finishes last, because everything
+        depends on it, and lands first when reversed. Compare with Kahn&rsquo;s
+        \(0\,1\,2\,3\): different tie-breaking, both valid.
+      </div>
+      <div class="thm">
+        <span class="tag">Theorem (reverse post-order is topological)</span>
+        In a DAG, for every edge \(u \to v\), \(v\) finishes before \(u\) in DFS.
+        Hence listing vertices in reverse order of finish time places every edge
+        forward.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> When \(\texttt{dfs}(u)\) examines the edge
+        \(u \to v\), vertex \(v\) is in one of three states.
+        (1) <em>Unvisited</em>: then \(\texttt{dfs}(v)\) runs inside
+        \(\texttt{dfs}(u)\) and returns before it, so \(v\) finishes first.
+        (2) <em>Already finished</em>: then \(v\) finished before \(u\) trivially.
+        (3) <em>On the recursion stack</em> (an ancestor of \(u\)): then a path
+        \(v \rightsquigarrow u\) exists, and together with \(u \to v\) that is a
+        directed cycle &mdash; impossible in a DAG. So only cases (1) and (2)
+        occur, and in both \(v\) finishes before \(u\). Reversing finish order
+        therefore lists \(u\) before \(v\) for every edge.
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        Case (3) is exactly the back edge of <a href="#dfs">&sect;4</a>: on a
+        general digraph its occurrence is precisely the cycle detector, so the
+        same three-case analysis does double duty as topological sort and cycle
+        detection. Two free cycle detectors, then: <em>Kahn</em> (fewer than \(V\)
+        vertices come out) and <em>DFS</em> (a back edge appears). A digraph has a
+        topological order if and only if it is acyclic.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=graph">Topological-sort demo</a> (Kahn, with
+        live in-degree labels). Run it on the running DAG to watch the in-degrees
+        tick down and vertices pop as they reach \(0\). Then append the edge
+        \(6 \to 2\) and rebuild: now \(2 \to 3 \to 5 \to 6 \to 2\) is a cycle,
+        Kahn strands the cycle&rsquo;s vertices (they never reach in-degree \(0\)),
+        and DFS from \(0\) flags the back edge &mdash; two detectors, one bug.
+      </div>
+
+      <h3>Many valid orders, and applications</h3>
+      <p>
+        Whenever two vertices have no path between them (like \(1\) and \(2\) in
+        the diamond), either may come first, so a topological order is <em>not</em>
+        unique unless the DAG is a single chain. A grader &mdash; and every real
+        consumer &mdash; must therefore check the <em>property</em> (all edges
+        forward), not compare against one specific sequence. Topological sort is
+        DFS&rsquo;s most practically important application: build systems compile
+        in dependency order, package managers install dependencies first,
+        spreadsheets recompute cells in formula order, and a &ldquo;circular
+        dependency&rdquo; or &ldquo;import cycle&rdquo; error is the cycle detector
+        speaking.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="toolkit">7. The graph toolkit</h2>
+      <p>Five reductions cover most graph problems you will meet:</p>
+      <ul>
+        <li><strong>represent</strong> &mdash; adjacency list, \(\Theta(V+E)\)
+          space;</li>
+        <li><strong>explore</strong> &mdash; a stack gives DFS, a queue gives BFS,
+          a priority queue gives Dijkstra (Chapter 9);</li>
+        <li><strong>fewest-edge paths</strong> in an unweighted graph &mdash; BFS
+          distance labels (proved shortest);</li>
+        <li><strong>schedule a DAG</strong> &mdash; Kahn&rsquo;s algorithm or DFS
+          reverse post-order (both proved correct, both \(\Theta(V+E)\));</li>
+        <li><strong>detect a cycle</strong> &mdash; a DFS back edge, or Kahn
+          stopping short of \(V\).</li>
+      </ul>
+      <p>
+        The frontier table is also the map forward: replace the queue with a
+        priority queue keyed by accumulated path cost and BFS becomes
+        Dijkstra&rsquo;s shortest-path algorithm &mdash; which is why heaps came
+        before graphs in this course, and what the next chapter builds.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="ex">8. Exercises (with solutions)</h2>
+      <ol>
+        <li>
+          An undirected graph has degree sequence \(4, 3, 3, 2, 2\). How many
+          edges does it have? Could a simple undirected graph have degree sequence
+          \(4, 4, 1, 1\)?
+          <details>
+            <summary>solution</summary>
+            By the handshake lemma \(\sum \deg = 2E\), so
+            \(E = (4+3+3+2+2)/2 = 14/2 = 7\). For \(4,4,1,1\): the sum is \(10\),
+            an even number, so the lemma is satisfied, but a vertex of degree
+            \(4\) needs \(4\) distinct neighbors and there are only \(3\) other
+            vertices &mdash; impossible in a <em>simple</em> graph. (The handshake
+            parity test is necessary, not sufficient.)
+          </details>
+        </li>
+        <li>
+          On the running DAG, give the DFS visit order and the BFS distance from
+          \(0\) to every vertex, starting from \(0\) with adjacency lists sorted
+          ascending.
+          <details>
+            <summary>solution</summary>
+            DFS: \(0\ 1\ 2\ 3\ 4\ 5\ 6\ 7\) &mdash; dive
+            \(0\to1\to2\to3\to4\to5\to6\), back up to \(4\), then \(4\to7\)
+            (\(5\) already seen); every remaining edge (\(3\to7\), \(0\to3\),
+            \(0\to5\)) points at an already-visited vertex.
+            BFS distances: \(0{:}0,\ 1{:}1,\ 2{:}2,\ 3{:}1,\ 4{:}2,\ 5{:}1,\
+            6{:}2,\ 7{:}2\) &mdash; three rings \(\{0\}\), \(\{1,3,5\}\),
+            \(\{2,4,6,7\}\).
+          </details>
+        </li>
+        <li>
+          Explain why marking a BFS vertex on <em>dequeue</em> rather than on
+          <em>enqueue</em> can produce a wrong distance, using the diamond as your
+          example.
+          <details>
+            <summary>solution</summary>
+            Both \(1\) and \(2\) point at \(3\). With mark-on-dequeue, processing
+            \(1\) enqueues \(3\), and then processing \(2\) sees \(3\) still
+            unmarked and enqueues it again. Vertex \(3\) now sits in the queue
+            twice and is processed twice; worse, on a larger graph a second,
+            longer path could overwrite \(3\)&rsquo;s distance. Marking on enqueue
+            makes each vertex enter the queue exactly once, preserving both the
+            distance and the \(\Theta(V+E)\) bound.
+          </details>
+        </li>
+        <li>
+          Give a small digraph on which DFS from some start and BFS from the same
+          start produce <em>different</em> visit orders, and one on which they
+          produce the <em>same</em> order.
+          <details>
+            <summary>solution</summary>
+            Different: the diamond &mdash; DFS gives \(0\ 1\ 3\ 2\), BFS gives
+            \(0\ 1\ 2\ 3\). Same: any simple directed path
+            \(0 \to 1 \to 2 \to \cdots\) &mdash; both must visit
+            \(0, 1, 2, \dots\) in that one order, since each vertex has a single
+            out-neighbor and there is only one way forward. (More generally the
+            orders coincide whenever the reachable subgraph is a path.)
+          </details>
+        </li>
+        <li>
+          A digraph has \(V\) vertices and \(E\) edges. You must answer many
+          &ldquo;is \(u \to v\) an edge?&rdquo; queries and no neighbor-iteration
+          queries. Which representation do you choose, and how does the answer
+          change if the graph is sparse and you instead iterate neighbors
+          constantly?
+          <details>
+            <summary>solution</summary>
+            For pure edge-existence queries the adjacency <em>matrix</em> answers
+            each in \(O(1)\); if you can afford \(\Theta(V^2)\) space (small or
+            dense graph), it wins. For a sparse graph where the operations iterate
+            neighbors &mdash; as DFS, BFS, and topological sort do &mdash; the
+            adjacency <em>list</em> wins on both counts: \(\Theta(V+E)\) space and
+            \(O(\deg u)\) neighbor iteration, which is optimal. Representation
+            follows the algorithm&rsquo;s access pattern.
+          </details>
+        </li>
+        <li>
+          Prove that a digraph has a topological order if and only if it is
+          acyclic.
+          <details>
+            <summary>solution</summary>
+            (\(\Rightarrow\)) If a cycle \(a \to b \to \cdots \to a\) existed, a
+            topological order would need \(a\) before \(b\) before \(\cdots\)
+            before \(a\), a contradiction; so an order forces acyclicity.
+            (\(\Leftarrow\)) If the graph is a DAG, Kahn&rsquo;s algorithm outputs
+            all \(V\) vertices in a valid order (source lemma + the correctness
+            proposition of <a href="#topo">&sect;6</a>), constructing an order.
+            Both directions hold.
+          </details>
+        </li>
+        <li>
+          You add the edge \(6 \to 2\) to the running DAG. List a cycle it
+          creates, and state what each of the two cycle detectors reports.
+          <details>
+            <summary>solution</summary>
+            The edge closes the cycle \(2 \to 3 \to 4 \to 5 \to 6 \to 2\) (the
+            unique path from \(2\) to \(6\), now looped back). Kahn outputs \(0\),
+            then \(1\), and then no remaining vertex ever reaches in-degree \(0\)
+            (each of \(2,3,4,5,6\) waits on the next around the loop), so it halts
+            with fewer than \(8\) outputs &mdash; the leftover vertices contain
+            the cycle. DFS from \(0\) eventually examines an edge into a vertex
+            still on the recursion stack (\(6 \to 2\) while \(2\) is an
+            ancestor), a back edge, and reports the cycle.
+          </details>
+        </li>
+        <li>
+          A maze is an \(r \times c\) grid of open cells and walls. Argue that BFS
+          from the entrance finds the fewest-moves path to the exit, and give its
+          running time in terms of the number of cells.
+          <details>
+            <summary>solution</summary>
+            Model each open cell as a vertex and each pair of orthogonally
+            adjacent open cells as an unweighted edge; a &ldquo;move&rdquo; is one
+            edge. BFS distances equal fewest-edge distances (the shortest-path
+            theorem), so \(\texttt{dist}[\text{exit}]\) is the minimum number of
+            moves, and the BFS tree gives an actual shortest path. There are at
+            most \(rc\) cells and \(O(rc)\) edges (each cell has \(\le 4\)
+            neighbors), so BFS runs in \(\Theta(rc)\) &mdash; linear in the grid.
+            The neighbors are computed from coordinates, so no adjacency list is
+            built.
+          </details>
+        </li>
+      </ol>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 8 v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library.
+      </footer>
+    </div>
+    <script>
+      // code-tabs: per-snippet language selector, synced across the page (and
+      // across pages) via localStorage. Works offline — all languages inline.
+      (function () {
+        const KEY = "css343-lang";
+        function apply(lang) {
+          document.querySelectorAll(".code-tabs").forEach((ct) => {
+            const panes = [...ct.querySelectorAll(".ct-pane")];
+            const has = panes.some((p) => p.dataset.lang === lang);
+            const use = has ? lang : (panes[0] && panes[0].dataset.lang);
+            panes.forEach((p) => { p.hidden = p.dataset.lang !== use; });
+            ct.querySelectorAll(".ct-tab").forEach((t) =>
+              t.classList.toggle("on", t.dataset.lang === use));
+          });
+        }
+        document.addEventListener("click", (e) => {
+          const t = e.target.closest(".ct-tab");
+          if (!t) return;
+          localStorage.setItem(KEY, t.dataset.lang);
+          apply(t.dataset.lang);
+        });
+        const saved = localStorage.getItem(KEY) || "cpp";
+        if (document.readyState !== "loading") apply(saved);
+        else document.addEventListener("DOMContentLoaded", () => apply(saved));
+      })();
+    </script>
+  </body>
+</html>

@@ -108,10 +108,10 @@ int main() {
 
     cout << "T6 · kruskal on the lecture sample (8 vertices)\n";
     vector<Edge> g6 = {
-        {0, 1, 4}, {0, 2, 2}, {2, 1, 1}, {1, 3, 5}, {2, 3, 8},
-        {2, 4, 10}, {3, 4, 2}, {3, 5, 6}, {4, 5, 3}, {5, 6, 1}, {4, 7, 7}
+        {0, 1, 4}, {0, 3, 6}, {1, 2, 1}, {1, 3, 5}, {2, 3, 8},
+        {0, 5, 20}, {3, 4, 2}, {3, 7, 11}, {4, 5, 3}, {5, 6, 9}, {4, 7, 7}
     };
-    check(kruskal(g6, 8) == 21, "MST weight over all 8 vertices is 21");
+    check(kruskal(g6, 8) == 31, "MST weight over all 8 vertices is 31");
 
     cout << passCnt << " passed, " << failCnt << " failed" << '\n';
     return failCnt ? 1 : 0;

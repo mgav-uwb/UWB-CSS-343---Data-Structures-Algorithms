@@ -123,6 +123,10 @@ const HANDOUTS = {
               desc:"O / Ω / Θ as sets, with proofs & exercises" },
   valgrind: { href:"handouts/valgrind.html", title:"Valgrind",
               desc:"find leaks: build -g, run, read the report" },
+  ch7:      { href:"handouts/ch07-hashing.html", title:"Chapter 7 — Hashing",
+              desc:"course text: hash functions, chaining, probing, resizing — proofs, demos & exercises" },
+  ch8:      { href:"handouts/ch08-graphs.html", title:"Chapter 8 — Graphs I",
+              desc:"course text: adjacency lists, DFS / BFS, topological sort — proofs, demos & exercises" },
 };
 
 // ───────── interactive demos (keyed; ds = lib/demo.html?ds=…) ─────────
@@ -187,11 +191,11 @@ const SESSIONS = [
   { id:"L07", dir:"sessions/S07-hashing",
     title:"Hashing",
     topics:"hash functions (uniform, modular, string) · separate chaining · open addressing (linear / quadratic / double probing) · load factor &amp; resizing · hashing vs balanced BST",
-    handouts:[], demos:["hash-lp","hash-chain","hash-race"] },
+    handouts:["ch7"], demos:["hash-lp","hash-chain","hash-race"] },
   { id:"L08", dir:"sessions/S08-graphs-bfs-dfs",
     title:"Graphs I: Representations, BFS/DFS, Topological Sort",
     topics:"graph vocabulary &amp; representations (adjacency list vs matrix) · depth-first search (recursive + iterative) · breadth-first search (fewest-edge paths) · digraphs &amp; topological sort (Kahn / DFS post-order)",
-    handouts:[], demos:["graph"] },
+    handouts:["ch8"], demos:["graph"] },
   { id:"L09", dir:"sessions/S09-graphs-dijkstra",
     title:"Graphs II: Dijkstra Shortest Paths",
     topics:"weighted digraphs &amp; the shortest-paths tree · edge relaxation · Dijkstra (greedy + priority queue, O(E log V)) · nonnegative weights / Bellman-Ford · vs BFS / Prim / A*",

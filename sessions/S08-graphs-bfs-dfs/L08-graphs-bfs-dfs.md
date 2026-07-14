@@ -4,8 +4,8 @@
   Concrete C++ (structs, vectors, adjacency lists) — no templates/inheritance.
   KaTeX: never two "_" on one line. Verify at 1280×620; code/ASCII lines ≤ ~56 chars.
 
-  Reading (pre): Sedgewick & Wayne §4.1 (Undirected Graphs) + §4.2 (Directed
-  Graphs) + ODS Ch 12.
+  Reading (pre): OUR Chapter 8 — handouts/ch08-graphs.html (primary; replaces
+  the 3rd-party text). Optional second treatment: Sedgewick & Wayne §4.1–4.2 + ODS Ch 12.
   THROUGH-LINE: a graph is vertices + edges — the most general structure we've
   met (trees are the acyclic special case). Store it as an ADJACENCY LIST. One
   generic loop explores it; the FRONTIER container decides everything: stack →
@@ -16,12 +16,16 @@
 
   Worked examples: ONE 4-vertex diamond DAG (0→1, 0→2, 1→3, 2→3) carries every
   hand trace (DFS order 0 1 3 2, BFS dists 0 1 1 2, Kahn 0 1 2 3, post-order
-  3 1 2 0 → reversed 0 2 1 3). The DEMOS run on the lib's 8-vertex DAG
-  (0→1,2 · 1→3,4 · 2→3,4 · 3→5 · 4→5,7 · 5→6) — mirrored on the "graph for
-  tonight" slide and in the your-turn answers (DFS 0 1 3 5 6 4 7 2, BFS layers
-  {0}{1,2}{3,4}{5,7}{6}, Kahn 0 1 2 3 4 5 6 7). Demo build string is the edge
-  list "0 1, 0 2, 1 3, 1 4, 2 3, 2 4, 3 5, 4 5, 4 7, 5 6"; adding "6 2" closes
-  the cycle 2→3→5→6→2 for the cycle-detection beats.
+  3 1 2 0 → reversed 0 2 1 3). The DEMOS run on the CANONICAL course graph —
+  the SAME 8-vertex graph reused weighted in L09 (Dijkstra) and L11 (MST), in
+  circular layout: 0→1,3,5 · 1→2,3 · 2→3 · 3→4,7 · 4→5,7 · 5→6 (V=8, E=11, a
+  DAG). Mirrored on the "graph for tonight" slide and the your-turns: DFS from 0
+  = 0 1 2 3 4 5 6 7 (a deep dive down 0..6, then 7; NB this graph's DFS order
+  coincides with numeric — the diamond carries the "order ≠ input" lesson); BFS
+  from 0 order 0 1 3 5 2 4 7 6, layers {0}{1,3,5}{2,4,6,7} (dist[6]=2); in-deg
+  0:0 1:1 2:1 3:3 4:1 5:2 6:1 7:2, Kahn 0 1 2 3 4 5 6 7. Demo build string is the
+  edge list "0 1, 0 3, 1 2, 1 3, 2 3, 0 5, 3 4, 3 7, 4 5, 5 6, 4 7"; adding
+  "6 2" closes the cycle 2→3→4→5→6→2 (back edge 6→2) for the cycle beats.
 
   Covered in Spring-26 (Kim, Graph deck; Carrano 20, Cusack 10): graph ADT,
   adjacency matrix vs list, DFS (recursive + iterative stack), BFS, connectivity,
@@ -44,14 +48,14 @@
 
 ## Reading
 
-**Sedgewick & Wayne §4.1–4.2** — Undirected & Directed Graphs
+**[Chapter 8 — Graphs I](../../handouts/ch08-graphs.html)** — the course text
 
 - **representation** — the **adjacency list**
 - **DFS** — go deep (recursion / a stack)
 - **BFS** — go wide (a queue) → **fewest-edge** paths
 - **topological sort** — scheduling a DAG
 
-_Secondary:_ ODS Ch 12. Reading quiz due before class.
+<small>Another treatment (optional): Sedgewick & Wayne §4.1–4.2; ODS Ch 12.</small> Reading quiz due before class.
 
 ---
 
@@ -203,18 +207,18 @@ struct Graph {
 ## The graph for tonight
 
 ```text
-   0 → 1, 2      2 → 3, 4      4 → 5, 7      6 → —
-   1 → 3, 4      3 → 5         5 → 6         7 → —
+   0 → 1, 3, 5   2 → 3         4 → 5, 7      6 → —
+   1 → 2, 3      3 → 4, 7      5 → 6         7 → —
 ```
 
 <div class="algo-viz" data-algo="graph-tour">
 <pre class="viz-fallback">
-   V = 8, E = 10, no directed cycle — a DAG.
+   V = 8, E = 11, no directed cycle — a DAG.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>V = 8, E = 10, edges only "forward" — a **DAG**. All three demos run on this graph; keep the adjacency list in mind.</small>
+<small>V = 8, E = 11, edges only "forward" — a **DAG**. This one graph runs every demo tonight — and returns weighted in L09 (Dijkstra) and L11 (MST). Keep the adjacency list in mind.</small>
 
 ---
 
@@ -336,7 +340,7 @@ Linear in the size of the graph — optimal: you must at least **look** at every
 </pre>
 </div>
 
-<small>Predict first: DFS from 0 — the first four vertices? Then **DFS from 2**: 0 and 1 stay unreached. The edge pairs are editable; **Build** replays the construction.</small>
+<small>Predict first: DFS from 0 — how deep does the first dive go? Then **DFS from 2**: 0 and 1 stay unreached. The edge pairs are editable; **Build** replays the construction.</small>
 
 --
 
@@ -514,13 +518,13 @@ Both directions → **dist[v] = δ(v)**. ∎
 ## Your turn — BFS on tonight's DAG
 
 ```text
-   0 → 1, 2      2 → 3, 4      4 → 5, 7
-   1 → 3, 4      3 → 5         5 → 6
+   0 → 1, 3, 5   2 → 3         4 → 5, 7
+   1 → 2, 3      3 → 4, 7      5 → 6
 
    BFS from 0 — what is dist[6]?
 ```
 
-<small>Layers: {0} → {1, 2} → {3, 4} → {5, 7} → {6}. So **dist[6] = 4** (e.g. 0→1→3→5→6). Vertex 7 sits at distance 3 — closer than 6, found a full layer earlier.</small> <!-- .element: class="fragment" -->
+<small>Layers: {0} → {1, 3, 5} → {2, 4, 6, 7}. So **dist[6] = 2** (via 0→5→6). Everything is within two edges of 0 — this graph is shallow and wide from the source, the opposite of DFS's deep dive.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -537,7 +541,7 @@ Both directions → **dist[v] = δ(v)**. ∎
 </pre>
 </div>
 
-<small>Run **BFS from 0** and read the distance labels ring by ring — then **DFS from 0** on the same graph: 0 1 2 3 4 5 7 6 vs 0 1 3 5 6 4 7 2. Same edges, different frontier.</small>
+<small>Run **BFS from 0** and read the distance labels ring by ring — then **DFS from 0** on the same graph: BFS **0 1 3 5 2 4 7 6** vs DFS **0 1 2 3 4 5 6 7**. Same edges, different frontier.</small>
 
 --
 
@@ -697,13 +701,13 @@ Output order = a topological order. Θ(V + E).
 ## Your turn — Kahn on tonight's DAG
 
 ```text
-   0 → 1, 2      2 → 3, 4      4 → 5, 7
-   1 → 3, 4      3 → 5         5 → 6
+   0 → 1, 3, 5   2 → 3         4 → 5, 7
+   1 → 2, 3      3 → 4, 7      5 → 6
 
    in-degrees?  first three vertices output?
 ```
 
-<small>In-degrees: 0:0 · 1:1 · 2:1 · 3:2 · 4:2 · 5:2 · 6:1 · 7:1. Only source: 0. Output 0 frees 1 and 2; taking the smaller first: **0, 1, 2** — and the full run continues 3, 4, 5, 6, 7.</small> <!-- .element: class="fragment" -->
+<small>In-degrees: 0:0 · 1:1 · 2:1 · 3:3 · 4:1 · 5:2 · 6:1 · 7:2. Only source: 0. Output 0 frees 1; output 1 frees 2 (and drops 3 to 2): **0, 1, 2** — and the full run continues 3, 4, 5, 6, 7.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -718,7 +722,7 @@ Output order = a topological order. Θ(V + E).
 </pre>
 </div>
 
-<small>Run **Topo sort** (labels = live in-degrees). Then append `6 2`, **Build**, re-run: the cycle 2→3→5→6→2 strands six vertices in **red**. **DFS from 0** flags the back edge.</small>
+<small>Run **Topo sort** (labels = live in-degrees). Then append `6 2`, **Build**, re-run: the cycle 2→3→4→5→6→2 strands six vertices in **red**. **DFS from 0** flags the back edge.</small>
 
 --
 

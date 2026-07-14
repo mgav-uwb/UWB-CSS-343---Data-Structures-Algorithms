@@ -55,9 +55,9 @@
                                 edge re-check flags the broken label in red -->
   <script type="module">
     import { initDeckDemos, WeightedGraph, GraphRenderer } from "../../lib/deck.js";
-    const WDAG = "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1, 4 7 7";
+    const WDAG = "0 1 4, 0 3 6, 1 2 1, 1 3 5, 2 3 8, 0 5 20, 3 4 2, 3 7 11, 4 5 3, 5 6 9, 4 7 7";   // the canonical course graph, weighted (circular layout)
     const base = () => ({
-      make: () => new WeightedGraph(),
+      make: () => new WeightedGraph({ layout: "circle" }),
       initial: WDAG,
       initialPlaceholder: "u v w, …",
       initialTitle: "weighted directed edge triples \"u v w\", comma-separated",
@@ -71,7 +71,7 @@
     });
     initDeckDemos({
       "wgraph-tour": { // static view of tonight's weighted digraph for Part 1 (no ops yet)
-        make: () => { const g = new WeightedGraph(); g.build(); return g; },
+        make: () => { const g = new WeightedGraph({ layout: "circle" }); g.build(); return g; },
         renderer: (c) => new GraphRenderer(c, { directed: true }),
         label: "tonight's graph — 8 vertices, 11 weighted directed edges",
         width: 900, height: 225,

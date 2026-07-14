@@ -14,10 +14,10 @@
   component cut) and PRIM (grow one tree, the L06 heap) both run O(E log V).
   MST ≠ shortest-path tree: the a-b-c triangle separates them.
 
-  Demo graph = the L09 graph made UNDIRECTED (same 8 vertices, triples
-  "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1,
-  4 7 7"); MST weight 21 with edges 2-1,5-6,0-2,3-4,4-5,1-3,4-7 — mirrored in
-  the Kruskal/Prim worked traces and ICA 11's test T6. The MST-vs-SPT beat:
+  Demo graph = the L08/L09 canonical graph made UNDIRECTED (same 8 vertices,
+  triples "0 1 4, 0 3 6, 1 2 1, 1 3 5, 2 3 8, 0 5 20, 3 4 2, 3 7 11, 4 5 3,
+  5 6 9, 4 7 7"); MST weight 31 with edges 1-2,3-4,4-5,0-1,1-3,4-7,5-6 —
+  mirrored in the Kruskal/Prim worked traces and ICA 11's test T6. The MST-vs-SPT beat:
   build "0 1 2, 1 2 2, 0 2 3" and run Prim from 0 (keeps 1-2) vs Dijkstra
   from 0 (keeps 0-2).
 
@@ -338,14 +338,14 @@ Given a **connected, edge-weighted, undirected** graph, find the spanning tree o
 ## The graph for tonight
 
 ```text
-   0-1(4)  0-2(2)  2-1(1)  1-3(5)   2-3(8)  2-4(10)
-   3-4(2)  3-5(6)  4-5(3)  5-6(1)   4-7(7)
+   0-1(4)  0-3(6)  1-2(1)  1-3(5)   2-3(8)  0-5(20)
+   3-4(2)  3-7(11) 4-5(3)  5-6(9)   4-7(7)
 ```
 
 <div class="algo-viz" data-algo="mst-tour">
 <pre class="viz-fallback">
    the L09 graph, now UNDIRECTED — 8 vertices, 11 weighted
-   edges. MST weight: 21.
+   edges. MST weight: 31.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
@@ -403,9 +403,9 @@ Suppose an MST `T` does **not** contain the min crossing edge `e`:
 ## A cut, pictured
 
 ```text
-   { 0, 2 }  |  { 1, 3, 4, 5, 6, 7 }
-   crossing edges: 0-1 (4), 2-1 (1), 2-3 (8), 2-4 (10)
-   lightest = 2-1 (1)  →  SAFE, in some MST
+   { 0, 1 }  |  { 2, 3, 4, 5, 6, 7 }
+   crossing edges: 1-2 (1), 1-3 (5), 0-3 (6), 0-5 (20)
+   lightest = 1-2 (1)  →  SAFE, in some MST
 ```
 
 Any cut works — the algorithms just choose cuts cleverly.
@@ -504,32 +504,32 @@ Union-find *is* the forest — each `union` is a merge, each `connected` asks "s
 ## Kruskal — the full run
 
 ```text
-   sorted: 1(2-1) 1(5-6) 2(0-2) 2(3-4) 3(4-5)
-           4(0-1) 5(1-3) 6(3-5) 7(4-7) 8(2-3) 10(2-4)
+   sorted: 1(1-2) 2(3-4) 3(4-5) 4(0-1) 5(1-3)
+           6(0-3) 7(4-7) 8(2-3) 9(5-6) 11(3-7) 20(0-5)
 
-   2-1 (1)  ADD    total 1
-   5-6 (1)  ADD    total 2
-   0-2 (2)  ADD    total 4      {0,1,2} formed
-   3-4 (2)  ADD    total 6
-   4-5 (3)  ADD    total 9      {3,4,5,6} formed
-   0-1 (4)  SKIP — cycle 0-2-1
-   1-3 (5)  ADD    total 14     merges the two big pieces
-   3-5 (6)  SKIP — cycle
-   4-7 (7)  ADD    total 21     7 edges → STOP (8, 10 never seen)
+   1-2 (1)  ADD    total 1
+   3-4 (2)  ADD    total 3
+   4-5 (3)  ADD    total 6      {3,4,5} formed
+   0-1 (4)  ADD    total 10     {0,1,2} formed
+   1-3 (5)  ADD    total 15     merges the two big pieces
+   0-3 (6)  SKIP — cycle 0-1-3
+   4-7 (7)  ADD    total 22
+   2-3 (8)  SKIP — cycle 2-1-3
+   5-6 (9)  ADD    total 31     7 edges → STOP (11, 20 never seen)
 ```
 
 --
 
 ## Practice — accept or skip?
 
-Kruskal has added `2-1, 5-6, 0-2, 3-4, 4-5` so far — components `{0,1,2}`, `{3,4,5,6}`, `{7}`. Next up:
+Kruskal has added `1-2, 3-4, 4-5, 0-1` so far — components `{0,1,2}`, `{3,4,5}`, `{6}`, `{7}`. Next up:
 
 ```text
-   0-1 (4):  accept or skip?
    1-3 (5):  accept or skip?
+   0-3 (6):  accept or skip?
 ```
 
-<small>`0-1`: both endpoints already in `{0,1,2}` → **SKIP** (would close the cycle 0-2-1). `1-3`: 1 is in `{0,1,2}`, 3 is in `{3,4,5,6}` — different components → **ADD**, merging them (only 7 remains outside).</small> <!-- .element: class="fragment" -->
+<small>`1-3`: 1 is in `{0,1,2}`, 3 is in `{3,4,5}` — different components → **ADD**, merging them into `{0,1,2,3,4,5}`. `0-3`: now both endpoints are in that merged component → **SKIP** (would close the cycle 0-1-3).</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -562,7 +562,7 @@ Safe by the **cut property** — so Kruskal only adds MST edges.
 </pre>
 </div>
 
-<small>Run **Kruskal**: cheapest first, **add** (bold) when it bridges two components, **skip** (faded) on a cycle — total **21**. The `u v w` triples are editable; **Build** replays construction.</small>
+<small>Run **Kruskal**: cheapest first, **add** (bold) when it bridges two components, **skip** (faded) on a cycle — total **31**. The `u v w` triples are editable; **Build** replays construction.</small>
 
 --
 
@@ -644,25 +644,25 @@ while (mst.size() < V - 1) {
 
 ```text
    from 0:  tree = {0}
-   cheapest edge leaving {0}:      0-2 (2)  → add 2   total 2
-   leaving {0,2}:                  2-1 (1)  → add 1   total 3
-   leaving {0,1,2}:                1-3 (5)  → add 3   total 8
-   leaving {0,1,2,3}:              3-4 (2)  → add 4   total 10
-   … continue → 4-5(3), 5-6(1), 4-7(7)     total 21
+   cheapest edge leaving {0}:      0-1 (4)  → add 1   total 4
+   leaving {0,1}:                  1-2 (1)  → add 2   total 5
+   leaving {0,1,2}:                1-3 (5)  → add 3   total 10
+   leaving {0,1,2,3}:              3-4 (2)  → add 4   total 12
+   … continue → 4-5(3), 4-7(7), 5-6(9)     total 31
 ```
 
 --
 
 ## Practice — which edge next?
 
-Prim's tree so far is `{0, 2}` (via edge 0-2). Edges leaving it:
+Prim's tree so far is `{0, 1}` (via edge 0-1). Edges leaving it:
 
 ```text
-   2-1 (1)   2-3 (8)   2-4 (10)   0-1 (4)
+   1-2 (1)   1-3 (5)   0-3 (6)   0-5 (20)
    which does Prim add next?
 ```
 
-<small>The **lightest** crossing edge: `2-1 (1)` → vertex 1 joins the tree. Prim always takes the cheapest edge leaving the current tree, regardless of which tree vertex it starts from.</small> <!-- .element: class="fragment" -->
+<small>The **lightest** crossing edge: `1-2 (1)` → vertex 2 joins the tree. Prim always takes the cheapest edge leaving the current tree, regardless of which tree vertex it starts from.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -678,7 +678,7 @@ Prim's tree so far is `{0, 2}` (via edge 0-2). Edges leaving it:
 </pre>
 </div>
 
-<small>Run **Prim from 0**, then **Kruskal** — different order, same 21. Then Build `0 1 2, 1 2 2, 0 2 3`: **Prim from 0** keeps `1-2`; **Dijkstra from 0** keeps `0-2` — **different trees!**</small>
+<small>Run **Prim from 0**, then **Kruskal** — different order, same 31. Then Build `0 1 2, 1 2 2, 0 2 3`: **Prim from 0** keeps `1-2`; **Dijkstra from 0** keeps `0-2` — **different trees!**</small>
 
 --
 
@@ -692,7 +692,7 @@ Prim's tree so far is `{0, 2}` (via edge 0-2). Edges leaving it:
                          SPT total weight 5 — not minimum (4)
 ```
 
-Different objectives → different trees. <small>(On tonight's 8-vertex graph they happen to coincide — don't be fooled.)</small>
+Different objectives → different trees. <small>(On tonight's 8-vertex graph they differ too: the shortest-path tree reaches vertex 3 by the direct `0-3` (6), the MST by the cheaper `1-3` (5).)</small>
 
 --
 
@@ -817,7 +817,7 @@ In `ica11/ica11.cpp`, three TODOs:
 - **`find`** — path compression (halving or full — either)
 - **`unite`** — union by size (smaller under larger)
 - **`kruskal`** — sort, skip already-connected, sum the weight
-- **T6 is tonight's graph** — expect MST weight **21**
+- **T6 is tonight's graph** — expect MST weight **31**
 
 Build `-g`, run the tests, Valgrind-clean.
 

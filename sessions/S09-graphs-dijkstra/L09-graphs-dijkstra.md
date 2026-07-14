@@ -15,12 +15,14 @@
   Worked examples: the 4-vertex graph 0→1(2) 0→2(5) 1→2(1) 1→3(7) 2→3(3) is the
   main trace (dist 0 2 3 6) — IT IS ICA 09's test T1. The practice graph
   0→1(4) 0→2(1) 2→1(2) 1→3(3) is ICA T2 (detour beats direct, dist[1]=3).
-  The DEMOS run on the lib's 8-vertex weighted digraph (triples
-  "0 1 4, 0 2 2, 2 1 1, 1 3 5, 2 3 8, 2 4 10, 3 4 2, 3 5 6, 4 5 3, 5 6 1,
+  The DEMOS run on the CANONICAL course graph, weighted — the SAME graph as
+  L08 (traversals) and L11 (MST), circular layout (triples
+  "0 1 4, 0 3 6, 1 2 1, 1 3 5, 2 3 8, 0 5 20, 3 4 2, 3 7 11, 4 5 3, 5 6 9,
   4 7 7") — mirrored on the "graph for tonight" slide and the your-turn
-  (settle order 0 2 1 3 4 5 6 7; final dist 0 3 2 8 10 13 14 17; improving
-  relaxations 2→1, 1→3, 3→4, 4→5). Appending "7 1 -20" is the Part-4 beat:
-  the post-run edge re-check flags dist[1] as broken (17−20 = −3 < 3).
+  (settle order 0 1 2 3 4 5 7 6; final dist 0 4 5 6 8 11 20 15; the detour
+  0→3→4→5 = 11 beats the direct 0→5 = 20). Appending "7 1 -20" is the Part-4
+  beat: dist[7]=15, so the post-run edge re-check flags dist[1]=4 as broken
+  (7→1: 15−20 = −5 < 4), and 1→3→4→7→1 = 5+2+7−20 = −6 is a negative cycle.
 
   Covered in Spring-26 (Kim, Graph deck): Dijkstra single-source shortest path,
   pseudocode, undirected note, O(V²) analysis. Sedgewick §4.4 adds the PQ
@@ -218,8 +220,8 @@ Negative weights break the greedy logic — Part 4 shows the **exact line of the
 ## The graph for tonight
 
 ```text
-   0→1(4)  0→2(2)  2→1(1)  1→3(5)   2→3(8)  2→4(10)
-   3→4(2)  3→5(6)  4→5(3)  5→6(1)   4→7(7)
+   0→1(4)  0→3(6)  1→2(1)  1→3(5)   2→3(8)  0→5(20)
+   3→4(2)  3→7(11) 4→5(3)  5→6(9)   4→7(7)
 ```
 
 <div class="algo-viz" data-algo="wgraph-tour">
@@ -229,7 +231,7 @@ Negative weights break the greedy logic — Part 4 shows the **exact line of the
 </pre>
 </div>
 
-<small>The same 8 vertices as L08's DAG — with a **reworked, weighted** edge set. The demos run on this graph — the triples above are its build string.</small>
+<small>**Exactly L08's DAG, now weighted** — same 8 vertices, same 11 edges, weights added. You met this graph last week for DFS/BFS; tonight it carries distances. The triples above are its build string.</small>
 
 ---
 
@@ -452,13 +454,13 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
 ## Your turn — tonight's graph
 
 ```text
-   0→1(4)  0→2(2)  2→1(1)  1→3(5)   2→3(8)  2→4(10)
-   3→4(2)  3→5(6)  4→5(3)  5→6(1)   4→7(7)
+   0→1(4)  0→3(6)  1→2(1)  1→3(5)   2→3(8)  0→5(20)
+   3→4(2)  3→7(11) 4→5(3)  5→6(9)   4→7(7)
 
    from 0: which vertex settles 3rd?  what is dist[5]?
 ```
 
-<small>Settle order starts 0 (0), 2 (2), **1 (3)** — the detour 0→2→1 beats the direct 4. And **dist[5] = 13** via 0→2→1→3→4→5 = 2+1+5+2+3: every hop an improving relaxation.</small> <!-- .element: class="fragment" -->
+<small>Settle order starts 0 (0), 1 (4), **2 (5)** — so **2 settles 3rd**. And **dist[5] = 11** via 0→3→4→5 = 6+2+3, beating the direct 0→5 = 20: a three-hop detour crushes the expensive direct edge.</small> <!-- .element: class="fragment" -->
 
 --
 
@@ -474,7 +476,7 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
 </pre>
 </div>
 
-<small>Run **Dijkstra from 0** — the settle → relax rhythm, four improving relaxations. Then **from 2**: vertex 0 stays **∞**. The `u v w` triples are editable.</small>
+<small>Run **Dijkstra from 0** — the settle → relax rhythm; watch dist[5] drop from 20 to 11 as the detour is found. Then **from 2**: vertices 0 and 1 stay **∞**. The `u v w` triples are editable.</small>
 
 --
 
@@ -620,14 +622,14 @@ The proof's `cost(y ⇝ u) ≥ 0` line **fails** — a negative tail CAN undercu
 <div class="algo-viz" data-algo="dijkstra-neg">
 <pre class="viz-fallback">
    append "7 1 -20" to the edge triples and rebuild:
-   Dijkstra still reports dist[1] = 3, but the final
-   edge re-check finds 7→1 still relaxes (17−20 = −3):
+   Dijkstra still reports dist[1] = 4, but the final
+   edge re-check finds 7→1 still relaxes (15−20 = −5):
    the settled label was WRONG.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Append `7 1 -20`, **Build**, run **Dijkstra from 0**: it happily reports dist[1] = 3 — then the final **edge re-check** flags 7 → 1 in **red**: 17 − 20 = −3 &lt; 3. The greedy guarantee is gone.</small>
+<small>Append `7 1 -20`, **Build**, run **Dijkstra from 0**: it happily reports dist[1] = 4 — then the final **edge re-check** flags 7 → 1 in **red**: 15 − 20 = −5 &lt; 4. The greedy guarantee is gone.</small>
 
 --
 

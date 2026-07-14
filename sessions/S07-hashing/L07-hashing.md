@@ -4,7 +4,8 @@
   Concrete C++ (structs, arrays, %) — no templates/inheritance. KaTeX: never two
   "_" on one line. Verify slides at 1280×620; code/ASCII lines ≤ ~60 chars (0.46em).
 
-  Reading (pre): Sedgewick & Wayne §3.4 (Hash Tables) + ODS Ch 5.
+  Reading (pre): OUR Chapter 7 — handouts/ch07-hashing.html (primary; replaces
+  the 3rd-party text). Optional second treatment: Sedgewick & Wayne §3.4 + ODS Ch 5.
   THROUGH-LINE: trees give Θ(log n) by COMPARING keys. Hashing aims for Θ(1) by
   COMPUTING an array index from the key. The price: collisions (provably
   unavoidable — birthday math) and the loss of ORDER. Two resolution families:
@@ -33,13 +34,13 @@
 
 ## Reading
 
-**Sedgewick & Wayne §3.4** — Hash Tables
+**[Chapter 7 — Hashing](../../handouts/ch07-hashing.html)** — the course text
 
 - **hash functions** — key → array index
 - **collisions** — chaining vs open addressing
 - **load factor** & **resizing** — keeping ops O(1)
 
-_Secondary:_ ODS Ch 5. Reading quiz due before class.
+<small>Another treatment (optional): Sedgewick & Wayne §3.4; ODS Ch 5.</small> Reading quiz due before class.
 
 ---
 
