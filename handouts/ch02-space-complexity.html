@@ -312,7 +312,7 @@
         pointer cannot pack below the 8-byte slot.) The program below prints all of
         these numbers, and a Rust and Python view of the same idea:
       </p>
-      <div class="code-tabs" data-snippet="analysis/struct-layout">
+      <div class="code-tabs" data-snippet="complexity/struct-layout">
 <div class="ct-tabs" role="tablist">
   <button class="ct-tab" data-lang="cpp">C++</button>
   <button class="ct-tab" data-lang="java">Java</button>
@@ -380,7 +380,7 @@ fn main() {
     println!(&quot;Node={} align={}&quot;, size_of::&lt;Node&gt;(), align_of::&lt;Node&gt;());   // 16 8
     println!(&quot;A={}  B={}&quot;, size_of::&lt;A&gt;(), size_of::&lt;B&gt;());                 // 12 8
 }</pre>
-<p class="ct-src">source: <code>code/analysis/struct-layout.cpp &middot; code/analysis/struct-layout.java &middot; code/analysis/struct-layout.py &middot; code/analysis/struct-layout.rs</code></p>
+<p class="ct-src">source: <code>code/complexity/struct-layout.cpp &middot; code/complexity/struct-layout.java &middot; code/complexity/struct-layout.py &middot; code/complexity/struct-layout.rs</code></p>
 <!--/ct--></div>
       <div class="aside">
         <span class="tag">Managed languages hide &mdash; and inflate &mdash; the count</span>

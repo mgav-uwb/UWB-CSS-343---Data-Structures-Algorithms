@@ -253,7 +253,7 @@
         &mdash; it is what the loop bounds <code>i+1</code> and <code>j+1</code>
         encode.
       </p>
-      <div class="code-tabs" data-snippet="analysis/threesum-brute">
+      <div class="code-tabs" data-snippet="complexity/threesum-brute">
 <div class="ct-tabs" role="tablist">
   <button class="ct-tab" data-lang="cpp">C++</button>
   <button class="ct-tab" data-lang="java">Java</button>
@@ -316,7 +316,7 @@ fn count3(a: &amp;[i64]) -&gt; i64 {
     }
     cnt                                    // body runs n(n-1)(n-2)/6 times
 }</pre>
-<p class="ct-src">source: <code>code/analysis/threesum-brute.cpp &middot; code/analysis/threesum-brute.java &middot; code/analysis/threesum-brute.py &middot; code/analysis/threesum-brute.rs</code></p>
+<p class="ct-src">source: <code>code/complexity/threesum-brute.cpp &middot; code/complexity/threesum-brute.java &middot; code/complexity/threesum-brute.py &middot; code/complexity/threesum-brute.rs</code></p>
 <!--/ct--></div>
       <p>
         The code is correct almost by inspection: it literally examines every triple.
@@ -678,7 +678,7 @@ fn count3(a: &amp;[i64]) -&gt; i64 {
         <li>if \(s \gt 0\), the sum is too big, so retreat <code>hi</code>;</li>
         <li>if \(s = 0\), count the triple and move both inward.</li>
       </ul>
-      <div class="code-tabs" data-snippet="analysis/threesum-fast">
+      <div class="code-tabs" data-snippet="complexity/threesum-fast">
 <div class="ct-tabs" role="tablist">
   <button class="ct-tab" data-lang="cpp">C++</button>
   <button class="ct-tab" data-lang="java">Java</button>
@@ -751,7 +751,7 @@ fn count3fast(mut a: Vec&lt;i64&gt;) -&gt; i64 {
     }
     cnt
 }</pre>
-<p class="ct-src">source: <code>code/analysis/threesum-fast.cpp &middot; code/analysis/threesum-fast.java &middot; code/analysis/threesum-fast.py &middot; code/analysis/threesum-fast.rs</code></p>
+<p class="ct-src">source: <code>code/complexity/threesum-fast.cpp &middot; code/complexity/threesum-fast.java &middot; code/complexity/threesum-fast.py &middot; code/complexity/threesum-fast.rs</code></p>
 <!--/ct--></div>
       <p>
         Why is the inner <code>while</code> loop only \(O(n)\)? Because each iteration
