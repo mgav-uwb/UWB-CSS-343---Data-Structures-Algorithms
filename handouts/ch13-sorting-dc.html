@@ -94,6 +94,13 @@
       .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
       .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13px; }
+      table.trace td, table.trace th { padding: 5px 7px; text-align: center; font-variant-numeric: tabular-nums; }
+      table.trace td.lab { text-align: left; white-space: nowrap; color: var(--dim); font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+      table.trace td.cell { font-family: "SF Mono", Menlo, Consolas, monospace; }
+      table.trace td.lt { background: var(--accentbg); color: var(--accent); font-weight: 700; }
+      table.trace td.piv { background: var(--warnbg); color: var(--warn); font-weight: 700; }
+      table.trace td.scan { outline: 2px solid var(--demo); outline-offset: -2px; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -238,6 +245,22 @@
         algorithm (\(\Theta(n\log n)\)), and the FFT are all recurrences the master
         theorem reads at a glance. The two sorts below are its most famous instances.
       </p>
+      <div class="aside">
+        <span class="tag">When the master theorem does not apply</span>
+        The master theorem covers \(a\,T(n/b) + f(n)\), but real recurrences wander
+        outside that form, and Cormen&nbsp;et&nbsp;al. give three tools for the rest.
+        The <strong>substitution method</strong>: guess the answer and prove it by
+        induction (the honest way to <em>verify</em> a bound the tree method suggested).
+        The <strong>recursion-tree method</strong>: draw the tree, sum each level, and
+        add up the geometric series &mdash; exactly the sketch behind the three cases,
+        and the way to handle a gap case like \(T(n) = 2T(n/2) + n\log n\) (which is
+        \(\Theta(n\log^2 n)\), a factor the basic theorem cannot name). And the
+        <strong>Akra&ndash;Bazzi method</strong>, a heavier generalization that handles
+        <em>unequal</em> subproblem sizes &mdash; \(T(n) = T(n/5) + T(7n/10) + \Theta(n)\),
+        the median-of-medians recurrence of <a href="#select">&sect;5</a>, whose solution
+        \(\Theta(n)\) no elementary case delivers. The recurrence is still the analysis;
+        the master theorem is just the common special case.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="merge">2. Mergesort</h2>
@@ -470,6 +493,41 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
         left is \(&lt; 5\), everything right is \(&gt; 5\), though neither side is yet
         sorted. That single linear pass is what quicksort recurses around.
       </div>
+      <p>
+        The same partition as an array, cell by cell. The
+        <span style="color:#0a7d4d;font-weight:700">green</span> prefix is the
+        &ldquo;\(&lt; \text{pivot}\)&rdquo; region (indices \(0\ldots i\)); the
+        <span style="color:#6b40d8;font-weight:700">outlined</span> cell is the one the
+        scan index \(j\) is examining; the
+        <span style="color:#9a5b00;font-weight:700">shaded</span> cell is the pivot.
+        Each element that beats the pivot grows the green region and swaps in.
+      </p>
+      <figure>
+        <table class="trace">
+          <tr><th class="lab">step</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>i</th><th>j</th></tr>
+          <tr><td class="lab">pivot = a[5] = 5</td>
+            <td class="cell">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>&minus;1</td><td>&mdash;</td></tr>
+          <tr><td class="lab">j=0: 3&lt;5 &rarr; i=0, swap</td>
+            <td class="cell lt scan">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>0</td></tr>
+          <tr><td class="lab">j=1: 7&ge;5, skip</td>
+            <td class="cell lt">3</td><td class="cell scan">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>1</td></tr>
+          <tr><td class="lab">j=2: 1&lt;5 &rarr; i=1, swap</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell scan">7</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>2</td></tr>
+          <tr><td class="lab">j=3: 8&ge;5, skip</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell">7</td><td class="cell scan">8</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>3</td></tr>
+          <tr><td class="lab">j=4: 2&lt;5 &rarr; i=2, swap</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">2</td><td class="cell">8</td><td class="cell scan">7</td><td class="cell piv">5</td><td>2</td><td>4</td></tr>
+          <tr><td class="lab">place: swap a[3],a[5]</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">2</td><td class="cell piv">5</td><td class="cell">7</td><td class="cell">8</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </table>
+        <figcaption>
+          Lomuto partition of \([3,7,1,8,2,5]\). The green &ldquo;less-than&rdquo;
+          region grows only when an element beats the pivot; skipped elements
+          (\(7, 8\)) are simply passed over. The final swap drops the pivot at index
+          \(3\), the boundary of the region &mdash; its permanent home. Neither side is
+          sorted; quicksort recurses on each.
+        </figcaption>
+      </figure>
       <div class="code-tabs" data-snippet="sorting/quicksort">
 <div class="ct-tabs" role="tablist">
   <button class="ct-tab" data-lang="cpp">C++</button>
@@ -594,6 +652,38 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
         <li><strong>median-of-three</strong> (first, middle, last) is a cheap
           heuristic that dodges the sorted-input trap in practice.</li>
       </ul>
+      <div class="thm">
+        <span class="tag">Proposition (expected comparisons, CLRS)</span>
+        Randomized quicksort makes \(2(n+1)H_n - 4n \approx 2n\ln n \approx
+        1.39\,n\log_2 n\) comparisons in expectation, where \(H_n\) is the \(n\)-th
+        harmonic number.
+      </div>
+      <div class="proof">
+        <strong>Sketch (indicator random variables).</strong> Let \(z_1 &lt; z_2 &lt;
+        \cdots &lt; z_n\) be the elements in sorted order. Two elements are compared
+        <em>at most once</em> during the whole sort, and \(z_i\) and \(z_j\) are
+        compared exactly when the first pivot chosen from the range
+        \(\{z_i, \dots, z_j\}\) is \(z_i\) or \(z_j\) themselves &mdash; if any middle
+        element is picked first, it splits them into different subarrays and they never
+        meet. Among the \(j - i + 1\) equally likely first-pivots in that range, two are
+        favorable, so \(\Pr[z_i \text{ compared with } z_j] = \tfrac{2}{j-i+1}\). By
+        linearity of expectation the total is
+        \[
+          \sum_{i&lt;j}\frac{2}{j-i+1}
+          = \sum_{i=1}^{n-1}\sum_{k=1}^{n-i}\frac{2}{k+1}
+          = O(n\log n),
+        \]
+        the inner sum being a harmonic number \(\approx \ln n\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        So quicksort averages about \(39\%\) more comparisons than the
+        \(n\log_2 n\) information-theoretic floor of <a href="#lower">&sect;4</a>
+        &mdash; yet it is the fastest sort in practice, because each comparison and swap
+        is so cheap and cache-friendly that its small constant beats mergesort&rsquo;s
+        larger one. Asymptotics tie; the constant, and the memory traffic behind it,
+        decide.
+      </p>
       <div class="aside">
         <span class="tag">Duplicates and 3-way partitioning</span>
         Plain two-way quicksort is quadratic on an array of many equal keys

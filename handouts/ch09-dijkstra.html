@@ -94,6 +94,12 @@
       .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
       .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13.5px; }
+      table.trace td, table.trace th { text-align: center; padding: 5px 8px; font-variant-numeric: tabular-nums; }
+      table.trace td.lab { text-align: left; white-space: nowrap; color: var(--dim); }
+      table.trace td.set { background: var(--accentbg); color: var(--accent); font-weight: 700; }
+      table.trace td.upd { background: var(--warnbg); font-weight: 700; }
+      table.trace td.inf { color: #b8bec9; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -687,6 +693,124 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         sparse graphs, which is most of them. This is the same dense-versus-sparse
         choice that picked the adjacency matrix over the list in Chapter 8.
       </div>
+      <div class="aside">
+        <span class="tag">Sharper heaps: the \(O(E + V\log V)\) bound</span>
+        The \(\log V\) factor rides on <em>every</em> priority-queue operation, and a
+        <strong>Fibonacci heap</strong> (Cormen&nbsp;et&nbsp;al.) shaves it where it
+        hurts. It supports <code>decrease-key</code> in \(O(1)\) amortized and
+        <code>extract-min</code> in \(O(\log V)\) amortized, so eager Dijkstra does
+        \(E\) decrease-keys and \(V\) extract-mins for a total of \(O(E + V\log V)\)
+        &mdash; asymptotically better on dense graphs (where \(E\) approaches
+        \(V^2\)). The constant factors are large enough that a plain binary heap wins
+        in practice, but the bound is the theoretical state of the art, and it is why
+        decrease-key is worth naming even though our lazy code avoids it.
+      </div>
+
+      <h3>Tracing the running graph, step by step</h3>
+      <p>
+        The table below is the algorithm&rsquo;s state after each settle, on the
+        running graph from source \(0\). Each row shows the whole
+        <code>dist</code> array; the <span style="color:#0a7d4d;font-weight:700">green</span>
+        cell is the vertex settled that step (its label is now final), and a
+        <span style="color:#9a5b00;font-weight:700">shaded</span> cell is a distance
+        <em>lowered</em> by a relaxation that step. Reading down a column shows a
+        vertex&rsquo;s label ratchet downward and then freeze.
+      </p>
+      <figure>
+        <table class="trace">
+          <tr>
+            <th class="lab">step (settle)</th>
+            <th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th>
+          </tr>
+          <tr><td class="lab">initialize</td>
+            <td class="upd">0</td><td class="inf">&infin;</td><td class="inf">&infin;</td><td class="inf">&infin;</td><td class="inf">&infin;</td><td class="inf">&infin;</td><td class="inf">&infin;</td><td class="inf">&infin;</td></tr>
+          <tr><td class="lab">settle 0 (d=0)</td>
+            <td class="set">0</td><td class="upd">4</td><td class="inf">&infin;</td><td class="upd">6</td><td class="inf">&infin;</td><td class="upd">20</td><td class="inf">&infin;</td><td class="inf">&infin;</td></tr>
+          <tr><td class="lab">settle 1 (d=4)</td>
+            <td>0</td><td class="set">4</td><td class="upd">5</td><td>6</td><td class="inf">&infin;</td><td>20</td><td class="inf">&infin;</td><td class="inf">&infin;</td></tr>
+          <tr><td class="lab">settle 2 (d=5)</td>
+            <td>0</td><td>4</td><td class="set">5</td><td>6</td><td class="inf">&infin;</td><td>20</td><td class="inf">&infin;</td><td class="inf">&infin;</td></tr>
+          <tr><td class="lab">settle 3 (d=6)</td>
+            <td>0</td><td>4</td><td>5</td><td class="set">6</td><td class="upd">8</td><td>20</td><td class="inf">&infin;</td><td class="upd">17</td></tr>
+          <tr><td class="lab">settle 4 (d=8)</td>
+            <td>0</td><td>4</td><td>5</td><td>6</td><td class="set">8</td><td class="upd">11</td><td class="inf">&infin;</td><td class="upd">15</td></tr>
+          <tr><td class="lab">settle 5 (d=11)</td>
+            <td>0</td><td>4</td><td>5</td><td>6</td><td>8</td><td class="set">11</td><td class="upd">20</td><td>15</td></tr>
+          <tr><td class="lab">settle 7 (d=15)</td>
+            <td>0</td><td>4</td><td>5</td><td>6</td><td>8</td><td>11</td><td>20</td><td class="set">15</td></tr>
+          <tr><td class="lab">settle 6 (d=20)</td>
+            <td>0</td><td>4</td><td>5</td><td>6</td><td>8</td><td>11</td><td class="set">20</td><td>15</td></tr>
+        </table>
+        <figcaption>
+          Dijkstra from \(0\). Vertices settle in nondecreasing distance order
+          &mdash; \(0,1,2,3,4,5,7,6\) &mdash; the same monotonicity BFS had by edge
+          count. Watch \(\texttt{dist}[5]\) fall \(20 \to 11\) when \(4\) settles, and
+          \(\texttt{dist}[7]\) fall \(17 \to 15\) at the same step: a label may be
+          relaxed several times before its vertex is settled, but never after.
+        </figcaption>
+      </figure>
+      <p>
+        The <code>parent</code> pointer set by each winning relaxation records one
+        edge per vertex, and together they form the <strong>shortest-paths tree</strong>
+        &mdash; the actual routes, drawn below. Note it uses \(4 \to 5\) rather than
+        the direct \(0 \to 5\), and \(0 \to 3\) rather than \(1 \to 3\): the tree is
+        assembled from whichever relaxation last lowered each label.
+      </p>
+      <figure>
+        <svg viewBox="0 0 420 300" role="img" aria-label="The shortest-paths tree Dijkstra computes from vertex 0. Seven tree edges are drawn thick and green; the four unused edges thin and gray. Each vertex is labelled with its final shortest distance from 0.">
+          <defs>
+            <marker id="ahg" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="#0a7d4d"/>
+            </marker>
+            <marker id="ahx" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L8,3 L0,6 Z" fill="#b8bec9"/>
+            </marker>
+          </defs>
+          <g stroke="#b8bec9" stroke-width="1.6" fill="none" marker-end="url(#ahx)">
+            <line x1="202" y1="58" x2="139" y2="209"/>  <!-- 0->5 (unused) -->
+            <line x1="289" y1="93" x2="289" y2="207"/>  <!-- 1->3 (unused) -->
+            <line x1="314" y1="170" x2="298" y2="209"/>  <!-- 2->3 (unused) -->
+            <line x1="274" y1="214" x2="146" y2="86"/>  <!-- 3->7 (unused) -->
+          </g>
+          <g stroke="#0a7d4d" stroke-width="2.6" fill="none" marker-end="url(#ahg)">
+            <line x1="230" y1="46" x2="269" y2="62"/>  <!-- 0->1 -->
+            <line x1="218" y1="58" x2="281" y2="209"/>  <!-- 0->3 -->
+            <line x1="298" y1="91" x2="314" y2="130"/>  <!-- 1->2 -->
+            <line x1="269" y1="238" x2="230" y2="254"/>  <!-- 3->4 -->
+            <line x1="190" y1="254" x2="151" y2="238"/>  <!-- 4->5 -->
+            <line x1="202" y1="242" x2="139" y2="91"/>  <!-- 4->7 -->
+            <line x1="122" y1="209" x2="106" y2="170"/>  <!-- 5->6 -->
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="13" font-weight="700"
+             fill="#0a7d4d" stroke="#fff" stroke-width="3" paint-order="stroke"
+             text-anchor="middle">
+            <text x="210" y="14">0</text>    <text x="318" y="66">4</text>
+            <text x="351" y="150">5</text>   <text x="318" y="234">6</text>
+            <text x="210" y="292">8</text>   <text x="101" y="234">11</text>
+            <text x="68" y="150">20</text>   <text x="101" y="66">15</text>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+            <g fill="#fff" stroke="#2a2d36" stroke-width="1.6">
+              <circle cx="210" cy="38" r="19"/>  <circle cx="289" cy="71" r="19"/>
+              <circle cx="322" cy="150" r="19"/>  <circle cx="289" cy="229" r="19"/>
+              <circle cx="210" cy="262" r="19"/>  <circle cx="131" cy="229" r="19"/>
+              <circle cx="98" cy="150" r="19"/>  <circle cx="131" cy="71" r="19"/>
+            </g>
+            <g fill="#1a1c22" stroke="none">
+              <text x="210" y="43">0</text>  <text x="289" y="76">1</text>
+              <text x="322" y="155">2</text>  <text x="289" y="234">3</text>
+              <text x="210" y="267">4</text>  <text x="131" y="234">5</text>
+              <text x="98" y="155">6</text>  <text x="131" y="76">7</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption>
+          The shortest-paths tree from \(0\) (green), with each vertex&rsquo;s final
+          distance beside it. The four gray edges &mdash; \(0\to5\), \(1\to3\),
+          \(2\to3\), \(3\to7\) &mdash; are never used, each beaten by a cheaper route
+          through the tree.
+        </figcaption>
+      </figure>
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=dijkstra">Dijkstra demo</a>. Run it from \(0\) on
@@ -757,6 +881,24 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         change &mdash; often long before the whole graph is explored. That early
         exit is the doorway to A\* (<a href="#frontier">&sect;6</a>).
       </p>
+      <div class="aside">
+        <span class="tag">The relaxation framework behind the proof</span>
+        Cormen&nbsp;et&nbsp;al. isolate the three facts every relaxation-based proof
+        leans on, worth naming because they are reused for Bellman&ndash;Ford and the
+        DAG algorithm too. The <strong>upper-bound property</strong>: once
+        \(\texttt{dist}[v]\) reaches \(\delta(v)\) it never changes, and it is always
+        \(\ge \delta(v)\) (our invariant of <a href="#relax">&sect;2</a>). The
+        <strong>convergence property</strong>: if \(s \rightsquigarrow u \to v\) is a
+        shortest path and \(\texttt{dist}[u] = \delta(u)\) at the moment
+        \(u \to v\) is relaxed, then \(\texttt{dist}[v] = \delta(v)\) forever after.
+        The <strong>path-relaxation property</strong>: if the edges of a shortest
+        \(s\rightsquigarrow v\) path are relaxed <em>in path order</em> (possibly with
+        other relaxations interleaved), then \(\texttt{dist}[v] = \delta(v)\). Every
+        shortest-path algorithm is a scheme for relaxing each shortest path&rsquo;s
+        edges in order: Dijkstra by settling nearest-first, Bellman&ndash;Ford by
+        brute-force rounds, the DAG algorithm by topological order. Correctness is
+        always &ldquo;did we relax the right edges in the right order?&rdquo;
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="negative">5. Negative weights and the limits of greed</h2>

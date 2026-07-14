@@ -94,6 +94,13 @@
       .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
       .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13.5px; }
+      table.trace td, table.trace th { padding: 5px 9px; font-variant-numeric: tabular-nums; }
+      table.trace td.num { text-align: center; }
+      table.trace td.add { background: var(--accentbg); color: var(--accent); font-weight: 700; }
+      table.trace td.skip { background: #f0f2f6; color: var(--dim); font-weight: 700; }
+      table.trace td.forest { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+      table.trace .mrg { color: var(--accent); font-weight: 700; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -387,6 +394,21 @@ impl UF {
         &mdash; matters as much as the result.
       </p>
       <div class="aside">
+        <span class="tag">The \(\alpha(N)\) bound, and where it comes from</span>
+        The near-constant bound is a genuine <em>amortized</em> result, not a
+        per-operation one: Tarjan proved that union by size (or by rank) together with
+        path compression runs any sequence of \(m\) operations on \(N\) elements in
+        \(O(m\,\alpha(N))\) total time, and that no pointer-based structure can do
+        asymptotically better. A single <code>find</code> can still walk a long path;
+        the compression it performs pays for the next traversals, so the <em>average</em>
+        over the sequence is \(\alpha(N)\). Two implementation notes: <em>union by
+        rank</em> (tree height as the tie-breaker) and <em>union by size</em> both give
+        the bound, and <em>path halving</em> &mdash; repointing to the grandparent, our
+        one-line version &mdash; achieves the same \(\alpha(N)\) as full compression
+        while walking the path only once. The analysis is subtle; the code is eight
+        lines.
+      </div>
+      <div class="aside">
         <span class="tag">Union-find vs. a DFS for components</span>
         Chapter 8&rsquo;s DFS also finds connected components, but it needs the whole
         graph up front and a fresh traversal per query. Union-find shines when edges
@@ -550,6 +572,25 @@ impl UF {
         property says what to add; the cycle property says what to skip. Kruskal uses
         both.
       </div>
+      <div class="aside">
+        <span class="tag">One generic algorithm, three instances</span>
+        Cormen&nbsp;et&nbsp;al. present Kruskal and Prim as two settings of a single
+        <strong>generic MST algorithm</strong>: maintain a set of edges \(A\) that is
+        always a subset of some MST, and repeatedly add a <em>safe</em> edge &mdash; a
+        minimum-weight edge crossing a cut that \(A\) does not already cross. The cut
+        property is exactly the guarantee that such an edge is safe. The three classic
+        algorithms differ only in which cut they take at each step:
+        <ul>
+          <li><strong>Kruskal</strong> &mdash; the cut around the two components its
+            next edge would join (\(A\) is a growing forest);</li>
+          <li><strong>Prim</strong> &mdash; the cut of the one growing tree versus
+            everything else;</li>
+          <li><strong>Bor&#367;vka</strong> &mdash; <em>every</em> component&rsquo;s
+            cheapest outgoing edge, all added at once each round.</li>
+        </ul>
+        Recognizing the shared skeleton means one theorem &mdash; the cut property
+        &mdash; proves all three at once.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="kruskal">3. Kruskal&rsquo;s algorithm</h2>
@@ -670,6 +711,37 @@ fn kruskal(v: usize, mut edges: Vec&lt;(i64, usize, usize)&gt;)
         lightest edges, are accepted first even though they lie in different parts of
         the graph &mdash; Kruskal grows several fragments at once, unlike Prim.)</span>
       </div>
+      <p>
+        The same run, seen as the <em>union-find forest coalescing</em> &mdash; the
+        real state the algorithm maintains. Each accepted edge (green) is a
+        <code>connected(u,v)</code> query that returned false, followed by a
+        <code>unite</code> that merges two components; each skip (gray) is a query
+        that returned true. The component count falls from \(8\) to \(1\) over exactly
+        seven merges.
+      </p>
+      <figure>
+        <table class="trace">
+          <tr><th>edge</th><th>w</th><th>connected?</th><th>action</th><th>forest (non-trivial components)</th></tr>
+          <tr><td class="num">&mdash;</td><td class="num">&mdash;</td><td>&mdash;</td><td>start</td><td class="forest">0 &middot; 1 &middot; 2 &middot; 3 &middot; 4 &middot; 5 &middot; 6 &middot; 7&nbsp;&nbsp;(8 singletons)</td></tr>
+          <tr><td class="num">1-2</td><td class="num">1</td><td>no</td><td class="add">ADD</td><td class="forest"><span class="mrg">{1 2}</span></td></tr>
+          <tr><td class="num">3-4</td><td class="num">2</td><td>no</td><td class="add">ADD</td><td class="forest">{1 2} &nbsp;<span class="mrg">{3 4}</span></td></tr>
+          <tr><td class="num">4-5</td><td class="num">3</td><td>no</td><td class="add">ADD</td><td class="forest">{1 2} &nbsp;<span class="mrg">{3 4 5}</span></td></tr>
+          <tr><td class="num">0-1</td><td class="num">4</td><td>no</td><td class="add">ADD</td><td class="forest"><span class="mrg">{0 1 2}</span> &nbsp;{3 4 5}</td></tr>
+          <tr><td class="num">1-3</td><td class="num">5</td><td>no</td><td class="add">ADD</td><td class="forest"><span class="mrg">{0 1 2 3 4 5}</span></td></tr>
+          <tr><td class="num">0-3</td><td class="num">6</td><td>yes</td><td class="skip">skip</td><td class="forest">{0 1 2 3 4 5}&nbsp;&nbsp;(cycle 0-1-3)</td></tr>
+          <tr><td class="num">4-7</td><td class="num">7</td><td>no</td><td class="add">ADD</td><td class="forest"><span class="mrg">{0 1 2 3 4 5 7}</span></td></tr>
+          <tr><td class="num">2-3</td><td class="num">8</td><td>yes</td><td class="skip">skip</td><td class="forest">{0 1 2 3 4 5 7}&nbsp;&nbsp;(cycle)</td></tr>
+          <tr><td class="num">5-6</td><td class="num">9</td><td>no</td><td class="add">ADD</td><td class="forest"><span class="mrg">{0 1 2 3 4 5 6 7}</span>&nbsp;&nbsp;&check; spanning</td></tr>
+        </table>
+        <figcaption>
+          Kruskal as union-find. Singleton components are shown once, then only the
+          groups that have merged; the highlighted set is the one that changed that
+          step. Seven ADDs merge the eight singletons into one tree of weight \(31\);
+          the two skips are edges whose endpoints were already connected. The edges of
+          weight \(11\) and \(20\) are never reached &mdash; the seventh ADD completes
+          the tree first.
+        </figcaption>
+      </figure>
       <h3>Why every accepted edge is safe</h3>
       <div class="thm">
         <span class="tag">Proposition (Kruskal is correct)</span>
@@ -901,6 +973,19 @@ fn prim(n: usize, adj: &amp;Vec&lt;Vec&lt;(usize, i64)&gt;&gt;, s: usize) -&gt; 
         \(O(V)\), then updates its neighbors. That is \(O(V^2)\), no heap, and on a
         dense graph (\(E = \Theta(V^2)\)) it matches or beats the heap version &mdash;
         the same dense-versus-sparse trade seen in Chapters 8 and 9.
+      </div>
+      <div class="aside">
+        <span class="tag">The third algorithm: Bor&#367;vka (1926)</span>
+        The oldest MST algorithm, and the one that parallelizes best. Each
+        <strong>round</strong>, every current component simultaneously selects its own
+        cheapest outgoing edge and all selected edges are added at once; since every
+        component at least halves in number per round (each merges with at least one
+        neighbor), only \(O(\log V)\) rounds are needed, each an \(\Theta(E)\) scan, for
+        \(O(E\log V)\) overall. Every selected edge is safe by the cut property (it is
+        the lightest edge crossing its component&rsquo;s cut), so correctness is free.
+        Because the components act independently within a round, Bor&#367;vka is the
+        basis of parallel and distributed MST algorithms &mdash; and, combined with
+        Prim, of the fastest known near-linear sequential ones.
       </div>
       <div class="aside">
         <span class="tag">Aside: articulation points</span>

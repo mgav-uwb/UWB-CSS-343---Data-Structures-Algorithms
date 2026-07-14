@@ -94,6 +94,12 @@
       .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
       .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13.5px; }
+      table.trace td, table.trace th { padding: 5px 9px; }
+      table.trace td.num { text-align: center; }
+      table.trace td.pq { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+      table.trace .two { background: var(--warnbg); color: var(--warn); font-weight: 700; border-radius: 3px; padding: 0 3px; }
+      table.trace td.new { text-align: center; color: var(--accent); font-weight: 700; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -274,6 +280,24 @@
         best can foreclose a better whole are dynamic-programming territory. The rest
         of this chapter is the cleanest greedy success in the course.
       </p>
+      <div class="aside">
+        <span class="tag">When is greedy <em>always</em> optimal? Matroids</span>
+        There is a precise answer to &ldquo;which problems is greedy right for,&rdquo;
+        and it is one of the deeper ideas in Cormen&nbsp;et&nbsp;al. A
+        <strong>matroid</strong> is a ground set with a family of &ldquo;independent&rdquo;
+        subsets closed downward and satisfying an exchange axiom (if one independent set
+        is larger than another, some element of the larger can be added to the smaller
+        keeping it independent). The theorem: the greedy algorithm &mdash; sort elements
+        by weight, take each that keeps the set independent &mdash; finds a
+        maximum-weight independent set <em>for every weighting</em> if and only if the
+        structure is a matroid. Minimum spanning trees are the canonical case: the
+        forests of a graph form the <em>graphic matroid</em>, and Kruskal is exactly
+        this greedy (which is why it needed no problem-specific cleverness, only the cut
+        property). The \(0/1\) knapsack&rsquo;s feasible sets are <em>not</em> a matroid,
+        which is the structural reason greedy fails on it. Huffman is a greedy that lies
+        outside the matroid frame, so it needs its own exchange proof &mdash; a reminder
+        that matroids explain many greedy successes but not all.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="huffman">3. Huffman coding: an optimal prefix-free code</h2>
@@ -445,6 +469,29 @@ fn build_huffman(freqs: &amp;[(char, u64)]) -&gt; Node {
         The internal-node sums \(14, 25, 30, 55, 100\) build up to the total character
         count.
       </div>
+      <p>
+        Seen as the <em>priority queue&rsquo;s</em> contents &mdash; the state the
+        build actually maintains &mdash; each step removes the two smallest roots
+        (<span style="color:#9a5b00;font-weight:700">shaded</span>) and pushes their
+        sum. Leaf roots are written with their symbol; internal roots are bare sums.
+      </p>
+      <figure>
+        <table class="trace">
+          <tr><th>step</th><th>priority queue (roots, by frequency)</th><th>push</th></tr>
+          <tr><td class="num">1</td><td class="pq"><span class="two">5&middot;a</span> <span class="two">9&middot;b</span> 12&middot;c 13&middot;d 16&middot;e 45&middot;f</td><td class="new">14</td></tr>
+          <tr><td class="num">2</td><td class="pq"><span class="two">12&middot;c</span> <span class="two">13&middot;d</span> 14 16&middot;e 45&middot;f</td><td class="new">25</td></tr>
+          <tr><td class="num">3</td><td class="pq"><span class="two">14</span> <span class="two">16&middot;e</span> 25 45&middot;f</td><td class="new">30</td></tr>
+          <tr><td class="num">4</td><td class="pq"><span class="two">25</span> <span class="two">30</span> 45&middot;f</td><td class="new">55</td></tr>
+          <tr><td class="num">5</td><td class="pq"><span class="two">45&middot;f</span> <span class="two">55</span></td><td class="new">100</td></tr>
+        </table>
+        <figcaption>
+          The \(n-1 = 5\) merges as priority-queue operations. Each row pops the two
+          shaded minima and pushes their sum; the queue shrinks by one root per step
+          until only the root, frequency \(100\), remains. Notice a merged node
+          re-enters the ordering by its <em>sum</em> &mdash; the \(14\) from step 1
+          sits among the leaves in step 3 and is itself merged there.
+        </figcaption>
+      </figure>
       <figure>
         <svg viewBox="0 0 420 288" role="img" aria-label="The Huffman trie for the CLRS frequencies. The root has frequency 100; its left child is the leaf f (45) and its right child is an internal node 55; the 55 node's children are internal nodes 25 and 30; 25 has leaf children c (12) and d (13); 30 has an internal child 14 and the leaf e (16); 14 has leaf children a (5) and b (9). Left edges are labeled 0, right edges 1.">
           <g stroke="#8a9099" stroke-width="1.6" fill="none">
@@ -698,6 +745,22 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
         \(s\)&rsquo;s probability. Huffman comes within \(1\) bit of \(H\) per symbol,
         and is exactly optimal among codes that use an integer number of bits per
         symbol.
+      </div>
+      <div class="aside">
+        <span class="tag">Kraft&rsquo;s inequality: which code lengths are even possible</span>
+        Before asking which prefix code is <em>best</em>, ask which are <em>legal</em>.
+        <strong>Kraft&rsquo;s inequality</strong> says a binary prefix code with codeword
+        lengths \(\ell_1, \dots, \ell_n\) exists if and only if
+        \[ \sum_{i=1}^{n} 2^{-\ell_i} \;\le\; 1. \]
+        The reason is exactly the trie: a codeword of length \(\ell\) is a leaf at depth
+        \(\ell\), which claims a \(2^{-\ell}\) fraction of the leaves of a full depth-\(D\)
+        tree, and disjoint leaves&rsquo; fractions cannot exceed the whole. Huffman is
+        then the solution to a clean optimization: minimize \(\sum_i f_i \ell_i\) over all
+        integer lengths satisfying Kraft. Relax the integers to real lengths and calculus
+        gives the optimum \(\ell_i = -\log_2 p_i\), whose cost is the entropy \(H\)
+        &mdash; the theoretical floor of the theorem above. Huffman pays for rounding
+        those lengths back to whole bits, which is the entire &ldquo;within one
+        bit&rdquo; gap, and is what arithmetic coding sidesteps by never rounding.
       </div>
       <p>
         The residual sub-bit gap &mdash; Huffman must spend a whole number of bits per
