@@ -1,0 +1,1099 @@
+<!doctype html>
+<!-- CSS 343 course chapter - Graphs III: union-find and minimum spanning trees.
+     Self-contained primary reading. Math renders via MathJax (CDN). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chapter 11: Union-Find &amp; MST - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 { font-size: 20px; margin: 34px 0 10px; padding-top: 6px; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      pre .cm { color: #7a8296; }
+      .code-tabs { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+      .ct-tabs { display: flex; flex-wrap: wrap; background: #eef1f6; border-bottom: 1px solid var(--line); }
+      .ct-tab { font-family: system-ui, sans-serif; font-size: 12.5px; padding: 6px 13px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; }
+      .ct-tab.on { color: var(--ink); background: #fff; border-bottom-color: var(--demo); font-weight: 600; }
+      .code-tabs pre { margin: 0; border: none; border-radius: 0; border-left: none; }
+      .code-tabs pre[hidden] { display: none; }
+      .ct-src { font-family: system-ui, sans-serif; font-size: 11.5px; color: var(--dim); margin: 0; padding: 5px 13px; border-top: 1px solid var(--line); background: #fafbfc; }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .proof { margin: 10px 0 4px; padding-left: 14px; border-left: 2px solid var(--line); color: #2c2f37; }
+      .proof .qed { float: right; }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      figure { margin: 18px 0 6px; text-align: center; }
+      figure svg { max-width: 100%; height: auto; }
+      figcaption { font-family: system-ui, sans-serif; font-size: 13px; color: var(--dim); margin: 7px auto 0; max-width: 92%; }
+      details { margin: 8px 0 8px 2px; font-size: 15px; }
+      summary { cursor: pointer; color: var(--accent); font-family: system-ui, sans-serif; font-size: 14px; }
+      details[open] summary { margin-bottom: 6px; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        details { display: block; } details summary { display: none; }
+        .demo { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This chapter uses MathJax for its mathematics and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Chapter 11 &mdash; Union-Find &amp; Minimum Spanning Trees</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Course text, primary reading for Lecture 11.
+      </div>
+      <div class="src">
+        Two linked topics. First a tiny structure &mdash; union-find &mdash; that
+        answers &ldquo;are these two things connected?&rdquo; under a stream of
+        merges, refined from \(O(N)\) to near-constant time through weighting and
+        path compression. Then the minimum spanning tree: the cheapest set of edges
+        that connects a weighted graph, made greedy-safe by one theorem (the cut
+        property), and computed two ways &mdash; Kruskal, which is exactly a sort
+        plus union-find, and Prim, which is the Chapter 6 heap again. With the
+        doubling proof, the exchange proof, worked traces, the demos, and exercises.
+      </div>
+
+      <p class="lead">
+        The back half of this course is mostly <em>old structures, recombined into
+        new algorithms</em>, and this chapter is the clearest case. It opens with
+        <strong>union-find</strong>, a structure so small it is two integer arrays,
+        yet it answers dynamic-connectivity queries in essentially constant time
+        after a sequence of clever refinements. It then turns to the
+        <strong>minimum spanning tree</strong> &mdash; the cheapest way to wire a
+        weighted graph so everything is connected &mdash; and finds that union-find
+        is precisely the tool Kruskal&rsquo;s algorithm needs, while the binary heap
+        from Chapter 6 powers Prim&rsquo;s. One theorem, the cut property, makes both
+        algorithms correct, and one exchange argument proves it.
+      </p>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#uf">Dynamic connectivity: the union-find structure</a></li>
+          <li><a href="#cut">Spanning trees and the cut property</a></li>
+          <li><a href="#kruskal">Kruskal&rsquo;s algorithm</a></li>
+          <li><a href="#prim">Prim&rsquo;s algorithm</a></li>
+          <li><a href="#compare">Trees that are not shortest-path trees, and the toolkit</a></li>
+          <li><a href="#ex">Exercises (with solutions)</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="uf">1. Dynamic connectivity: the union-find structure</h2>
+      <div class="def">
+        <span class="tag">Definition (dynamic connectivity)</span>
+        Given \(N\) objects and a stream of <strong>connections</strong>, support two
+        operations in any interleaving: <code>unite(p, q)</code> records that \(p\)
+        and \(q\) are connected, and <code>connected(p, q)</code> asks whether they
+        are connected, directly or transitively. Because connection is transitive,
+        the objects partition into <strong>components</strong>, and the question is
+        really &ldquo;are \(p\) and \(q\) in the same component?&rdquo;
+      </div>
+      <p>
+        This abstracts pixels merging into regions, computers joining a network,
+        people connecting in a social graph. The whole implementation hinges on one
+        internal operation, <code>find(p)</code>, which returns a canonical
+        <em>identifier</em> for \(p\)&rsquo;s component; then
+        <code>connected(p, q)</code> is just <code>find(p) == find(q)</code>. (The
+        operation is classically called <em>union</em>, but that is a reserved word
+        in C++, so the method is named <code>unite</code>.) We build the final
+        structure through three strictly-better versions.
+      </p>
+
+      <h3>Quick-find, quick-union, and the trade they make</h3>
+      <p>
+        <strong>Quick-find</strong> stores a component label <code>id[i]</code> for
+        each element; <code>connected</code> is a single comparison, but
+        <code>unite</code> must sweep the whole array to relabel one component:
+      </p>
+      <pre>  connected(p, q):  id[p] == id[q]              <span class="cm">// O(1)</span>
+  unite(p, q):      for every i with id[i]==id[p]: id[i] = id[q]   <span class="cm">// O(N)</span></pre>
+      <p>
+        With \(O(N)\) per union, building the structure from \(N\) unions is
+        \(O(N^2)\) &mdash; unusable at scale. <strong>Quick-union</strong> inverts
+        the trade: store <code>parent[i]</code>, making each component a
+        <em>tree</em> whose root is its identifier. Now <code>unite</code> is a
+        single link, but <code>find</code> walks to the root and can be \(O(N)\) if
+        the tree degenerates into a path:
+      </p>
+      <pre>  find(p):     follow parent[] to the root          <span class="cm">// O(tree height)</span>
+  unite(p, q): parent[ find(p) ] = find(q)          <span class="cm">// O(1) link, plus 2 finds</span></pre>
+      <p>
+        We have only moved the cost from union to find. Two refinements &mdash;
+        applied together &mdash; drive both operations to near-constant.
+      </p>
+
+      <h3>Weighting: keep the trees short</h3>
+      <p>
+        The tall-tree problem is self-inflicted: linking a big tree under a small one
+        makes everything in the big tree deeper. So do the opposite &mdash; always
+        link the <strong>smaller</strong> tree under the <strong>larger</strong>,
+        tracking each tree&rsquo;s size. This is <strong>weighted quick-union</strong>,
+        and it bounds every tree&rsquo;s height by \(\log_2 N\).
+      </p>
+      <div class="thm">
+        <span class="tag">Proposition (weighted trees stay shallow)</span>
+        Under union by size, every tree on \(k\) nodes has height at most
+        \(\lfloor \log_2 k \rfloor\); in particular no node is ever deeper than
+        \(\log_2 N\), so <code>find</code> and <code>unite</code> are \(O(\log N)\).
+      </div>
+      <div class="proof">
+        <strong>Proof (a doubling argument).</strong> Track the depth of a single
+        node \(x\). Its depth increases by one exactly when the tree containing \(x\)
+        is linked <em>under</em> another tree &mdash; and, by the union-by-size rule,
+        that only happens when \(x\)&rsquo;s tree is the smaller of the two, so the
+        combined tree has size at least twice \(x\)&rsquo;s old tree size. Thus every
+        time \(x\) sinks one level, the size of the tree it belongs to at least
+        doubles. That size starts at \(1\) and can never exceed \(N\), so it can
+        double at most \(\log_2 N\) times; \(x\) sinks at most \(\log_2 N\) levels.
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        This is the same doubling argument that bounded the number of resizes in
+        hashing (Chapter 7) and the height of a heap (Chapter 6) &mdash; its third
+        appearance, and worth recognizing as a standard tool.
+      </p>
+
+      <h3>Path compression: flatten as you go</h3>
+      <p>
+        The second refinement is nearly free. Every <code>find</code> already walks
+        from a node to the root; on the way back, <em>repoint the visited nodes
+        closer to the root</em>. The one-line version below is <em>path halving</em>
+        &mdash; point each node at its grandparent &mdash; which flattens the tree
+        as a side effect of ordinary queries, so the structure gets faster the more
+        it is used:
+      </p>
+      <pre>  find(p):
+      while (p != parent[p]) {
+          parent[p] = parent[parent[p]];    <span class="cm">// halve the path</span>
+          p = parent[p];
+      }
+      return p;</pre>
+      <div class="ex">
+        <span class="tag">Example (weighted vs. plain, then compression)</span>
+        Apply <code>unite(4,3)</code>, <code>unite(3,8)</code>,
+        <code>unite(9,4)</code>. Plain quick-union links root under root each time,
+        building a chain of height \(2\): <code>8&larr;3&larr;4</code> with
+        <code>9</code> also under <code>8</code>. Weighted quick-union instead hangs
+        the smaller tree under the larger (ties keep the first root), producing the
+        flat star <code>4&larr;{3, 8, 9}</code> of height \(1\). And a later
+        <code>find</code> on any deep node repoints it straight toward the root, so
+        the next <code>find</code> on it is one hop. Weighting prevents tall trees;
+        compression removes the ones that form anyway.
+      </div>
+      <p>
+        Here is the whole structure &mdash; two arrays and three short methods:
+      </p>
+      <div class="code-tabs" data-snippet="graphs/union-find">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Weighted quick-union with path compression. Two arrays: parent[i] (who i
+// points to) and size[i] (tree size, for union by size). Near-constant per op.
+struct UF {
+    vector&lt;int&gt; parent, size;
+    UF(int n) : parent(n), size(n, 1) {
+        for (int i = 0; i &lt; n; i++) parent[i] = i;   // each element its own root
+    }
+    int find(int x) {                        // walk to the root, compressing
+        while (x != parent[x]) {
+            parent[x] = parent[parent[x]];    // path halving: point at grandparent
+            x = parent[x];
+        }
+        return x;
+    }
+    void unite(int a, int b) {               // union by size: smaller under larger
+        int ra = find(a), rb = find(b);
+        if (ra == rb) return;
+        if (size[ra] &lt; size[rb]) swap(ra, rb);
+        parent[rb] = ra;                      // rb (smaller) hangs under ra
+        size[ra] += size[rb];
+    }
+    bool connected(int a, int b) { return find(a) == find(b); }
+};</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Weighted quick-union with path compression. parent[i] = i&#x27;s parent,
+// size[i] = tree size (for union by size). Near-constant amortized per op.
+class UF {
+    int[] parent, size;
+    UF(int n) {
+        parent = new int[n];
+        size = new int[n];
+        for (int i = 0; i &lt; n; i++) { parent[i] = i; size[i] = 1; }
+    }
+    int find(int x) {                        // walk to the root, compressing
+        while (x != parent[x]) {
+            parent[x] = parent[parent[x]];    // path halving: point at grandparent
+            x = parent[x];
+        }
+        return x;
+    }
+    void unite(int a, int b) {               // union by size: smaller under larger
+        int ra = find(a), rb = find(b);
+        if (ra == rb) return;
+        if (size[ra] &lt; size[rb]) { int t = ra; ra = rb; rb = t; }
+        parent[rb] = ra;
+        size[ra] += size[rb];
+    }
+    boolean connected(int a, int b) { return find(a) == find(b); }
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># Weighted quick-union with path compression. parent[i] = i&#x27;s parent,
+# size[i] = tree size (for union by size). Near-constant amortized per op.
+class UF:
+    def __init__(self, n):
+        self.parent = list(range(n))         # each element its own root
+        self.size = [1] * n
+
+    def find(self, x):                       # walk to the root, compressing
+        while x != self.parent[x]:
+            self.parent[x] = self.parent[self.parent[x]]  # path halving
+            x = self.parent[x]
+        return x
+
+    def unite(self, a, b):                   # union by size: smaller under larger
+        ra, rb = self.find(a), self.find(b)
+        if ra == rb:
+            return
+        if self.size[ra] &lt; self.size[rb]:
+            ra, rb = rb, ra
+        self.parent[rb] = ra
+        self.size[ra] += self.size[rb]
+
+    def connected(self, a, b):
+        return self.find(a) == self.find(b)</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// Weighted quick-union with path compression. parent[i] = i&#x27;s parent,
+// size[i] = tree size (for union by size). Near-constant amortized per op.
+struct UF {
+    parent: Vec&lt;usize&gt;,
+    size: Vec&lt;usize&gt;,
+}
+impl UF {
+    fn new(n: usize) -&gt; Self {
+        UF { parent: (0..n).collect(), size: vec![1; n] }
+    }
+    fn find(&amp;mut self, mut x: usize) -&gt; usize {   // walk up, compressing
+        while x != self.parent[x] {
+            self.parent[x] = self.parent[self.parent[x]];  // path halving
+            x = self.parent[x];
+        }
+        x
+    }
+    fn unite(&amp;mut self, a: usize, b: usize) {     // union by size
+        let (mut ra, mut rb) = (self.find(a), self.find(b));
+        if ra == rb { return; }
+        if self.size[ra] &lt; self.size[rb] {
+            std::mem::swap(&amp;mut ra, &amp;mut rb);          // smaller under larger
+        }
+        self.parent[rb] = ra;
+        self.size[ra] += self.size[rb];
+    }
+    fn connected(&amp;mut self, a: usize, b: usize) -&gt; bool {
+        self.find(a) == self.find(b)
+    }
+}</pre>
+<p class="ct-src">source: <code>code/graphs/union-find.cpp &middot; code/graphs/union-find.java &middot; code/graphs/union-find.py &middot; code/graphs/union-find.rs</code></p>
+<!--/ct--></div>
+
+      <h3>The cost, and why union-find is everywhere</h3>
+      <table>
+        <tr><th>implementation</th><th>unite</th><th>find</th></tr>
+        <tr><td>quick-find</td><td>\(O(N)\)</td><td>\(O(1)\)</td></tr>
+        <tr><td>quick-union</td><td>\(O(N)\)</td><td>\(O(N)\)</td></tr>
+        <tr><td>weighted quick-union</td><td>\(O(\log N)\)</td><td>\(O(\log N)\)</td></tr>
+        <tr><td><strong>weighted + path compression</strong></td><td><strong>\(\approx O(1)\)</strong></td><td><strong>\(\approx O(1)\)</strong></td></tr>
+      </table>
+      <p>
+        The final version costs \(O(\alpha(N))\) <em>amortized</em> per operation,
+        where \(\alpha\) is the inverse Ackermann function &mdash; a quantity so
+        slow-growing it is at most \(4\) or \(5\) for any \(N\) that could be stored
+        on any computer. For every practical purpose, union and connected are
+        constant time. The design story &mdash; find the bottleneck, fix it, repeat
+        &mdash; matters as much as the result.
+      </p>
+      <div class="aside">
+        <span class="tag">Union-find vs. a DFS for components</span>
+        Chapter 8&rsquo;s DFS also finds connected components, but it needs the whole
+        graph up front and a fresh traversal per query. Union-find shines when edges
+        <em>arrive online</em> and connectivity queries interleave with them &mdash;
+        social links forming, network cables coming up &mdash; because each union
+        and each query is near-constant. Same problem, opposite access pattern.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=union-find">Union-find demo</a> (weighted
+        quick-union + path compression). Cell \(i\) shows <code>parent[i]</code>;
+        roots point at themselves. Type <code>4 3</code>, <code>3 8</code>,
+        <code>9 4</code> and press <em>Union</em> to build the star above, then build
+        a taller tree and run <em>Find</em> on a deep element to watch compression
+        flatten it in a single step. The write counter shows how little each
+        operation actually does.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="cut">2. Spanning trees and the cut property</h2>
+      <div class="def">
+        <span class="tag">Definition (spanning tree, MST)</span>
+        A <strong>spanning tree</strong> of a connected graph is a subset of its
+        edges that connects all \(V\) vertices with no cycle &mdash; necessarily
+        exactly \(V-1\) edges. A <strong>minimum spanning tree</strong> (MST) of a
+        connected, edge-weighted, undirected graph is a spanning tree of minimum
+        total edge weight.
+      </div>
+      <p>
+        A spanning tree sits exactly at the connectivity boundary: remove any one of
+        its edges and the graph falls into two pieces; add any one non-tree edge and
+        you close exactly one cycle. (These are the &ldquo;two of three&rdquo; facts
+        about {connected, acyclic, \(V-1\) edges} from Chapter 8, now load-bearing.)
+        A graph usually has exponentially many spanning trees; the MST is the
+        cheapest.
+      </p>
+      <div class="aside">
+        <span class="tag">The minimum weight is unique even when the tree is not</span>
+        If all edge weights are <em>distinct</em>, the MST is unique. If weights tie,
+        several different edge sets may all be minimal &mdash; but every one of them
+        has the <em>same</em> total weight, so &ldquo;the MST weight&rdquo; is always
+        well-defined. The running graph below has all-distinct weights, so its MST is
+        unique.
+      </div>
+
+      <h3>The running graph</h3>
+      <p>
+        The graph for this chapter is the same eight vertices and eleven weighted
+        edges as Chapters 8 and 9 &mdash; only now <em>undirected</em> (the arrows
+        are dropped). The question is no longer &ldquo;cheapest routes from a
+        source&rdquo; but &ldquo;cheapest set of edges connecting everything.&rdquo;
+      </p>
+      <figure>
+        <svg viewBox="0 0 420 300" role="img" aria-label="The running undirected weighted graph on eight vertices, the Chapter 8 graph with arrows dropped; the seven minimum-spanning-tree edges are drawn thick and green, the four non-tree edges thin and gray.">
+          <g fill="none">
+            <!-- non-MST edges: thin gray -->
+            <g stroke="#b8bec9" stroke-width="1.6">
+              <line x1="210" y1="38" x2="289" y2="229"/>  <!-- 0-3 -->
+              <line x1="210" y1="38" x2="131" y2="229"/>  <!-- 0-5 -->
+              <line x1="322" y1="150" x2="289" y2="229"/>  <!-- 2-3 -->
+              <line x1="289" y1="229" x2="131" y2="71"/>  <!-- 3-7 -->
+            </g>
+            <!-- MST edges: thick green -->
+            <g stroke="#0a7d4d" stroke-width="2.8">
+              <line x1="210" y1="38" x2="289" y2="71"/>   <!-- 0-1 -->
+              <line x1="289" y1="71" x2="322" y2="150"/>  <!-- 1-2 -->
+              <line x1="289" y1="71" x2="289" y2="229"/>  <!-- 1-3 -->
+              <line x1="289" y1="229" x2="210" y2="262"/>  <!-- 3-4 -->
+              <line x1="210" y1="262" x2="131" y2="229"/>  <!-- 4-5 -->
+              <line x1="210" y1="262" x2="131" y2="71"/>  <!-- 4-7 -->
+              <line x1="131" y1="229" x2="98" y2="150"/>  <!-- 5-6 -->
+            </g>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="13" font-weight="700"
+             stroke="#fff" stroke-width="3" paint-order="stroke" text-anchor="middle">
+            <g fill="#0a7d4d">
+              <text x="250" y="50">4</text>    <!-- 0-1 -->
+              <text x="316" y="110">1</text>   <!-- 1-2 -->
+              <text x="300" y="150">5</text>   <!-- 1-3 -->
+              <text x="250" y="260">2</text>   <!-- 3-4 -->
+              <text x="166" y="260">3</text>   <!-- 4-5 -->
+              <text x="150" y="172">7</text>   <!-- 4-7 -->
+              <text x="98" y="192">9</text>    <!-- 5-6 -->
+            </g>
+            <g fill="#8a9099">
+              <text x="262" y="120">6</text>   <!-- 0-3 -->
+              <text x="150" y="120">20</text>  <!-- 0-5 -->
+              <text x="318" y="190">8</text>   <!-- 2-3 -->
+              <text x="198" y="140">11</text>  <!-- 3-7 -->
+            </g>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+            <g fill="#fff" stroke="#2a2d36" stroke-width="1.6">
+              <circle cx="210" cy="38" r="19"/>  <circle cx="289" cy="71" r="19"/>
+              <circle cx="322" cy="150" r="19"/>  <circle cx="289" cy="229" r="19"/>
+              <circle cx="210" cy="262" r="19"/>  <circle cx="131" cy="229" r="19"/>
+              <circle cx="98" cy="150" r="19"/>  <circle cx="131" cy="71" r="19"/>
+            </g>
+            <g fill="#1a1c22" stroke="none">
+              <text x="210" y="43">0</text>  <text x="289" y="76">1</text>
+              <text x="322" y="155">2</text>  <text x="289" y="234">3</text>
+              <text x="210" y="267">4</text>  <text x="131" y="234">5</text>
+              <text x="98" y="155">6</text>  <text x="131" y="76">7</text>
+            </g>
+          </g>
+        </svg>
+        <figcaption>
+          The running graph, undirected: \(V = 8\), \(E = 11\). The seven green edges
+          are its minimum spanning tree &mdash; \(0\text{-}1,\ 1\text{-}2,\
+          1\text{-}3,\ 3\text{-}4,\ 4\text{-}5,\ 4\text{-}7,\ 5\text{-}6\), total
+          weight \(1+2+3+4+5+7+9 = 31\); the four gray edges
+          (\(0\text{-}3,\ 2\text{-}3,\ 3\text{-}7,\ 0\text{-}5\)) are left out.
+          Kruskal and Prim both find exactly this tree.
+        </figcaption>
+      </figure>
+
+      <h3>The cut property</h3>
+      <p>
+        One theorem stands behind every MST algorithm. A <strong>cut</strong> is a
+        partition of the vertices into two nonempty sets; an edge <strong>crosses</strong>
+        the cut if its endpoints fall on opposite sides.
+      </p>
+      <div class="thm">
+        <span class="tag">Theorem (cut property)</span>
+        For any cut, a minimum-weight edge crossing it belongs to some MST. (When
+        weights are distinct, the minimum crossing edge belongs to <em>every</em>
+        MST.)
+      </div>
+      <div class="proof">
+        <strong>Proof (exchange argument).</strong> Let \(e\) be a lightest edge
+        crossing a given cut, and suppose some MST \(T\) does not contain \(e\).
+        Adding \(e\) to \(T\) creates exactly one cycle (Chapter 8), and that cycle
+        starts and ends on the same side of the cut, so it must cross the cut a
+        second time, by some other edge \(f\). Since \(e\) is a lightest crossing
+        edge, \(w(f) \ge w(e)\). Now form \(T' = T - f + e\): removing \(f\) breaks
+        the cycle, and \(e\) reconnects the two pieces, so \(T'\) is again a spanning
+        tree, and its weight \(w(T') = w(T) - w(f) + w(e) \le w(T)\). But \(T\) was
+        minimum, so \(w(T') = w(T)\): \(T'\) is also an MST, and it contains \(e\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        Every MST algorithm is just a disciplined way to pick cuts and take their
+        lightest crossing edge. This exchange argument &mdash; add the greedy choice,
+        find the cycle it closes, swap out a no-better edge &mdash; is the template
+        for greedy-optimality proofs, and we reuse it for Huffman coding in
+        Chapter 12.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (a cut on the running graph)</span>
+        Split the vertices as \(\{0, 1\}\) versus \(\{2,3,4,5,6,7\}\). The crossing
+        edges are \(1\text{-}2\,(1)\), \(1\text{-}3\,(5)\), \(0\text{-}3\,(6)\), and
+        \(0\text{-}5\,(20)\). The lightest is \(1\text{-}2\) at weight \(1\), so it is
+        safe &mdash; and indeed it is in the MST. This happens to be the very first
+        edge Kruskal takes.
+      </div>
+      <div class="aside">
+        <span class="tag">The cycle property (the dual)</span>
+        The mirror statement is equally useful: with distinct weights, the
+        <em>maximum</em>-weight edge on any cycle is in <em>no</em> MST &mdash; you can
+        always route around it more cheaply. (Same exchange, run backwards.) The cut
+        property says what to add; the cycle property says what to skip. Kruskal uses
+        both.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="kruskal">3. Kruskal&rsquo;s algorithm</h2>
+      <p>
+        <strong>Kruskal&rsquo;s algorithm</strong> considers edges from cheapest to
+        most expensive and accepts each one that connects two so-far-separate pieces,
+        skipping any edge whose endpoints are already connected (it would close a
+        cycle). After \(V-1\) acceptances the tree spans everything.
+      </p>
+      <p>
+        The one non-trivial step is the test &ldquo;would this edge form a
+        cycle?&rdquo; &mdash; which is exactly &ldquo;are its endpoints already in the
+        same component?&rdquo;, a union-find query. This is why we built union-find
+        first: it makes each check near-constant.
+      </p>
+      <div class="code-tabs" data-snippet="graphs/kruskal">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Kruskal: sort edges cheapest-first, then add each edge whose endpoints are not
+// yet connected (union-find is the cycle check). Stop after V-1 edges.
+struct Edge { int u, v; long w; };
+
+vector&lt;Edge&gt; kruskal(int V, vector&lt;Edge&gt; edges) {
+    sort(edges.begin(), edges.end(),
+         [](const Edge&amp; a, const Edge&amp; b) { return a.w &lt; b.w; });
+    UF uf(V);                                    // from union-find.cpp
+    vector&lt;Edge&gt; mst;
+    for (const Edge&amp; e : edges) {
+        if (uf.connected(e.u, e.v)) continue;    // cycle — skip (cycle property)
+        mst.push_back(e);                        // safe — take it (cut property)
+        uf.unite(e.u, e.v);
+        if ((int)mst.size() == V - 1) break;     // spanning tree complete
+    }
+    return mst;
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Kruskal: sort edges cheapest-first, then add each edge whose endpoints are not
+// yet connected. Stop after V-1 edges.
+class Edge {
+    int u, v; long w;
+    Edge(int u, int v, long w) { this.u = u; this.v = v; this.w = w; }
+}
+
+List&lt;Edge&gt; kruskal(int V, List&lt;Edge&gt; edges) {
+    edges.sort((a, b) -&gt; Long.compare(a.w, b.w));
+    UF uf = new UF(V);                           // from union-find.java
+    List&lt;Edge&gt; mst = new ArrayList&lt;&gt;();
+    for (Edge e : edges) {
+        if (uf.connected(e.u, e.v)) continue;    // cycle — skip (cycle property)
+        mst.add(e);                              // safe — take it (cut property)
+        uf.unite(e.u, e.v);
+        if (mst.size() == V - 1) break;          // spanning tree complete
+    }
+    return mst;
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># Kruskal: sort edges cheapest-first, then add each edge whose endpoints are not
+# yet connected. Each edge is a tuple (w, u, v). Stop after V-1 edges.
+def kruskal(V, edges):
+    uf = UF(V)                               # from union-find.py
+    mst = []
+    for w, u, v in sorted(edges):            # sorts by weight (first tuple field)
+        if uf.connected(u, v):               # cycle — skip (cycle property)
+            continue
+        mst.append((w, u, v))                # safe — take it (cut property)
+        uf.unite(u, v)
+        if len(mst) == V - 1:                # spanning tree complete
+            break
+    return mst</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// Kruskal: sort edges cheapest-first, then add each edge whose endpoints are not
+// yet connected. Each edge is (weight, u, v). Stop after V-1 edges.
+fn kruskal(v: usize, mut edges: Vec&lt;(i64, usize, usize)&gt;)
+    -&gt; Vec&lt;(i64, usize, usize)&gt;
+{
+    edges.sort();                            // tuples sort by weight first
+    let mut uf = UF::new(v);                 // from union-find.rs
+    let mut mst = Vec::new();
+    for (w, a, b) in edges {
+        if uf.connected(a, b) { continue; }  // cycle — skip (cycle property)
+        mst.push((w, a, b));                 // safe — take it (cut property)
+        uf.unite(a, b);
+        if mst.len() == v - 1 { break; }     // spanning tree complete
+    }
+    mst
+}</pre>
+<p class="ct-src">source: <code>code/graphs/kruskal.cpp &middot; code/graphs/kruskal.java &middot; code/graphs/kruskal.py &middot; code/graphs/kruskal.rs</code></p>
+<!--/ct--></div>
+      <p>
+        Kruskal maintains a <strong>forest</strong> that merges: it starts with \(V\)
+        one-vertex trees, and every accepted edge fuses two of them, so the graph goes
+        from \(V\) components down to \(1\) over exactly \(V-1\) acceptances. That
+        forest <em>is</em> the union-find structure &mdash; each <code>unite</code> a
+        merge, each <code>connected</code> a &ldquo;same tree?&rdquo; question.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (the full run)</span>
+        On the running graph, edges sorted ascending (all weights distinct):
+        <pre>  1: 1-2   2: 3-4   3: 4-5   4: 0-1   5: 1-3   6: 0-3
+  7: 4-7   8: 2-3   9: 5-6   11: 3-7   20: 0-5
+
+  1-2 (1)  ADD    total  1
+  3-4 (2)  ADD    total  3
+  4-5 (3)  ADD    total  6     {3,4,5} formed
+  0-1 (4)  ADD    total 10     {0,1} formed
+  1-3 (5)  ADD    total 15     merges {0,1,2} and {3,4,5}
+  0-3 (6)  SKIP  &mdash; 0 and 3 already connected (cycle 0-1-3)
+  4-7 (7)  ADD    total 22
+  2-3 (8)  SKIP  &mdash; 2 and 3 already connected
+  5-6 (9)  ADD    total 31     7 edges &rArr; STOP</pre>
+        The skips <em>are</em> the algorithm. When \(0\text{-}3\) is examined,
+        \(0\) and \(3\) already share a component (through \(0\text{-}1\),
+        \(1\text{-}2\), \(1\text{-}3\)), so it is rejected by the cycle property;
+        likewise \(2\text{-}3\). The early stop at seven edges means the two heaviest
+        edges (\(11\) and \(20\)) are never even looked at. Total weight \(31\).
+        <br><span class="note">(Note \(1\text{-}2\) and \(3\text{-}4\), the two
+        lightest edges, are accepted first even though they lie in different parts of
+        the graph &mdash; Kruskal grows several fragments at once, unlike Prim.)</span>
+      </div>
+      <h3>Why every accepted edge is safe</h3>
+      <div class="thm">
+        <span class="tag">Proposition (Kruskal is correct)</span>
+        Every edge Kruskal accepts is a minimum crossing edge of some cut, hence in
+        an MST by the cut property; so Kruskal outputs an MST.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Suppose Kruskal accepts \(e = (u,v)\), and let \(C\)
+        be \(u\)&rsquo;s component at that moment. Since \(u\) and \(v\) were not yet
+        connected, \(v \notin C\), so \(e\) crosses the cut \((C, \text{rest})\). We
+        claim \(e\) is a <em>lightest</em> crossing edge. Any crossing edge \(f\) with
+        \(w(f) &lt; w(e)\) would have been processed earlier (edges come in weight
+        order), and by then it was either accepted or skipped &mdash; and in both
+        cases its two endpoints ended up in the same component. But a crossing edge
+        has one endpoint in \(C\) and one outside, i.e. in <em>different</em>
+        components, a contradiction. So no lighter crossing edge exists; \(e\) is a
+        minimum crossing edge and, by the cut property, safe. Accepting \(V-1\) safe
+        edges yields a spanning tree that is an MST. <span class="qed">&#8718;</span>
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (Kruskal cost)</span>
+        Kruskal runs in \(O(E\log E) = O(E\log V)\) time.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Sorting the \(E\) edges costs \(O(E\log E)\). The
+        single pass performs \(O(E)\) union-find operations, each near-constant, for
+        \(O(E\,\alpha(V))\) total. The sort dominates, and since \(E \le V^2\),
+        \(\log E \le \log V^2 = 2\log V\), so \(O(E\log E) = O(E\log V)\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        Kruskal is, in one phrase, a sort followed by a near-linear pass. If the
+        edges arrive already sorted (or the weights are small integers that admit
+        radix sort), it approaches linear time &mdash; a reason to reach for it on
+        sparse graphs and pre-sorted input.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=kruskal">Kruskal demo</a>. Edges appear
+        cheapest-first; an edge is drawn bold when its endpoints have different
+        union-find roots (accepted) and faded when they share one (skipped, a cycle).
+        The second row shows the union-find forest merging. Run it to reach total
+        \(31\), then raise \(1\text{-}3\)&rsquo;s weight above \(6\) and re-run: the
+        merge now routes through \(0\text{-}3\) instead, and you watch the cut
+        property pick a different safe edge.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="prim">4. Prim&rsquo;s algorithm</h2>
+      <p>
+        <strong>Prim&rsquo;s algorithm</strong> grows a single tree from a start
+        vertex, repeatedly adding the lightest edge that leaves the tree to a vertex
+        not yet in it. Unlike Kruskal, its correctness needs no separate argument:
+        the growing tree versus everything else <em>is</em> a cut, and Prim takes that
+        cut&rsquo;s minimum crossing edge by construction &mdash; safe by the cut
+        property at every step.
+      </p>
+      <p>
+        To find the lightest crossing edge quickly, keep the candidate crossing edges
+        in a <strong>min-heap</strong> (Chapter 6 again). When a vertex joins the
+        tree, push its edges to outside vertices; to grow, pop the cheapest edge and
+        use it if it still leads outside, discarding stale entries whose far endpoint
+        has since joined &mdash; the same lazy-deletion trick as Dijkstra.
+      </p>
+      <div class="code-tabs" data-snippet="graphs/prim">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Lazy Prim: grow one tree from s. A min-heap holds candidate crossing edges
+// keyed by weight; pop the lightest, skip it if it now leads back into the tree,
+// otherwise take it. adj[u] = u&#x27;s weighted edges. Returns the MST total weight.
+struct Edge { int to; long w; };
+
+long prim(int V, vector&lt;vector&lt;Edge&gt;&gt;&amp; adj, int s) {
+    vector&lt;bool&gt; inTree(V, false);
+    priority_queue&lt;pair&lt;long,int&gt;, vector&lt;pair&lt;long,int&gt;&gt;,
+                   greater&lt;&gt;&gt; pq;                 // min-heap keyed by edge weight
+    long total = 0; int picked = 0;
+    inTree[s] = true;
+    for (Edge e : adj[s]) pq.push({e.w, e.to});   // edges leaving the start
+    while (picked &lt; V - 1 &amp;&amp; !pq.empty()) {
+        auto [w, u] = pq.top(); pq.pop();
+        if (inTree[u]) continue;                  // stale — both ends already in
+        inTree[u] = true; total += w; picked++;   // take the crossing edge
+        for (Edge e : adj[u])
+            if (!inTree[e.to]) pq.push({e.w, e.to});
+    }
+    return total;
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Lazy Prim: grow one tree from s. Min-heap of {weight, vertex}; skip stale pops.
+// adj.get(u) = u&#x27;s weighted edges. Returns the MST total weight.
+long prim(int V, List&lt;List&lt;Edge&gt;&gt; adj, int s) {
+    boolean[] inTree = new boolean[V];
+    PriorityQueue&lt;long[]&gt; pq =
+        new PriorityQueue&lt;&gt;((a, b) -&gt; Long.compare(a[0], b[0]));  // by weight
+    long total = 0; int picked = 0;
+    inTree[s] = true;
+    for (Edge e : adj.get(s)) pq.add(new long[]{e.w, e.to});
+    while (picked &lt; V - 1 &amp;&amp; !pq.isEmpty()) {
+        long[] top = pq.poll();
+        long w = top[0]; int u = (int) top[1];
+        if (inTree[u]) continue;                  // stale — both ends already in
+        inTree[u] = true; total += w; picked++;   // take the crossing edge
+        for (Edge e : adj.get(u))
+            if (!inTree[e.to]) pq.add(new long[]{e.w, e.to});
+    }
+    return total;
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden>import heapq
+
+# Lazy Prim: grow one tree from s. Min-heap of (weight, vertex); skip stale pops.
+# adj[u] is a list of (v, w) pairs, as in the weighted graph type. Returns the
+# MST total weight.
+def prim(V, adj, s):
+    in_tree = [False] * V
+    total, picked = 0, 0
+    in_tree[s] = True
+    pq = [(w, v) for v, w in adj[s]]          # edges leaving the start
+    heapq.heapify(pq)
+    while picked &lt; V - 1 and pq:
+        w, u = heapq.heappop(pq)
+        if in_tree[u]:                        # stale — both ends already in
+            continue
+        in_tree[u] = True                     # take the crossing edge
+        total += w
+        picked += 1
+        for v, wt in adj[u]:
+            if not in_tree[v]:
+                heapq.heappush(pq, (wt, v))
+    return total</pre>
+<pre class="ct-pane" data-lang="rs" hidden>use std::collections::BinaryHeap;
+use std::cmp::Reverse;
+
+// Lazy Prim from s. adj[u] holds (v, weight) pairs. Reverse turns the max-heap
+// into a min-heap on weight; skip stale pops. Returns the MST total weight.
+fn prim(n: usize, adj: &amp;Vec&lt;Vec&lt;(usize, i64)&gt;&gt;, s: usize) -&gt; i64 {
+    let mut in_tree = vec![false; n];
+    let mut pq = BinaryHeap::new();
+    let (mut total, mut picked) = (0i64, 0usize);
+    in_tree[s] = true;
+    for &amp;(v, w) in &amp;adj[s] { pq.push(Reverse((w, v))); }
+    while picked &lt; n - 1 {
+        let Some(Reverse((w, u))) = pq.pop() else { break };
+        if in_tree[u] { continue; }           // stale — both ends already in
+        in_tree[u] = true;                    // take the crossing edge
+        total += w;
+        picked += 1;
+        for &amp;(v, wt) in &amp;adj[u] {
+            if !in_tree[v] { pq.push(Reverse((wt, v))); }
+        }
+    }
+    total
+}</pre>
+<p class="ct-src">source: <code>code/graphs/prim.cpp &middot; code/graphs/prim.java &middot; code/graphs/prim.py &middot; code/graphs/prim.rs</code></p>
+<!--/ct--></div>
+      <div class="ex">
+        <span class="tag">Example (Prim from 0)</span>
+        <pre>  tree {0}          cheapest leaving edge  0-1 (4)  &rarr; add 1   total  4
+  tree {0,1}        1-2 (1)                        &rarr; add 2   total  5
+  tree {0,1,2}      1-3 (5)                        &rarr; add 3   total 10
+  tree {0,1,2,3}    3-4 (2)                        &rarr; add 4   total 12
+  tree +4           4-5 (3)                        &rarr; add 5   total 15
+  tree +5           4-7 (7)                        &rarr; add 7   total 22
+  tree +7           5-6 (9)                        &rarr; add 6   total 31</pre>
+        Prim adds vertices in the order \(1,2,3,4,5,7,6\) &mdash; different from
+        Kruskal&rsquo;s edge order, which took the two lightest edges \(1\text{-}2\)
+        and \(3\text{-}4\) first &mdash; yet the final edge set and the total,
+        \(31\), are identical. Watch the expensive edges \(0\text{-}3\,(6)\) and
+        \(0\text{-}5\,(20)\) keep losing to cheaper options until the tree is complete
+        and they are never used.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=prim">Prim demo</a>. Run Prim from \(0\) &mdash;
+        one blob growing by its lightest exit edge &mdash; then run the
+        <a href="../lib/demo.html?ds=kruskal">Kruskal demo</a> on the same graph and
+        confirm a different order but the same tree of weight \(31\).
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="compare">5. Trees that are not shortest-path trees, and the toolkit</h2>
+      <p>
+        Prim grows a tree from a source with a priority queue, and so does Dijkstra
+        (Chapter 9) &mdash; the two are the same skeleton, differing only in the
+        key they minimize.
+      </p>
+      <table>
+        <tr><th></th><th>Prim (MST)</th><th>Dijkstra (shortest paths)</th></tr>
+        <tr><td>priority-queue key</td><td>edge weight \(w\)</td><td>distance \(\texttt{dist}[u] + w\)</td></tr>
+        <tr><td>minimizes</td><td>the single connecting edge</td><td>the total distance from the source</td></tr>
+        <tr><td>result</td><td>cheapest spanning tree</td><td>cheapest paths from the source</td></tr>
+      </table>
+      <p>
+        Because the keys differ, the trees can differ &mdash; and the smallest example
+        proves it.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (MST \(\ne\) shortest-path tree)</span>
+        The triangle \(0\text{-}1\,(2)\), \(1\text{-}2\,(2)\), \(0\text{-}2\,(3)\):
+        <pre>  MST:  keep 0-1 and 1-2      total weight 4   (drop the 3-edge)
+  SPT from 0:  keep 0-1, 0-2  dist[1]=2, dist[2]=3
+
+  in the MST, the route 0&rarr;2 costs 2+2 = 4, not the shortest 3;
+  the SPT's total weight is 2+3 = 5, not the minimum 4.</pre>
+        The MST minimizes <em>total</em> edge weight (\(4 &lt; 5\)); the shortest-path
+        tree minimizes <em>each vertex&rsquo;s distance</em> from the source (the
+        direct \(0\text{-}2\) at \(3\) beats the MST&rsquo;s \(4\)-cost detour).
+        Neither tree does the other&rsquo;s job. (On the eight-vertex running graph
+        the two happen to coincide, which is exactly why this three-vertex triangle is
+        the example to remember: it separates the concepts even when larger graphs do
+        not.)
+      </div>
+      <table>
+        <tr><th></th><th>Kruskal</th><th>Prim</th></tr>
+        <tr><td>grows</td><td>a forest (merges)</td><td>one tree</td></tr>
+        <tr><td>picks</td><td>the globally cheapest edge</td><td>the cheapest edge leaving the tree</td></tr>
+        <tr><td>needs</td><td>union-find + a sort</td><td>a priority queue</td></tr>
+        <tr><td>cost</td><td>\(O(E\log V)\)</td><td>\(O(E\log V)\)</td></tr>
+        <tr><td>best for</td><td>sparse / pre-sorted</td><td>dense</td></tr>
+      </table>
+      <div class="aside">
+        <span class="tag">A queue-free Prim, \(O(V^2)\)</span>
+        As with Dijkstra, dropping the heap gives an array version: keep
+        <code>key[v]</code>, the weight of \(v\)&rsquo;s cheapest connection to the
+        tree, and each of \(V\) rounds scans for the minimum-key outside vertex in
+        \(O(V)\), then updates its neighbors. That is \(O(V^2)\), no heap, and on a
+        dense graph (\(E = \Theta(V^2)\)) it matches or beats the heap version &mdash;
+        the same dense-versus-sparse trade seen in Chapters 8 and 9.
+      </div>
+      <div class="aside">
+        <span class="tag">Aside: articulation points</span>
+        A related reliability question about an undirected graph is which single
+        vertex, if removed, would disconnect it &mdash; an <strong>articulation
+        point</strong> (cut vertex). One DFS finds them all in \(\Theta(V+E)\), using
+        two numbers per vertex: \(\texttt{disc}[v]\), its discovery time, and
+        \(\texttt{low}[v]\), the earliest discovery time reachable from \(v\)&rsquo;s
+        DFS subtree using tree edges plus at most one back edge. A non-root \(u\) is an
+        articulation point exactly when some DFS child \(c\) has
+        \(\texttt{low}[c] \ge \texttt{disc}[u]\) (that subtree cannot escape above
+        \(u\), so removing \(u\) strands it); the root is one exactly when it has two
+        or more DFS children. It is the same DFS-tree-and-back-edge machinery as
+        Chapter 8&rsquo;s cycle detection, put to a new use.
+      </div>
+      <h3>Algorithms from known structures</h3>
+      <p>
+        The real lesson of this chapter is that none of its algorithms needed a new
+        data structure &mdash; they are recombinations of the toolkit:
+      </p>
+      <table>
+        <tr><th>algorithm</th><th>built from</th></tr>
+        <tr><td>Kruskal</td><td>union-find + a sort</td></tr>
+        <tr><td>Prim</td><td>the Chapter 6 binary heap</td></tr>
+        <tr><td>Dijkstra (Ch. 9)</td><td>the Chapter 6 binary heap</td></tr>
+        <tr><td>articulation points</td><td>the Chapter 8 DFS tree</td></tr>
+      </table>
+      <p>
+        Minimum spanning trees themselves are the workhorse behind cheapest-network
+        design (cabling, roads, pipelines that reach every site) and, with one twist,
+        clustering: build the MST of a set of data points under distance weights, then
+        delete the \(k-1\) heaviest tree edges, and the tree falls into \(k\) clusters
+        &mdash; single-linkage clustering, from the same algorithm that wires a
+        network. As the course continues, the leverage comes from combining known
+        structures, not inventing new ones; Chapter 12 pushes exactly this idea into
+        greedy algorithms and Huffman coding.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="ex">6. Exercises (with solutions)</h2>
+      <ol>
+        <li>
+          Starting from singletons \(0,\dots,5\), apply weighted quick-union (ties keep
+          the first root) to <code>unite(0,1)</code>, <code>unite(2,3)</code>,
+          <code>unite(0,3)</code>. Give the final <code>parent</code> array and the
+          height of the resulting tree.
+          <details>
+            <summary>solution</summary>
+            <code>unite(0,1)</code>: sizes equal, so \(1\) hangs under \(0\);
+            \(\texttt{size}[0]=2\). <code>unite(2,3)</code>: \(3\) under \(2\);
+            \(\texttt{size}[2]=2\). <code>unite(0,3)</code>: roots \(0\) (size \(2\))
+            and \(2\) (size \(2\)) tie, so \(2\) hangs under \(0\);
+            \(\texttt{size}[0]=4\). Final <code>parent = [0, 0, 0, 2, 4, 5]</code>,
+            and the tree rooted at \(0\) has \(3\) at depth \(2\) (\(3 \to 2 \to 0\)),
+            so height \(2\) &mdash; within the \(\lfloor\log_2 4\rfloor = 2\) bound.
+            A subsequent <code>find(3)</code> would compress it to depth \(1\).
+          </details>
+        </li>
+        <li>
+          Explain, using the doubling argument, why union by size guarantees tree
+          height \(\le \log_2 N\) but quick-union without it can reach height
+          \(N-1\).
+          <details>
+            <summary>solution</summary>
+            Under union by size a node sinks a level only when its tree is linked
+            under an at-least-as-large tree, which at least doubles the tree&rsquo;s
+            size; a size bounded by \(N\) doubles at most \(\log_2 N\) times, so depth
+            \(\le \log_2 N\). Plain quick-union may link a large tree under a
+            single-node tree, adding depth without growing size &mdash; do this
+            repeatedly (<code>unite(1,0)</code>, <code>unite(2,1)</code>,
+            <code>unite(3,2)</code>, &hellip;) and you build a path of height
+            \(N-1\), making <code>find</code> \(O(N)\).
+          </details>
+        </li>
+        <li>
+          In Kruskal on the running graph, the edge \(0\text{-}3\) (weight \(6\)) is
+          skipped. Name the cycle it would have closed and the two MST properties that
+          justify skipping it.
+          <details>
+            <summary>solution</summary>
+            By the time \(0\text{-}3\) is examined, \(0\) and \(3\) are already
+            connected through \(0\text{-}1\), \(1\text{-}3\), so adding \(0\text{-}3\)
+            would close the cycle \(0\text{-}1\text{-}3\text{-}0\). It is safe to skip
+            by the <em>cycle property</em>: among the cycle&rsquo;s edges
+            (\(0\text{-}1{=}4\), \(1\text{-}3{=}5\), \(0\text{-}3{=}6\)) it is the
+            heaviest, so it is in no MST. Equivalently, the union-find query
+            <code>connected(0,3)</code> returns true, which is Kruskal&rsquo;s
+            implementation of the same test.
+          </details>
+        </li>
+        <li>
+          Run Prim from vertex \(6\) on the running graph. Do you get the same tree as
+          Prim from \(0\)? Why should you expect that?
+          <details>
+            <summary>solution</summary>
+            Yes &mdash; the same seven edges, total \(31\). From \(6\), Prim first
+            takes \(5\text{-}6\,(9)\), then \(4\text{-}5\,(3)\), \(3\text{-}4\,(2)\),
+            then \(1\text{-}3\,(5)\), \(1\text{-}2\,(1)\), \(0\text{-}1\,(4)\), and
+            \(4\text{-}7\,(7)\), assembling the identical edge set in a different
+            order. Because all weights are distinct, the MST is unique
+            (<a href="#cut">&sect;2</a>), so <em>every</em> correct MST algorithm and
+            every start vertex must produce that one tree.
+          </details>
+        </li>
+        <li>
+          Give a weighted graph on which Prim&rsquo;s MST and Dijkstra&rsquo;s
+          shortest-path tree from the same source are different, and state each tree.
+          <details>
+            <summary>solution</summary>
+            The triangle \(0\text{-}1\,(2)\), \(1\text{-}2\,(2)\),
+            \(0\text{-}2\,(3)\). The MST is \(\{0\text{-}1, 1\text{-}2\}\) (total
+            weight \(4\), dropping the weight-\(3\) edge). Dijkstra from \(0\) keeps
+            \(\{0\text{-}1, 0\text{-}2\}\), reaching \(2\) by the direct edge at
+            distance \(3\) rather than the \(4\)-cost path through \(1\). The two trees
+            share \(0\text{-}1\) but differ on the second edge, because Prim minimizes
+            the connecting edge&rsquo;s weight while Dijkstra minimizes total distance
+            from the source.
+          </details>
+        </li>
+        <li>
+          A graph has a unique lightest edge \(e\). Prove \(e\) is in every MST.
+          <details>
+            <summary>solution</summary>
+            Take any cut with \(e\) crossing it &mdash; for instance the cut
+            separating one endpoint of \(e\) from the other. Every crossing edge other
+            than \(e\) is strictly heavier (since \(e\) is the unique global minimum),
+            so \(e\) is <em>the</em> minimum crossing edge of that cut, and by the cut
+            property it belongs to every MST. (More generally, the globally lightest
+            edge is always safe to take first, which is exactly Kruskal&rsquo;s opening
+            move.)
+          </details>
+        </li>
+        <li>
+          You are handed the edges of a large sparse graph already sorted by weight,
+          and told weights are small integers. Which MST algorithm do you choose, and
+          what is its running time here?
+          <details>
+            <summary>solution</summary>
+            Kruskal. Its only expensive step is the sort, and the input is already
+            sorted (or radix-sortable in \(O(E)\) for small integer weights), so the
+            algorithm reduces to a single near-linear union-find pass:
+            \(O(E\,\alpha(V)) \approx O(E)\). Prim would still pay the heap&rsquo;s
+            \(\log V\) factor per edge, so on pre-sorted sparse input Kruskal is the
+            better fit.
+          </details>
+        </li>
+        <li>
+          True or false, with justification: &ldquo;Union-find can list the actual
+          path of connections between \(p\) and \(q\) when they are connected.&rdquo;
+          <details>
+            <summary>solution</summary>
+            False. Union-find records only which component each element belongs to
+            (via <code>parent</code> pointers toward an arbitrary root), not which
+            original edges connected them; path compression actively rewrites those
+            pointers, discarding any trace of the connection sequence. To report an
+            actual connecting path you need a graph traversal (BFS or DFS over the
+            stored edges), which is a different tool with a different cost. Union-find
+            answers <em>whether</em>, not <em>how</em>.
+          </details>
+        </li>
+      </ol>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 11 v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library.
+      </footer>
+    </div>
+    <script>
+      // code-tabs: per-snippet language selector, synced across the page (and
+      // across pages) via localStorage. Works offline — all languages inline.
+      (function () {
+        const KEY = "css343-lang";
+        function apply(lang) {
+          document.querySelectorAll(".code-tabs").forEach((ct) => {
+            const panes = [...ct.querySelectorAll(".ct-pane")];
+            const has = panes.some((p) => p.dataset.lang === lang);
+            const use = has ? lang : (panes[0] && panes[0].dataset.lang);
+            panes.forEach((p) => { p.hidden = p.dataset.lang !== use; });
+            ct.querySelectorAll(".ct-tab").forEach((t) =>
+              t.classList.toggle("on", t.dataset.lang === use));
+          });
+        }
+        document.addEventListener("click", (e) => {
+          const t = e.target.closest(".ct-tab");
+          if (!t) return;
+          localStorage.setItem(KEY, t.dataset.lang);
+          apply(t.dataset.lang);
+        });
+        const saved = localStorage.getItem(KEY) || "cpp";
+        if (document.readyState !== "loading") apply(saved);
+        else document.addEventListener("DOMContentLoaded", () => apply(saved));
+      })();
+    </script>
+  </body>
+</html>
