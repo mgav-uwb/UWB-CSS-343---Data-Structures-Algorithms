@@ -1,0 +1,1174 @@
+<!doctype html>
+<!-- CSS 343 course chapter - Balanced Trees II: 2-3, B-trees and red-black BSTs.
+     Self-contained primary reading. Math renders via MathJax (CDN). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chapter 5: Balanced Trees II - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 { font-size: 20px; margin: 34px 0 10px; padding-top: 6px; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      pre .cm { color: #7a8296; }
+      .code-tabs { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+      .ct-tabs { display: flex; flex-wrap: wrap; background: #eef1f6; border-bottom: 1px solid var(--line); }
+      .ct-tab { font-family: system-ui, sans-serif; font-size: 12.5px; padding: 6px 13px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; }
+      .ct-tab.on { color: var(--ink); background: #fff; border-bottom-color: var(--demo); font-weight: 600; }
+      .code-tabs pre { margin: 0; border: none; border-radius: 0; border-left: none; }
+      .code-tabs pre[hidden] { display: none; }
+      .ct-src { font-family: system-ui, sans-serif; font-size: 11.5px; color: var(--dim); margin: 0; padding: 5px 13px; border-top: 1px solid var(--line); background: #fafbfc; }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .proof { margin: 10px 0 4px; padding-left: 14px; border-left: 2px solid var(--line); color: #2c2f37; }
+      .proof .qed { float: right; }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      figure { margin: 18px 0 6px; text-align: center; }
+      figure svg { max-width: 100%; height: auto; }
+      figcaption { font-family: system-ui, sans-serif; font-size: 13px; color: var(--dim); margin: 7px auto 0; max-width: 92%; }
+      details { margin: 8px 0 8px 2px; font-size: 15px; }
+      summary { cursor: pointer; color: var(--accent); font-family: system-ui, sans-serif; font-size: 14px; }
+      details[open] summary { margin-bottom: 6px; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13.5px; }
+      table.trace td, table.trace th { text-align: center; padding: 5px 8px; font-variant-numeric: tabular-nums; }
+      table.trace td.lab { text-align: left; white-space: nowrap; color: var(--dim); }
+      table.trace td.set { background: var(--accentbg); color: var(--accent); font-weight: 700; }
+      table.trace td.upd { background: var(--warnbg); font-weight: 700; }
+      table.trace td.inf { color: #b8bec9; }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        details { display: block; } details summary { display: none; }
+        .demo { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This chapter uses MathJax for its mathematics and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Chapter 5 &mdash; Balanced Trees II: 2-3, B-Trees &amp; Red-Black Trees</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Course text, primary reading for Lecture 5.
+      </div>
+      <div class="src">
+        A second route to a height-balanced search tree, taken not by rotating a
+        binary tree back into shape but by letting a node hold more than one key.
+        The 2-3 tree and its perfect-balance invariant; insertion by
+        split-and-promote (why a 2-3 tree grows at the <em>root</em> and therefore
+        never needs a rotation); deletion by borrow-and-merge; the exact
+        correspondence that turns a 2-3 tree into a <strong>red-black BST</strong>
+        &mdash; one node type plus one colour bit &mdash; and the local moves
+        (<code>rotateLeft</code>, <code>rotateRight</code>, <code>flipColors</code>)
+        that maintain it; and finally <strong>B-trees</strong> and
+        <strong>B+ trees</strong>, the same split sized to a disk block, which is
+        why databases and filesystems are built on them. With worked traces,
+        figures, a correctness proof, links to the interactive demos, and exercises.
+      </div>
+
+      <p class="lead">
+        Chapter 4 won a \(\Theta(\log n)\) guarantee for the binary search tree of
+        Chapter 3 by keeping it nearly balanced &mdash; every node&rsquo;s balance
+        factor pinned to \(\{-1,0,+1\}\), and any violation repaired by a
+        <strong>rotation</strong>. That is one strategy, not the only one. This
+        chapter reaches the <em>same</em> guarantee by a completely different
+        mechanism: let a node hold one or two keys, keep every leaf at the same
+        depth, and grow the tree <strong>upward</strong> by splitting. That idea is
+        the <strong>2-3 tree</strong>; a <strong>red-black BST</strong> is how we
+        actually code it (a 2-3 tree wearing a binary-tree costume, with a single
+        colour bit remembering where the multi-key nodes were); and
+        <strong>B-trees</strong> are how databases scale it to disk, where the keys
+        do not fit in memory and every node access is an expensive block read. Three
+        machines, one idea &mdash; split a full node and send its middle key up.
+      </p>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#multiway">From rotations to fatter nodes</a></li>
+          <li><a href="#search">Searching a 2-3 tree</a></li>
+          <li><a href="#insert">Insertion: split and promote</a></li>
+          <li><a href="#delete">Deletion: borrow and merge</a></li>
+          <li><a href="#redblack">Red-black BSTs: a 2-3 tree in binary</a></li>
+          <li><a href="#btrees">B-trees and B+ trees: sized for the disk</a></li>
+          <li><a href="#which">One goal, several tools</a></li>
+          <li><a href="#ex">Exercises (with solutions)</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="multiway">1. From rotations to fatter nodes</h2>
+      <p>
+        The AVL tree of Chapter 4 keeps a <em>binary</em> tree balanced: one
+        invariant (balance factor \(\in\{-1,0,+1\}\)), restored after each update by
+        rotations, buying a height of at most \(1.44\log_2 n\) &mdash; a guarantee.
+        It works, but the rotations are fiddly: four cases on insert
+        (<code>LL</code>, <code>RR</code>, <code>LR</code>, <code>RL</code>), and a
+        deletion can cascade rotations all the way up the path. AVL fixes imbalance
+        <em>after</em> it happens. What if a tree could be built so that imbalance
+        never happens at all?
+      </p>
+      <p>
+        The shift is to allow a node to hold <strong>more than one key</strong> and
+        have <strong>more than two children</strong>. Then a new key can be absorbed
+        <em>into</em> an existing node rather than grown onto a lopsided path, and
+        balance becomes a property we get by construction instead of one we repair.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (2-3 tree)</span>
+        A <strong>2-3 tree</strong> is a search tree in which every internal node is
+        one of two kinds. A <strong>2-node</strong> holds one key and has two
+        children (an ordinary BST node). A <strong>3-node</strong> holds two keys
+        \(a \lt c\) and has <em>three</em> children: the subtree of keys \(\lt a\),
+        the subtree of keys strictly between \(a\) and \(c\), and the subtree of keys
+        \(\gt c\). Every leaf is required to lie at the <em>same depth</em>.
+      </div>
+      <pre>   2-node (1 key)            3-node (2 keys, a &lt; c)
+       [ b ]                    [ a | c ]
+       /   \                   /    |    \
+    &lt; b     &gt; b            &lt; a   a..c    &gt; c</pre>
+      <p>
+        A 3-node is the genuinely new thing: two keys guarding three doors. Reading
+        one just extends the BST rule &mdash; instead of &ldquo;left or right,&rdquo;
+        it is &ldquo;left, middle, or right&rdquo; depending on how the search key
+        compares to the two stored keys.
+      </p>
+      <div class="thm">
+        <span class="tag">Invariant (perfect balance)</span>
+        A 2-3 tree keeps <em>every</em> leaf at the <em>same</em> depth, at all
+        times &mdash; no &ldquo;\(\pm 1\) slack&rdquo; as in AVL. Consequently its
+        height \(h\) satisfies \(\log_3 n \le h \le \log_2 n\), so a 2-3 tree is
+        \(\Theta(\log n)\) tall, guaranteed, for any sequence of insertions.
+      </div>
+      <div class="proof">
+        <strong>Proof (of the height bounds).</strong> A tree of height \(h\) with
+        every leaf at depth \(h\) has between \(2^{h+1}-1\) nodes (all 2-nodes,
+        branching factor 2) and, packing every node with two keys and three
+        children, at most \(3^{h+1}-1\) key-slots. Turning that around on the number
+        of keys \(n\): the sparsest 2-3 tree of \(n\) keys is all 2-nodes, a perfect
+        binary tree of height \(\ge \log_2(n+1)-1\); the densest is all 3-nodes, of
+        height \(\le \log_3(n+1)-1\). Both bounds are \(\Theta(\log n)\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        This is a <em>stronger</em> balance condition than AVL&rsquo;s, yet &mdash;
+        remarkably &mdash; it is <em>easier</em> to maintain, because of how
+        insertion works (&sect;3). The one-sentence reason, worth planting now: a
+        2-3 tree <strong>grows at the root, not the leaves</strong>. A BST adds a new
+        <em>leaf</em>, so one side can sink deeper and the tree tilts; a 2-3 tree
+        pushes growth <em>upward</em>, adding a level at the very top, which lowers
+        every leaf by one simultaneously. The &ldquo;same depth&rdquo; invariant is
+        preserved by construction, never patched.
+      </p>
+      <div class="aside">
+        <span class="tag">A family, not one tree</span>
+        Sedgewick &amp; Wayne (&sect;3.3) treat the 2-3 tree chiefly as a stepping
+        stone: it is conceptually clean but awkward to code directly (two node types,
+        much pointer surgery), so its real value is that it <em>explains</em> the
+        red-black BST of &sect;5, which is the balanced tree real libraries ship.
+        Everything in this chapter &mdash; 2-3, red-black, B-trees &mdash; is the one
+        mechanism &ldquo;split a full node, promote its middle key,&rdquo; tuned to a
+        different node width and a different level of the memory hierarchy.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="search">2. Searching a 2-3 tree</h2>
+      <p>
+        Search is the easy half, and it is essentially BST search with one more door
+        to choose from at a 3-node. Compare the target against the key(s) in the
+        current node and descend into the one child whose key range contains it;
+        stop when you match a stored key or fall off at a leaf.
+      </p>
+      <figure>
+        <svg viewBox="0 0 460 210" role="img" aria-label="A 2-3 tree of height 2: root 2-node holding 50, with two 3-node children holding 20 and 35, and 70 and 85, each with three leaf children.">
+          <g stroke="#4a5163" stroke-width="1.5" fill="none">
+            <line x1="215" y1="42" x2="120" y2="92"/>
+            <line x1="240" y1="42" x2="335" y2="92"/>
+            <line x1="95"  y1="112" x2="45"  y2="168"/>
+            <line x1="112" y1="118" x2="112" y2="164"/>
+            <line x1="128" y1="112" x2="180" y2="168"/>
+            <line x1="318" y1="112" x2="268" y2="168"/>
+            <line x1="335" y1="118" x2="335" y2="164"/>
+            <line x1="352" y1="112" x2="404" y2="168"/>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="13.5" font-weight="600"
+             text-anchor="middle">
+            <!-- root 2-node -->
+            <rect x="205" y="20" width="44" height="26" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/>
+            <text x="227" y="38">50</text>
+            <!-- left 3-node -->
+            <rect x="78" y="90" width="68" height="26" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/>
+            <line x1="112" y1="90" x2="112" y2="116" stroke="#c8ccd6" stroke-width="1"/>
+            <text x="95" y="108">20</text><text x="129" y="108">35</text>
+            <!-- right 3-node (search path highlight) -->
+            <rect x="301" y="90" width="68" height="26" rx="5" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.8"/>
+            <line x1="335" y1="90" x2="335" y2="116" stroke="#0a7d4d" stroke-width="1"/>
+            <text x="318" y="108" fill="#0a7d4d">70</text><text x="352" y="108" fill="#0a7d4d">85</text>
+            <!-- leaves -->
+            <rect x="24"  y="166" width="42" height="24" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/><text x="45"  y="183">10</text>
+            <rect x="86"  y="166" width="52" height="24" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/><line x1="112" y1="166" x2="112" y2="190" stroke="#c8ccd6" stroke-width="1"/><text x="99" y="183">25</text><text x="125" y="183">30</text>
+            <rect x="158" y="166" width="52" height="24" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/><line x1="184" y1="166" x2="184" y2="190" stroke="#c8ccd6" stroke-width="1"/><text x="171" y="183">40</text><text x="197" y="183">45</text>
+            <rect x="242" y="166" width="52" height="24" rx="5" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/><line x1="268" y1="166" x2="268" y2="190" stroke="#0a7d4d" stroke-width="1"/><text x="255" y="183" fill="#0a7d4d">60</text><text x="281" y="183" fill="#0a7d4d">65</text>
+            <rect x="314" y="166" width="52" height="24" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/><line x1="340" y1="166" x2="340" y2="190" stroke="#c8ccd6" stroke-width="1"/><text x="327" y="183">75</text><text x="353" y="183">80</text>
+            <rect x="386" y="166" width="52" height="24" rx="5" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/><line x1="412" y1="166" x2="412" y2="190" stroke="#c8ccd6" stroke-width="1"/><text x="399" y="183">90</text><text x="425" y="183">95</text>
+          </g>
+        </svg>
+        <figcaption>
+          A 2-3 tree, all leaves at depth 2. To search for \(65\): \(65 \gt 50\) go
+          right to the 3-node \([70\,|\,85]\); \(65 \lt 70\) go to its left child, the
+          leaf \([60\,|\,65]\); \(65\) matches &mdash; found (green path). A miss, say
+          \(68\), takes the same route but \(68\) is neither \(60\) nor \(65\), so it
+          falls off at that leaf &mdash; exactly a BST miss, in \(\Theta(\log n)\)
+          work either way.
+        </figcaption>
+      </figure>
+      <p>
+        Search cost is one comparison group per level, so it is \(\Theta(h) =
+        \Theta(\log n)\). The catch versus a plain BST is that a 3-node may cost two
+        key comparisons rather than one; the win is not raw comparisons but that
+        <em>balance is automatic</em> and stays that way under updates, which is the
+        subject of the next two sections.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=two-three">2-3 tree demo</a>. The tree above is
+        the demo&rsquo;s starting shape; search for a present key and a missing one
+        and watch the &ldquo;pick a door&rdquo; descent. The same box does insertion
+        and deletion, used in &sect;3 and &sect;4.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="insert">3. Insertion: split and promote</h2>
+      <p>
+        Search down for the new key as usual; since it is not present, the search
+        ends at a <strong>leaf</strong>. We insert <em>there</em> &mdash; but never
+        as a new, deeper leaf (that would break &ldquo;all leaves same depth&rdquo;).
+        Instead we <strong>absorb</strong> the key into the leaf. Two cases follow
+        from whether that leaf has room.
+      </p>
+      <h3>Case 1 &mdash; into a 2-node: just grow it</h3>
+      <p>
+        A 2-node has a free slot, so it simply becomes a 3-node. Nothing moves and no
+        height changes: inserting \(15\) into the leaf \([10]\) yields \([10\,|\,15]\).
+        Half of all leaf insertions are this trivial.
+      </p>
+      <h3>Case 2 &mdash; into a 3-node: it overflows, so split</h3>
+      <p>
+        A 3-node is already full. Adding a key makes a momentary
+        <strong>4-node</strong> (three keys), which the tree does not allow, so we
+        <strong>split</strong> it: the <em>middle</em> of the three keys moves up
+        into the parent, and the node breaks into two 2-nodes holding the smaller and
+        the larger key. The middle is the only choice that preserves order &mdash;
+        everything below it goes left, everything above it goes right, and it becomes
+        their guard in the parent.
+      </p>
+      <figure>
+        <svg viewBox="0 0 500 200" role="img" aria-label="Splitting a 3-node. On the left, the full leaf 30-50 receives 40, forming a temporary 4-node 30-40-50 with 40 highlighted. On the right, 40 has promoted to a new parent 2-node, leaving 30 and 50 as its two children.">
+          <g font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+            <!-- before: temp 4-node -->
+            <rect x="24" y="82" width="150" height="30" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/>
+            <line x1="74"  y1="82" x2="74"  y2="112" stroke="#c8ccd6" stroke-width="1"/>
+            <line x1="124" y1="82" x2="124" y2="112" stroke="#c8ccd6" stroke-width="1"/>
+            <rect x="74" y="82" width="50" height="30" rx="0" fill="#fbeaea" stroke="none"/>
+            <line x1="74"  y1="82" x2="74"  y2="112" stroke="#c8ccd6" stroke-width="1"/>
+            <line x1="124" y1="82" x2="124" y2="112" stroke="#c8ccd6" stroke-width="1"/>
+            <rect x="24" y="82" width="150" height="30" rx="6" fill="none" stroke="#2a2d36" stroke-width="1.6"/>
+            <text x="49"  y="102">30</text>
+            <text x="99"  y="102" fill="#c0392b" font-weight="700">40</text>
+            <text x="149" y="102">50</text>
+            <text x="99" y="132" font-family="system-ui" font-size="11.5" fill="#5c6270">temp 4-node</text>
+            <!-- arrow -->
+            <text x="228" y="102" font-size="22" fill="#5c6270">&#8594;</text>
+            <!-- after: 40 promoted -->
+            <line x1="382" y1="58" x2="345" y2="128" stroke="#4a5163" stroke-width="1.5"/>
+            <line x1="402" y1="58" x2="440" y2="128" stroke="#4a5163" stroke-width="1.5"/>
+            <rect x="368" y="30" width="48" height="28" rx="6" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.8"/>
+            <text x="392" y="49" fill="#0a7d4d" font-weight="700">40</text>
+            <rect x="320" y="128" width="46" height="28" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/>
+            <text x="343" y="147">30</text>
+            <rect x="418" y="128" width="46" height="28" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/>
+            <text x="441" y="147">50</text>
+          </g>
+        </svg>
+        <figcaption>
+          Inserting \(40\) into the full leaf \([30\,|\,50]\). The temporary 4-node
+          \([30\,|\,40\,|\,50]\) splits: its middle key \(40\) promotes (green), and
+          \(30\) and \(50\) remain as two 2-nodes. In-order \(30,40,50\) is untouched.
+          Locally the node did not get taller &mdash; but the parent just gained a key.
+        </figcaption>
+      </figure>
+      <p>
+        Because the promoted key joins the parent, the parent may <em>itself</em>
+        overflow, split, and promote again &mdash; a cascade that can ripple to the
+        root. This is the crux of the whole design:
+      </p>
+      <div class="thm">
+        <span class="tag">Proposition (growth is only at the root)</span>
+        A 2-3 tree gains height only when the <strong>root</strong> splits: the
+        promoted middle key becomes a brand-new root with the two halves as its
+        children. Since the new level is added at the <em>top</em>, every leaf drops
+        one level together, so all leaves remain at a common depth. This is the only
+        way a 2-3 tree grows taller, and it needs no rotation.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> A split at a non-root node moves one key up but leaves
+        the number of levels below unchanged and touches no leaf&rsquo;s depth. The
+        only split with nowhere to promote is a split of the root; there we create a
+        new root whose two children are the halves, adding exactly one level above
+        <em>all</em> existing nodes. Every root-to-leaf path lengthens by one, so if
+        the leaves were at a common depth before, they are at a common (one greater)
+        depth after. Any other insertion (Case 1, or a split that stops below the
+        root) leaves all leaf depths unchanged. By induction the invariant holds after
+        every insertion. <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a worked insertion sequence)</span>
+        Insert \(50, 30, 70, 10, 20\) into an empty 2-3 tree:
+        <pre>  50  &rarr;  [50]
+  30  &rarr;  [30|50]
+  70  &rarr;  [30|50|70]  overflow &rArr; promote 50
+             &rArr; root [50] over leaves [30] [70]
+  10  &rarr;  into [30] &rArr; [10|30]
+  20  &rarr;  [10|20|30]  overflow &rArr; promote 20
+             &rArr; root [20|50] over [10] [30] [70]</pre>
+        The two splits show both cases: \(70\) splits a leaf whose promotion creates
+        the very first second level, and \(20\) splits a leaf and promotes into a root
+        that had room, widening it to \([20\,|\,50]\). All three leaves finish at
+        depth 1.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a cascade to a new root)</span>
+        Insert \(25\) into a tree whose root is <em>already</em> full:
+        <pre>  before:        [ 30 | 60 ]
+                /      |      \
+          [10|20]  [40|50]  [70|80]
+
+  25 &rarr; leaf [10|20] overflows: temp [10|20|25], promote 20
+  root [30|60] now overflows: temp [20|30|60], promote 30
+
+  after:            [ 30 ]
+                  /        \
+              [ 20 ]      [ 60 ]
+             /     \      /     \
+          [10]    [25]  [40|50] [70|80]</pre>
+        One insertion, <strong>two splits</strong>: the leaf splits (promoting \(20\)),
+        the root then splits (promoting \(30\) into a new root), and the tree grows
+        from two levels to three &mdash; every leaf still landing at depth 2. Note that
+        \([40\,|\,50]\) and \([70\,|\,80]\) never moved: only the path from the changed
+        leaf up to the root was touched, which is why an insertion is
+        \(\Theta(\log n)\) even when the tree &ldquo;grew.&rdquo;
+      </div>
+      <p>
+        In every case the cost is a search down (\(\Theta(\log n)\)) plus at most one
+        split per level on the way back up, each split being \(O(1)\) pointer work.
+        Insertion is \(\Theta(\log n)\), and we never wrote a rotation. This
+        split-and-promote rule is exactly what recurs, wider, in B-trees (&sect;6),
+        and, encoded with a colour bit, in red-black trees (&sect;5).
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=two-three">2-3 tree demo</a>. Insert into a full
+        leaf and watch the temporary 4-node (highlighted), the middle key promoting,
+        and the node splitting into two 2-nodes; keep inserting until the root itself
+        splits and the whole tree gains a level while every leaf stays level. Contrast
+        with the AVL demo of Chapter 4: the same \(\Theta(\log n)\) outcome, zero
+        rotations.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="delete">4. Deletion: borrow and merge</h2>
+      <p>
+        Deletion is the mirror image of insertion: <strong>merge and demote</strong>
+        in place of split and promote. There is more casework but no new idea, and it
+        rests on the same discipline &mdash; act only at a leaf.
+      </p>
+      <p>
+        <strong>Step 1: get down to a leaf.</strong> If the key sits in an internal
+        node, swap it with its in-order predecessor (the rightmost key of its left
+        subtree, always a leaf), and delete that copy instead &mdash; the same trick
+        every BST-family delete uses (Chapter 3&rsquo;s Hibbard delete reached for the
+        successor; either side works). Removal therefore always happens at a leaf.
+      </p>
+      <p>
+        <strong>Step 2: fix underflow.</strong> Removing a key from a leaf that held
+        only one key leaves it empty (an <em>underflow</em>). Two repairs, chosen by
+        what the siblings can spare:
+      </p>
+      <ul>
+        <li>
+          <strong>Borrow</strong> if a sibling has two keys to spare: rotate a key
+          through the parent. Deleting \(10\) from \([10]\) under a parent \([30]\)
+          whose other child \([40\,|\,50]\) is a 3-node, the parent&rsquo;s \(30\)
+          drops into the empty node and the sibling&rsquo;s \(40\) rises to replace it
+          &mdash; a single, local move, and the tree&rsquo;s shape above is untouched.
+        </li>
+        <li>
+          <strong>Merge</strong> if every sibling is already at the minimum (one key):
+          pull the parent&rsquo;s separating key down and fuse it with a sibling into a
+          single 3-node. The parent <em>loses</em> a key, which may underflow the
+          parent in turn, cascading upward. If the merge empties the root, the
+          root&rsquo;s only child becomes the new root and the tree <strong>shrinks</strong>
+          a level &mdash; the exact mirror of a root split.
+        </li>
+      </ul>
+      <p>
+        Both moves are \(O(1)\), applied along a single root-to-leaf path, so deletion
+        is \(\Theta(\log n)\) like insertion. The full case analysis (which sibling,
+        which side, cascading merges) is why 2-3 code is fussy to write by hand &mdash;
+        precisely the fussiness the red-black encoding of the next section tames into a
+        handful of uniform recolour-and-rotate moves.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=two-three">2-3 tree demo</a> &mdash; the same box
+        has a <strong>Delete</strong> button. Delete a key from a rich leaf to see a
+        borrow, then delete enough neighbours to force a merge, and keep going until a
+        merge empties the root and the tree loses a level.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="redblack">5. Red-black BSTs: a 2-3 tree in binary</h2>
+      <p>
+        The 2-3 tree is elegant but painful to implement: two node types, split logic,
+        promotion, new roots &mdash; many cases and much pointer surgery. In real code
+        we would rather have <em>one</em> node type. The idea, due to Sedgewick, is to
+        represent a 2-3 tree as an ordinary <strong>binary</strong> tree, using a
+        single <strong>colour bit</strong> on each link to remember where the 3-nodes
+        were.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (left-leaning red-black BST)</span>
+        A <strong>left-leaning red-black BST</strong> is a BST whose links are coloured
+        red or black so that: (1) red links <strong>lean left</strong> (no
+        right-leaning red link); (2) no node has two red links in a row; and (3)
+        <strong>black balance</strong> holds &mdash; every root-to-null path crosses the
+        same number of black links. By convention a node&rsquo;s stored colour is the
+        colour of the link <em>to its parent</em>, and the root link is black.
+      </div>
+      <p>
+        A red link is the &ldquo;glue&rdquo; inside a 3-node. A 3-node \([a\,|\,c]\)
+        becomes two BST nodes joined by a red link; a 2-node is a plain black-linked
+        node. Read a red link as &ldquo;these two nodes are really one 3-node,&rdquo;
+        and the three invariants become the 2-3 rules in disguise: &ldquo;no two reds
+        in a row&rdquo; is &ldquo;no node has a third key&rdquo; (the 4-node we must
+        split), and &ldquo;equal black-height&rdquo; is &ldquo;all 2-3 leaves at the
+        same depth.&rdquo;
+      </p>
+      <figure>
+        <svg viewBox="0 0 520 220" role="img" aria-label="The 2-3 to red-black correspondence. On the left a 3-node holding 30 and 50 with three leaf children 10, 40, 70. On the right the same keys as a binary tree: 50 at the root with a red left link to 30, and 30 has children 10 and 40 while 50 has right child 70.">
+          <g font-family="system-ui, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">
+            <!-- LEFT: 3-node with three children -->
+            <g stroke="#4a5163" stroke-width="1.5" fill="none">
+              <line x1="55"  y1="60" x2="40"  y2="150"/>
+              <line x1="85"  y1="62" x2="85"  y2="150"/>
+              <line x1="115" y1="60" x2="130" y2="150"/>
+            </g>
+            <rect x="46" y="32" width="78" height="28" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/>
+            <line x1="85" y1="32" x2="85" y2="60" stroke="#c8ccd6" stroke-width="1"/>
+            <text x="66" y="51">30</text><text x="104" y="51">50</text>
+            <circle cx="40"  cy="164" r="16" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/><text x="40"  y="169">10</text>
+            <circle cx="85"  cy="164" r="16" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/><text x="85"  y="169">40</text>
+            <circle cx="130" cy="164" r="16" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/><text x="130" y="169">70</text>
+            <text x="85" y="200" font-size="11.5" font-weight="400" fill="#5c6270">one 3-node</text>
+            <!-- arrow -->
+            <text x="240" y="112" font-size="22" font-weight="400" fill="#5c6270">&#8594;</text>
+            <!-- RIGHT: binary encoding -->
+            <line x1="368" y1="52" x2="330" y2="108" stroke="#c0392b" stroke-width="4"/>   <!-- red 50->30 -->
+            <line x1="384" y1="54" x2="430" y2="108" stroke="#4a5163" stroke-width="1.6"/> <!-- black 50->70 -->
+            <line x1="315" y1="128" x2="295" y2="168" stroke="#4a5163" stroke-width="1.6"/><!-- 30->10 -->
+            <line x1="333" y1="128" x2="360" y2="168" stroke="#4a5163" stroke-width="1.6"/><!-- 30->40 -->
+            <circle cx="376" cy="40"  r="17" fill="#fff" stroke="#2a2d36" stroke-width="1.7"/><text x="376" y="45">50</text>
+            <circle cx="322" cy="112" r="17" fill="#fff" stroke="#c0392b" stroke-width="2.2"/><text x="322" y="117" fill="#c0392b">30</text>
+            <circle cx="430" cy="112" r="17" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/><text x="430" y="117">70</text>
+            <circle cx="288" cy="182" r="16" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/><text x="288" y="187">10</text>
+            <circle cx="366" cy="182" r="16" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/><text x="366" y="187">40</text>
+            <text x="352" y="80" font-size="11.5" font-weight="400" fill="#c0392b" text-anchor="start">red link</text>
+          </g>
+        </svg>
+        <figcaption>
+          The 2-3 &harr; red-black correspondence. The 3-node \([30\,|\,50]\) with
+          children \(10, 40, 70\) becomes the binary tree with \(50\) black at the
+          root, a <span style="color:#c0392b;font-weight:700">red</span> left link to
+          \(30\) (that red link <em>is</em> the 3-node&rsquo;s glue), and children
+          \(10, 40, 70\) hung underneath. In-order is \(10, 30, 40, 50, 70\) in both.
+          Collapsing the red link back into its parent recovers the 3-node exactly.
+        </figcaption>
+      </figure>
+      <h3>The three restoring moves</h3>
+      <p>
+        Insertion is a normal BST insert with the new link coloured <strong>red</strong>
+        (a new key always tries to join an existing node as a 3-node), followed by a
+        walk back up applying whichever of three constant-time fix-ups restores the
+        invariants:
+      </p>
+      <pre>  right child red, left child black   &rarr;  rotateLeft
+  left red AND its left child red     &rarr;  rotateRight
+  both children red                   &rarr;  flipColors</pre>
+      <p>
+        <code>rotateLeft</code> and <code>rotateRight</code> are the order-preserving
+        pointer surgery of Chapter 4, with one extra line to carry the colour;
+        <code>flipColors</code> is the encoding of a 2-3 split. A node with two red
+        children is a temporary 4-node, and flipping all three colours pushes the
+        middle key up (the node turns red, &ldquo;joining its parent&rdquo;) while its
+        two children become independent black 2-nodes &mdash; precisely
+        &ldquo;promote the middle and split,&rdquo; expressed in colour. If the parent
+        now has two reds of its own, the flip cascades upward exactly as the 2-3 split
+        did.
+      </p>
+      <div class="code-tabs" data-snippet="trees/redblack-ops">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Left-leaning red-black BST: the three constant-time moves that maintain a
+// 2-3 tree&#x27;s shape. A node&#x27;s `red` flag = the colour of the link to its PARENT;
+// a null link counts as black.
+struct Node { int key; Node *left = nullptr, *right = nullptr; bool red = true; };
+
+bool isRed(Node* h) { return h &amp;&amp; h-&gt;red; }    // null links are black
+
+Node* rotateLeft(Node* h) {        // h&#x27;s right link leans red; lean it left
+    Node* x = h-&gt;right;
+    h-&gt;right = x-&gt;left;
+    x-&gt;left  = h;
+    x-&gt;red = h-&gt;red;               // x inherits h&#x27;s colour
+    h-&gt;red = true;                 // h is now glued under x by a red link
+    return x;                      // x is the new subtree root
+}
+
+Node* rotateRight(Node* h) {       // mirror image of rotateLeft
+    Node* x = h-&gt;left;
+    h-&gt;left  = x-&gt;right;
+    x-&gt;right = h;
+    x-&gt;red = h-&gt;red;
+    h-&gt;red = true;
+    return x;
+}
+
+void flipColors(Node* h) {         // two red children = a temporary 4-node
+    h-&gt;red        = !h-&gt;red;       // push the middle key UP (h &quot;promotes&quot;)
+    h-&gt;left-&gt;red  = !h-&gt;left-&gt;red; // the two children become black 2-nodes
+    h-&gt;right-&gt;red = !h-&gt;right-&gt;red;
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Left-leaning red-black BST: the three constant-time moves. A node&#x27;s `red`
+// flag = the colour of the link to its PARENT; a null link counts as black.
+static class Node {
+    int key; Node left, right; boolean red = true;
+    Node(int k) { key = k; }
+}
+
+static boolean isRed(Node h) { return h != null &amp;&amp; h.red; }
+
+static Node rotateLeft(Node h) {      // right link leans red -&gt; lean it left
+    Node x = h.right;
+    h.right = x.left;
+    x.left  = h;
+    x.red = h.red;                     // x inherits h&#x27;s colour
+    h.red = true;                      // h is now glued under x by a red link
+    return x;
+}
+
+static Node rotateRight(Node h) {     // mirror image of rotateLeft
+    Node x = h.left;
+    h.left  = x.right;
+    x.right = h;
+    x.red = h.red;
+    h.red = true;
+    return x;
+}
+
+static void flipColors(Node h) {      // two red children = a temporary 4-node
+    h.red       = !h.red;              // push the middle key UP (h &quot;promotes&quot;)
+    h.left.red  = !h.left.red;         // children become black 2-nodes
+    h.right.red = !h.right.red;
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># Left-leaning red-black BST: the three constant-time moves. A node&#x27;s `red`
+# flag = the colour of the link to its PARENT; a missing link counts as black.
+class Node:
+    def __init__(self, key):
+        self.key = key
+        self.left = self.right = None
+        self.red = True
+
+def is_red(h):                       # None links are black
+    return h is not None and h.red
+
+def rotate_left(h):                  # right link leans red -&gt; lean it left
+    x = h.right
+    h.right = x.left
+    x.left = h
+    x.red, h.red = h.red, True       # x inherits h&#x27;s colour; h turns red
+    return x                         # x is the new subtree root
+
+def rotate_right(h):                 # mirror image of rotate_left
+    x = h.left
+    h.left = x.right
+    x.right = h
+    x.red, h.red = h.red, True
+    return x
+
+def flip_colors(h):                  # two red children = a temporary 4-node
+    h.red = not h.red                # push the middle key UP (h &quot;promotes&quot;)
+    h.left.red = not h.left.red      # children become black 2-nodes
+    h.right.red = not h.right.red</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// Left-leaning red-black BST moves. `red` = colour of the link to the PARENT;
+// a None link counts as black. Children are Option&lt;Box&lt;Node&gt;&gt;, so we take/put
+// the boxes to move subtrees around without aliasing.
+type Link = Option&lt;Box&lt;Node&gt;&gt;;
+struct Node { key: i32, left: Link, right: Link, red: bool }
+
+fn is_red(h: &amp;Link) -&gt; bool { h.as_ref().map_or(false, |n| n.red) }
+
+fn rotate_left(mut h: Box&lt;Node&gt;) -&gt; Box&lt;Node&gt; {   // right link leans red
+    let mut x = h.right.take().unwrap();
+    h.right = x.left.take();
+    x.red = h.red;                 // x inherits h&#x27;s colour
+    h.red = true;                  // h is now glued under x by a red link
+    x.left = Some(h);
+    x                              // x is the new subtree root
+}
+
+fn rotate_right(mut h: Box&lt;Node&gt;) -&gt; Box&lt;Node&gt; {  // mirror image
+    let mut x = h.left.take().unwrap();
+    h.left = x.right.take();
+    x.red = h.red;
+    h.red = true;
+    x.right = Some(h);
+    x
+}
+
+fn flip_colors(h: &amp;mut Box&lt;Node&gt;) {               // two red children = 4-node
+    h.red = !h.red;                               // push the middle key up
+    if let Some(l) = h.left.as_mut() { l.red = !l.red; }
+    if let Some(r) = h.right.as_mut() { r.red = !r.red; }
+}</pre>
+<p class="ct-src">source: <code>code/trees/redblack-ops.cpp &middot; code/trees/redblack-ops.java &middot; code/trees/redblack-ops.py &middot; code/trees/redblack-ops.rs</code></p>
+<!--/ct--></div>
+      <p>
+        Only nodes move in a rotation; the in-order sequence is unchanged, exactly as
+        in Chapter 4. &ldquo;Left-leaning&rdquo; is what keeps the case count at three
+        rather than the classic red-black tree&rsquo;s six &mdash; Sedgewick&rsquo;s
+        simplification &mdash; and it is why the whole of insertion is BST-insert plus
+        these three \(O(1)\) moves applied bottom-up.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=redblack">Red-black BST demo</a>. Red links are
+        drawn thick and red &mdash; each is a glued 3-node. Insert an ascending run
+        \(10, 20, 30, \dots\) to trigger every fix-up: a <code>rotateLeft</code> leans
+        a red link left, a <code>flipColors</code> splits a 4-node and pushes a red up.
+        Every root-to-null path keeps the same number of black links, and the tree
+        never exceeds \(2\log_2 n\) tall no matter the insertion order. (The demo&rsquo;s
+        Delete button works too; deletion is the same three moves applied both on the
+        way down &mdash; borrowing a red onto a black-linked child before descending &mdash;
+        and on the way back up, which is why it is roughly twice the casework of insert
+        yet uses no new primitive.)
+      </div>
+      <h3>Why the height is \(\Theta(\log n)\)</h3>
+      <div class="thm">
+        <span class="tag">Theorem (red-black height)</span>
+        A red-black BST on \(n\) keys has height at most \(2\log_2 n\), so search,
+        insert, and delete are \(\Theta(\log n)\) for any insertion order.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Let \(b\) be the number of black links on a
+        root-to-null path &mdash; the same on every path, by black balance (invariant
+        3). Collapse each red link into its parent: two nodes glued by a red link merge
+        into one 2-3 node, recovering the very 2-3 tree this encoding came from. The
+        black links are exactly that 2-3 tree&rsquo;s edges, so \(b\) equals the 2-3
+        tree&rsquo;s height, which by &sect;1 is at most \(\log_2 n\); hence
+        \(b \le \log_2 n\). Now count all links on a path. Between any two black links
+        invariant 2 permits at most one red (two in a row is the violation
+        <code>flipColors</code> removes), so the total number of links is at most
+        \(2b\). Therefore the height is at most \(2b \le 2\log_2 n\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        The bound is looser than AVL&rsquo;s \(1.44\log_2 n\) &mdash; a red-black tree
+        can be up to twice as tall &mdash; but still \(\Theta(\log n)\), and it is
+        reached with far fewer restructuring operations per update. That trade is why a
+        red-black BST, being just one node type plus one colour bit, is the balanced
+        tree real libraries ship: C++&rsquo;s <code>std::map</code> and
+        <code>std::set</code>, Java&rsquo;s <code>TreeMap</code> and
+        <code>TreeSet</code>, and the Linux kernel&rsquo;s scheduler among them.
+      </p>
+      <div class="aside">
+        <span class="tag">The correspondence is the whole point</span>
+        &ldquo;2-3 trees are balanced&rdquo; (&sect;1) and &ldquo;red-black trees are
+        \(\Theta(\log n)\)&rdquo; (here) are the <em>same</em> fact, seen through the
+        collapse-the-red-links map. This is Sedgewick &amp; Wayne&rsquo;s central
+        insight: do not analyse the red-black tree directly &mdash; recognise it as a
+        2-3 tree in a costume and inherit everything already proved. Cormen et al.
+        develop the classic (not-left-leaning) red-black tree from five colour axioms
+        instead; the two agree on the \(\Theta(\log n)\) guarantee and differ mainly in
+        how many cases the code must handle.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="btrees">6. B-trees and B+ trees: sized for the disk</h2>
+      <p>
+        A 2-3 node holds one or two keys. Why stop at two? A <strong>B-tree of order
+        \(M\)</strong> lets each node hold up to \(M-1\) keys (and thus up to \(M\)
+        children), keeps every leaf at the same depth, and splits a node the moment it
+        reaches \(M\) keys &mdash; the identical split-and-promote, just with a wider
+        node. A 2-3 tree is exactly a B-tree of order 3.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (B-tree of order \(M\))</span>
+        A search tree in which every node holds a sorted array of at most \(M-1\) keys
+        and at most \(M\) child pointers, every <em>non-root</em> node has at least
+        \(\lceil M/2 \rceil\) children (so at least \(\lceil M/2\rceil - 1\) keys), the
+        root has at least two children unless it is a leaf, and all leaves lie at the
+        same depth. The &ldquo;at least half full&rdquo; lower bound is what bounds the
+        height at \(\log_{\lceil M/2\rceil} n\) and keeps the tree shallow.
+      </div>
+      <p>
+        The reason to want fat nodes is not comparison count &mdash; it is the
+        <strong>disk</strong>. Reading from disk or SSD is not \(\approx 1\times\) the
+        cost of a memory access; it is \(\approx 10^5\times\) slower, and it arrives a
+        whole <strong>block</strong> (page) at a time. So the cost that matters is the
+        <em>number of node accesses = disk reads</em>, not the number of comparisons.
+      </p>
+      <pre>   register  ~1 ns
+   RAM       ~100 ns
+   SSD       ~100 &micro;s      <span class="cm">// ~1000x RAM</span>
+   disk      ~10 ms       <span class="cm">// ~100000x RAM</span></pre>
+      <p>
+        Size a node to fill exactly one block, and each node holds hundreds of keys, so
+        the tree is only a few levels deep. One block read brings a whole key array
+        into memory, where a single in-RAM binary search picks the child &mdash; one
+        disk read per level, and the height is \(\log_M n\).
+      </p>
+      <figure>
+        <svg viewBox="0 0 520 190" role="img" aria-label="An order-5 B-tree with two levels: a root node holding 30 and 60, with three leaf children holding 10 and 20, 40 and 50, and 70 and 80 and 90.">
+          <g font-family="system-ui, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">
+            <g stroke="#4a5163" stroke-width="1.5" fill="none">
+              <line x1="230" y1="54" x2="86"  y2="120"/>
+              <line x1="260" y1="56" x2="260" y2="120"/>
+              <line x1="290" y1="54" x2="446" y2="120"/>
+            </g>
+            <!-- root [30|60] -->
+            <rect x="222" y="26" width="76" height="30" rx="6" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.8"/>
+            <line x1="260" y1="26" x2="260" y2="56" stroke="#9fd3b8" stroke-width="1"/>
+            <text x="241" y="46" fill="#0a7d4d">30</text><text x="279" y="46" fill="#0a7d4d">60</text>
+            <!-- leaves -->
+            <rect x="44" y="120" width="76" height="30" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/>
+            <line x1="82" y1="120" x2="82" y2="150" stroke="#c8ccd6" stroke-width="1"/>
+            <text x="63" y="140">10</text><text x="101" y="140">20</text>
+            <rect x="222" y="120" width="76" height="30" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/>
+            <line x1="260" y1="120" x2="260" y2="150" stroke="#c8ccd6" stroke-width="1"/>
+            <text x="241" y="140">40</text><text x="279" y="140">50</text>
+            <rect x="392" y="120" width="110" height="30" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.5"/>
+            <line x1="429" y1="120" x2="429" y2="150" stroke="#c8ccd6" stroke-width="1"/>
+            <line x1="465" y1="120" x2="465" y2="150" stroke="#c8ccd6" stroke-width="1"/>
+            <text x="410" y="140">70</text><text x="447" y="140">80</text><text x="483" y="140">90</text>
+          </g>
+        </svg>
+        <figcaption>
+          An order-5 B-tree: each node holds up to \(M-1 = 4\) keys and \(M = 5\)
+          children. One node is sized to one disk block, so a lookup costs one block
+          read per level. With order \(M = 1000\), a billion keys fit in
+          \(\log_{1000}(10^9) = 3\) levels &mdash; any lookup in about three disk reads.
+          That is why databases and filesystems are built on B-trees.
+        </figcaption>
+      </figure>
+      <p>
+        Insertion is the 2-3 rule at width \(M\), as the demo shows.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (a B-tree split, \(M=5\))</span>
+        Insert \(55\) into a full leaf \([60\,|\,70\,|\,80\,|\,90]\):
+        <pre>  temp [55|60|70|80|90]   <span class="cm">// 5 keys — overflow at M</span>
+              &darr;  split, promote the middle (70)
+        parent gains 70
+       [ ... | 70 | ... ]
+        /             \
+   [55|60]          [80|90]</pre>
+        Split at \(M\) keys, promote the middle, and two half-full nodes remain
+        &mdash; the same rule as a 2-3 split, only the threshold (5 keys instead of 3)
+        and the halves (two keys each instead of one) differ. A root split still grows
+        the height by one, at the top.
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (few disk reads)</span>
+        A B-tree of order \(M\) on \(n\) keys has height at most
+        \(\log_{\lceil M/2\rceil} n\), so a lookup costs \(O(\log_M n)\) disk reads.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Every non-root node has at least \(\lceil M/2\rceil\)
+        children, so a tree of height \(h\) has at least \(2\lceil M/2\rceil^{\,h-1}\)
+        leaves, hence at least that many keys. Solving \(n \ge 2\lceil M/2\rceil^{\,h-1}\)
+        for \(h\) gives \(h \le 1 + \log_{\lceil M/2\rceil}(n/2) = O(\log_M n)\). Each
+        level costs exactly one node access (one block read); the in-node binary search
+        is free once the block is in RAM. <span class="qed">&#8718;</span>
+      </div>
+      <p>
+        The contrast with a binary tree is the whole argument for B-trees. A balanced
+        <em>binary</em> tree over \(10^9\) keys is about \(\log_2 10^9 \approx 30\)
+        levels &mdash; up to 30 disk reads, roughly \(0.3\) s on a spinning disk. The
+        same keys in an order-1000 B-tree take 3 reads, roughly \(30\) ms: the
+        branching factor does all the work. In RAM, 30 versus 3 comparisons is nothing;
+        against the disk it is the difference between a snappy query and a slow one. The
+        lesson is to match the node size to the unit of I/O &mdash; historically the
+        original motivation (Bayer &amp; McCreight, 1972).
+      </p>
+      <h3>B+ trees: values in the leaves</h3>
+      <p>
+        Databases use a variant, the <strong>B+ tree</strong>, that pushes all values
+        down to the leaves. Internal nodes hold only keys (pure routing information);
+        every value lives in a leaf, and the leaves are <strong>linked</strong> into a
+        sorted list. Value-free internal nodes fan out even wider &mdash; each block
+        routes to more children &mdash; so the tree is even shorter, and the linked
+        leaves make range scans a single descent followed by a walk along the chain.
+      </p>
+      <pre>  index on age, order 3 (routers upstairs, records in the leaves):
+
+  internal:          [ 30 | 60 ]
+                    /      |      \
+  leaves:   [10|20] &rarr; [30|45] &rarr; [60|90] &rarr; &empty;
+             (each leaf key carries its own record; a key such
+              as 30 or 60 appears twice — once as a router,
+              once in a leaf)</pre>
+      <p>
+        Because the leaves form a sorted linked list, a range query such as
+        <code>SELECT * WHERE age BETWEEN 20 AND 40</code> descends once to find
+        \(20\), then follows leaf links until it passes \(40\). <code>ORDER BY</code>,
+        <code>BETWEEN</code>, and pagination are all just sequential leaf walks &mdash;
+        which is why B+ trees, not plain B-trees, index essentially every relational
+        database and back most modern filesystems (NTFS, ext4, APFS).
+      </p>
+      <table>
+        <tr><th></th><th>B-tree</th><th>B+ tree</th></tr>
+        <tr><td>records stored</td><td>in <strong>all</strong> nodes</td><td><strong>leaves only</strong></td></tr>
+        <tr><td>internal node</td><td>keys + records</td><td><strong>keys only</strong> (wider)</td></tr>
+        <tr><td>range scan</td><td>full-tree walk</td><td><strong>leaf-chain</strong> walk</td></tr>
+        <tr><td>a key appears</td><td>once</td><td>router <strong>and</strong> leaf</td></tr>
+      </table>
+      <div class="aside">
+        <span class="tag">Choosing the order \(M\)</span>
+        The order is dictated by hardware, not taste: pick \(M\) so a node fills one
+        block. With a \(4096\)-byte block, \(8\)-byte keys, and \(8\)-byte pointers, an
+        internal node needs about \(M\cdot 8 + (M-1)\cdot 8 \approx 4096\), giving
+        \(M \approx 256\). Then three levels hold roughly \(1 \times 256 \times 256^2
+        \times 255 \approx 16\) million keys in three reads; pushing to \(M = 1000\)
+        and one more level reaches billions in about four. Those figures assume full
+        nodes, though. The order property only <em>guarantees</em> half-full, and the
+        root is exempt even from that &mdash; right after any root split the new root
+        holds a single key. Counting the guaranteed minimum (\(\lceil M/2\rceil\)
+        children) instead of the maximum gives far fewer keys at the same depth, but
+        because capacity grows exponentially in the fan-out, one extra disk read makes
+        it up. &ldquo;A few disk reads for the largest real datasets&rdquo; is the sound
+        takeaway (Open Data Structures, Morin, Ch. 14) &mdash; just do not quote the
+        best case as if it were the guarantee. This block-size arithmetic is the disk
+        exercise you will see on the homework.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=btree">B-tree demo</a>. Insert into an order-5
+        B-tree and watch the same split-and-promote as a 2-3 tree, only wider: a node
+        splits when it reaches five keys, its middle rises, and the fan-out stays high
+        so the tree hardly deepens. Notice how many keys sit at each level even as the
+        tree fills &mdash; the high fan-out is the entire benefit.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="which">7. One goal, several tools</h2>
+      <p>
+        Every structure in this chapter and the last delivers \(\Theta(\log n)\)
+        search, insert, and delete. They differ in the <em>mechanism</em> that keeps
+        them balanced and in which level of the memory hierarchy they optimise for.
+      </p>
+      <table>
+        <tr><th>structure</th><th>balance kept by</th><th>height</th><th>best when</th></tr>
+        <tr><td>plain BST</td><td>nothing</td><td>up to \(n-1\)</td><td>keys arrive randomly</td></tr>
+        <tr><td><strong>AVL</strong></td><td>rotations, bf \(\in \pm 1\)</td><td>\(\le 1.44\log_2 n\)</td><td><strong>read</strong>-heavy (tightest)</td></tr>
+        <tr><td><strong>red-black</strong></td><td>rotations + colours</td><td>\(\le 2\log_2 n\)</td><td><strong>write</strong>-heavy (std. lib.)</td></tr>
+        <tr><td><strong>2-3</strong></td><td>split &amp; promote</td><td>\(\Theta(\log n)\)</td><td>teaching / basis of red-black</td></tr>
+        <tr><td><strong>B / B+</strong></td><td>split &amp; promote</td><td>\(\log_M n\)</td><td><strong>disk / databases</strong></td></tr>
+      </table>
+      <p>
+        The choice between AVL and red-black is a choice of constant, not of asymptotic
+        class. AVL keeps a tighter tree (height \(1.44\log_2 n\) versus \(2\log_2 n\)),
+        so it searches a little faster, and it does at most one rotation per insertion;
+        but a deletion can rotate at every level. Red-black does slightly more work per
+        insertion yet keeps deletion to \(O(1)\) rotations (recolours may cascade, but
+        they are cheaper than rotations). So AVL optimises the <em>search</em> and wins
+        when reads dominate; red-black optimises the <em>update</em> and wins when
+        writes dominate &mdash; which is why a general-purpose library map is red-black.
+      </p>
+      <table>
+        <tr><th></th><th>AVL</th><th>red-black</th></tr>
+        <tr><td>height</td><td>\(\le 1.44\log_2 n\)</td><td>\(\le 2\log_2 n\)</td></tr>
+        <tr><td>balance</td><td><strong>tighter</strong></td><td>looser</td></tr>
+        <tr><td>rotations / insert</td><td>\(\le 1\)</td><td>\(\le 2\) + recolours</td></tr>
+        <tr><td>rotations / delete</td><td>up to \(\log n\)</td><td>\(O(1)\)</td></tr>
+        <tr><td>best for</td><td><strong>read</strong>-heavy</td><td><strong>write</strong>-heavy</td></tr>
+      </table>
+      <p>
+        Underneath, 2-3 trees, red-black trees, and B-trees are <em>one</em> algorithm
+        at three node widths &mdash; split a full node and send its middle key up:
+      </p>
+      <table>
+        <tr><th></th><th>node width</th><th>splits at</th></tr>
+        <tr><td><strong>2-3</strong></td><td>1&ndash;2 keys</td><td>3 keys</td></tr>
+        <tr><td><strong>red-black</strong></td><td>1 key + colour bit</td><td>two reds (flip)</td></tr>
+        <tr><td><strong>B-tree (order \(M\))</strong></td><td>\(\le M-1\) keys</td><td>\(M\) keys</td></tr>
+      </table>
+      <p>
+        In a red-black tree the &ldquo;promote&rdquo; is a <code>flipColors</code>
+        passing a red link up; in a B-tree it is the same middle-key promotion, widened
+        to fill a disk block. Balance is a <strong>goal</strong>, reached by whichever
+        mechanism suits the machine, not a single algorithm. A blunt decision guide:
+      </p>
+      <pre>   in RAM, read-heavy        &rarr;  AVL
+   in RAM, general/mutable   &rarr;  red-black   (std::map)
+   on disk / a database      &rarr;  B+ tree
+   learning / interviews     &rarr;  2-3         (it explains red-black)</pre>
+      <p>
+        You will rarely hand-roll any of these: you reach for <code>std::map</code>
+        (red-black) in memory or trust your database&rsquo;s B+ tree on disk. But
+        knowing <em>which</em> is running tells you the cost and the gotchas &mdash; and
+        the split-and-promote idea returns, transformed, when we leave comparison-based
+        structures for hashing in Chapter 7.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="ex">8. Exercises (with solutions)</h2>
+      <ol>
+        <li>
+          Insert \(60, 20, 80, 10, 40, 50\), in that order, into an initially empty
+          2-3 tree. Draw the final tree and give every leaf&rsquo;s depth.
+          <details>
+            <summary>solution</summary>
+            \(60 \to [60]\); \(20 \to [20\,|\,60]\); \(80 \to [20\,|\,60\,|\,80]\)
+            overflows, promote \(60\) to root \([60]\) over leaves \([20]\) and
+            \([80]\). \(10 \to [10\,|\,20]\). \(40\): descend to leaf \([10\,|\,20]\),
+            overflow \([10\,|\,20\,|\,40]\), promote \(20\) into the root, which
+            becomes \([20\,|\,60]\); its children are \([10], [40], [80]\). \(50\):
+            \(20 \lt 50 \lt 60\) so descend to the middle child \([40]\), a 2-node,
+            giving \([40\,|\,50]\). Final:
+            <pre>        [ 20 | 60 ]
+       /     |     \
+    [10]  [40|50]  [80]</pre>
+            All three leaves are at depth 1.
+          </details>
+        </li>
+        <li>
+          Convert the 2-3 tree whose root is the 3-node \([40\,|\,80]\) with children
+          \([20], [60], [100]\) into a left-leaning red-black BST. Give each
+          node&rsquo;s colour and its parent link.
+          <details>
+            <summary>solution</summary>
+            The root 3-node \([40\,|\,80]\) becomes \(80\) (black, since it is the root)
+            with a <em>red</em> left link to \(40\). The three subtrees hang under the
+            two keys by range: \(20\) (\(\lt 40\)) is \(40\)&rsquo;s left child, \(60\)
+            (\(40\!-\!80\)) is \(40\)&rsquo;s right child, and \(100\) (\(\gt 80\)) is
+            \(80\)&rsquo;s right child; all three are black. In-order \(20,40,60,80,100\)
+            matches the 2-3 tree, and collapsing the one red link \(40\!-\!80\) recovers
+            the original 3-node.
+          </details>
+        </li>
+        <li>
+          Explain, in your own words, why a 2-3 tree grows only at the root and why
+          that single fact keeps all leaves at the same depth &mdash; and contrast it
+          with why a plain BST can become unbalanced.
+          <details>
+            <summary>solution</summary>
+            A split promotes its middle key to the parent, which either has room (the
+            split stops) or overflows and splits in turn. The only split with nowhere to
+            promote is a split of the root, which manufactures a new root one level above
+            everything else. Adding a level at the <em>top</em> lengthens every
+            root-to-leaf path by exactly one, so a common leaf depth stays common. A BST,
+            by contrast, only ever adds a new <em>leaf</em>, deepening one path while
+            leaving the others untouched; repeated one-sided inserts then tilt it toward
+            a chain of height \(n-1\). Grow-up preserves balance; grow-down does not.
+          </details>
+        </li>
+        <li>
+          Prove that a left-leaning red-black BST on \(n\) keys has height at most
+          \(2\log_2 n\), using the correspondence with 2-3 trees.
+          <details>
+            <summary>solution</summary>
+            Let \(b\) be the number of black links on any root-to-null path; black
+            balance makes \(b\) the same on every path. Collapsing each red link into its
+            parent merges each red-glued pair into one 2-3 node and turns the black links
+            into the edges of a 2-3 tree, so \(b\) equals that 2-3 tree&rsquo;s height,
+            which is at most \(\log_2 n\) (the all-2-nodes worst case of &sect;1); thus
+            \(b \le \log_2 n\). Between two consecutive black links at most one red link
+            can appear (invariant 2 forbids two reds in a row), so a path has at most
+            \(2b\) links total. Hence height \(\le 2b \le 2\log_2 n\).
+          </details>
+        </li>
+        <li>
+          A B-tree has order \(M = 256\) and three levels (so a lookup is three disk
+          reads). Assuming every node is full, how many keys can it hold? Repeat for
+          order \(M\) and \(h\) levels in general.
+          <details>
+            <summary>solution</summary>
+            A full node has \(M\) children and \(M-1\) keys. With \(h\) levels the number
+            of nodes is \(1 + M + M^2 + \dots + M^{h-1} = (M^h - 1)/(M - 1)\), and each
+            holds \(M-1\) keys, for a total of \(M^h - 1\) keys. For \(M = 256\),
+            \(h = 3\): \(256^3 - 1 \approx 1.67 \times 10^7\), about 16.7 million keys in
+            three reads. (This is the best case; the order property only guarantees
+            half-full nodes, so the <em>guaranteed</em> capacity at three levels is far
+            smaller, but one more level restores &ldquo;millions.&rdquo;)
+          </details>
+        </li>
+        <li>
+          Why do databases prefer B+ trees over plain B-trees for queries such as
+          <code>SELECT * WHERE age BETWEEN 20 AND 40</code>?
+          <details>
+            <summary>solution</summary>
+            In a B+ tree all records live in the leaves, and the leaves are linked into a
+            sorted list. A range query descends once to the first key in range, then walks
+            the leaf chain sequentially until it leaves the range &mdash; no re-traversal
+            of the tree. In a plain B-tree records sit at every level, so a range scan must
+            wander up and down the tree, revisiting internal nodes. B+ trees also keep
+            internal nodes value-free, so each block routes to more children (higher
+            fan-out, shorter tree). The cost is that some keys appear twice (as a router
+            and in a leaf), a small price for cheap range and ordered scans.
+          </details>
+        </li>
+        <li>
+          For each situation, name the structure from this chapter (or Chapter 4) you
+          would reach for: (a) an in-memory dictionary that is queried far more often
+          than it is updated; (b) the general-purpose ordered map in a standard library;
+          (c) an index for a database table on disk that must support ordered range
+          scans.
+          <details>
+            <summary>solution</summary>
+            (a) an <strong>AVL</strong> tree &mdash; its tighter height (\(1.44\log_2 n\))
+            makes reads fastest. (b) a <strong>red-black</strong> BST &mdash; fewer
+            rotations per update suit a mix of inserts and erases, which is why
+            <code>std::map</code>/<code>TreeMap</code> use it. (c) a <strong>B+ tree</strong>
+            &mdash; wide nodes minimise disk reads and the linked leaves make range scans a
+            single descent plus a leaf walk. All three are \(\Theta(\log n)\); the machine
+            and the workload decide.
+          </details>
+        </li>
+        <li>
+          True or false, with justification: &ldquo;AVL, red-black, 2-3, and B-trees all
+          guarantee \(\Theta(\log n)\) search regardless of the order the keys are
+          inserted.&rdquo;
+          <details>
+            <summary>solution</summary>
+            True. Each maintains a height bound that is \(\Theta(\log n)\) under every
+            insertion order: AVL keeps \(h \le 1.44\log_2 n\) via the balance-factor
+            invariant; red-black keeps \(h \le 2\log_2 n\) via black balance and the
+            no-double-red rule; a 2-3 tree keeps \(\log_3 n \le h \le \log_2 n\) by perfect
+            balance; and a B-tree of order \(M\) keeps \(h \le \log_{\lceil M/2\rceil} n\)
+            by the half-full rule. Search visits one node per level, so it is
+            \(\Theta(h) = \Theta(\log n)\) in every case. (A plain BST would make the claim
+            <em>false</em> &mdash; adversarial inserts give height \(n-1\) &mdash; which is
+            exactly the problem these structures were built to solve.)
+          </details>
+        </li>
+      </ol>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 5 v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library.
+      </footer>
+    </div>
+    <script>
+      // code-tabs: per-snippet language selector, synced across the page (and
+      // across pages) via localStorage. Works offline — all languages inline.
+      (function () {
+        const KEY = "css343-lang";
+        function apply(lang) {
+          document.querySelectorAll(".code-tabs").forEach((ct) => {
+            const panes = [...ct.querySelectorAll(".ct-pane")];
+            const has = panes.some((p) => p.dataset.lang === lang);
+            const use = has ? lang : (panes[0] && panes[0].dataset.lang);
+            panes.forEach((p) => { p.hidden = p.dataset.lang !== use; });
+            ct.querySelectorAll(".ct-tab").forEach((t) =>
+              t.classList.toggle("on", t.dataset.lang === use));
+          });
+        }
+        document.addEventListener("click", (e) => {
+          const t = e.target.closest(".ct-tab");
+          if (!t) return;
+          localStorage.setItem(KEY, t.dataset.lang);
+          apply(t.dataset.lang);
+        });
+        const saved = localStorage.getItem(KEY) || "cpp";
+        if (document.readyState !== "loading") apply(saved);
+        else document.addEventListener("DOMContentLoaded", () => apply(saved));
+      })();
+    </script>
+  </body>
+</html>
