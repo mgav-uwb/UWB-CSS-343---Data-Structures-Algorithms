@@ -85,15 +85,20 @@
       costs: ["visit", "compare"], chrome: { showCosts: true },
       width: 960, height: 240,
     });
-    // frontier row: the container that MAKES the search breadth- or depth-first
+    // frontier row: the container that MAKES the search breadth- or depth-first;
+    // output row: the algorithm's PRODUCT, built up frame by frame (BFS: visit
+    // order · DFS: finish order, reverse → topo · Kahn: the topological order)
     const frontierView = (inner) => ({ draw: (snap) => inner.draw(snap?.frontier?.items ?? [], {}) });
+    const outputView = (inner) => ({ draw: (snap, hl) => inner.draw(hl?.nodes?.done ?? [], {}) });
     const dual = (h) => ({
       renderer: [
         (c) => new GraphRenderer(c, { directed: true }),
         (c) => frontierView(new ArrayRenderer(c, { mode: "cells", pointers: false })),
+        (c) => outputView(new ArrayRenderer(c, { mode: "cells", pointers: false })),
       ],
-      labels: ["", "the frontier — BFS: the queue · DFS: the recursion stack · topo: the ready set"],
-      height: [h, 48],
+      labels: ["", "the frontier — BFS: the queue · DFS: the recursion stack · topo: the ready set",
+                   "the OUTPUT so far — BFS: visit order · DFS: finish order (reverse → topo) · Kahn: the topological order"],
+      height: [h, 44, 44],
     });
     const dfsOp = { name: "DFS from", arg: "number", desc: "dive along unvisited edges, backtrack at dead ends; a back edge to a stack ancestor = a CYCLE", run: (s, v) => s.dfs(v) };
     const bfsOp = { name: "BFS from", arg: "number", desc: "explore in layers via the queue; each label = fewest edges from the start", run: (s, v) => s.bfs(v) };
@@ -105,11 +110,11 @@
         label: "tonight's graph — a DAG on 8 vertices, 10 directed edges",
         width: 900, height: 230,
       },
-      "graph-dfs":  { ...base(), ...dual(195), ops: [dfsOp] },
-      "graph-bfs":  { ...base(), ...dual(195), ops: [dfsOp, bfsOp], defaultOp: "BFS from",
+      "graph-dfs":  { ...base(), ...dual(170), ops: [dfsOp] },
+      "graph-bfs":  { ...base(), ...dual(170), ops: [dfsOp, bfsOp], defaultOp: "BFS from",
                       scripts: [{ name: "compare the orders: DFS then BFS from 0", text: "dfs 0\nbfs 0" }] },
       "search-race": { use: "search-race", width: 1000 },
-      "graph-topo": { ...base(), ...dual(175), ops: [dfsOp, bfsOp, topoOp], defaultOp: "Topo sort",
+      "graph-topo": { ...base(), ...dual(155), ops: [dfsOp, bfsOp, topoOp], defaultOp: "Topo sort",
                       presets: [
                         { name: "tonight's DAG", initial: DAG },
                         { name: "with a cycle (6→2 added)", initial: DAG + ", 6 2" },

@@ -248,9 +248,22 @@
       <h3>Trees are the sparsest connected graphs</h3>
       <div class="thm">
         <span class="tag">Proposition (trees)</span>
-        A <strong>tree</strong> is a connected acyclic graph. Every tree on \(V\)
-        vertices has exactly \(V - 1\) edges. Moreover, any two of the three
-        properties {connected, acyclic, \(|E| = V-1\)} imply the third.
+        A <strong>tree</strong> is a connected acyclic <em>undirected</em> graph.
+        Every tree on \(V\) vertices has exactly \(V - 1\) edges. Moreover, any
+        two of the three properties {connected, acyclic, \(|E| = V-1\)} imply
+        the third.
+      </div>
+      <div class="aside">
+        <span class="tag">Why &ldquo;undirected&rdquo; is load-bearing</span>
+        The directed diamond \(1\to2,\ 1\to3,\ 2\to4,\ 3\to4\) is connected
+        and has <em>no directed cycle</em> &mdash; yet it is not a tree: two
+        distinct paths reach vertex \(4\) (it has two &ldquo;parents&rdquo;),
+        it has \(E = V\) edges, and its undirected shadow contains the cycle
+        \(1\)-\(2\)-\(4\)-\(3\)-\(1\). &ldquo;Connected + acyclic
+        \(\Rightarrow\) tree&rdquo; is an <em>undirected</em> theorem. The
+        directed analogue of &ldquo;acyclic&rdquo; is the <strong>DAG</strong>
+        (<a href="#topo">&sect;6</a>) &mdash; a strictly bigger family, and the
+        home of topological sort.
       </div>
       <div class="proof">
         <strong>Proof that a tree has \(V-1\) edges (induction on \(V\)).</strong>

@@ -133,11 +133,13 @@ Real graphs are almost always **sparse** — that fact will pick our representat
 
 ## Trees are the sparsest graphs
 
-A **tree** = a connected graph with **no cycles**:
+A **tree** = a connected **undirected** graph with **no cycles**:
 
 - every tree on V vertices has **exactly V − 1** edges
 - two of {connected, acyclic, E = V−1} force the third
 - +1 edge → a cycle · −1 edge → disconnected
+
+<small>**Undirected matters.** The directed diamond `1→2, 1→3, 2→4, 3→4` is connected with **no directed cycle** — yet it is **not** a tree: two paths reach 4, and E = V. Acyclic *digraphs* are **DAGs** (Part 4), a strictly bigger family.</small>
 
 All our tree structures were special-case graphs — tonight removes the restrictions.
 
