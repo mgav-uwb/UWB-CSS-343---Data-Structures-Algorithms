@@ -20,6 +20,9 @@
     .reveal pre code { border-radius: 8px; }
     .reveal img { background: #fff; border: 1px solid #eef0f4; border-radius: 8px; }
     .reveal blockquote { width: 92%; }
+    /* run tables (lib .u-ttable): .reveal table's 0.78em would blow them up */
+    .reveal .u-ttable { font-size: 14px; margin: 0 auto; }
+    .reveal .u-ttable th { font-size: 10px; }
   </style>
 </head>
 <body>
@@ -52,16 +55,22 @@
   <!-- Unified library — ONE Graph engine (fixed vertices 0–7, editable edge
        list "u v, u v, …"); each slide's spec exposes only the operations the
        lecture has introduced by that point:
-         graph-tour (Part 1)  static picture of tonight's DAG (no ops)
-         graph-dfs  (Part 2)  DFS from any start (tree edges, backtracking,
-                              back-edge = cycle detection)
-         graph-bfs  (Part 3)  adds BFS — run both from the same start and
-                              compare orders; BFS labels = fewest-edge distances
-         graph-topo (Part 4)  adds Topo sort (Kahn) — add edge 6 2 to close a
-                              cycle: Kahn strands red vertices, DFS flags the
-                              back edge -->
+         graph-tour  (Part 1)  static picture of tonight's DAG (no ops)
+         graph-dfs   (Part 2)  DFS from any start (tree edges, backtracking,
+                               back-edge = cycle detection)
+         graph-bfs   (Part 3)  adds BFS (opens on it) — the script preset runs
+                               DFS then BFS from 0 to compare the orders
+         search-race (Part 3)  BFS vs DFS side by side in LOCKSTEP, each
+                               panel's title carrying its live frontier
+         graph-topo  (Part 4)  Topo sort (opens on it) — the cycle PRESET adds
+                               edge 6→2: Kahn strands red vertices, DFS flags
+                               the back edge. A successful run ends with the
+                               Sedgewick payoff: vertices on a line, every
+                               edge pointing right.
+       plus a STATIC run table (#bfs-worked) — the BFS worked trace on the
+       diamond, generated from the engine's own trace. -->
   <script type="module">
-    import { initDeckDemos, ArrayRenderer, Graph, GraphRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, ArrayRenderer, Graph, graphInfo, GraphRenderer, renderTraceTable } from "../../lib/deck.js";
     const DAG = "0 1, 0 3, 1 2, 1 3, 2 3, 0 5, 3 4, 3 7, 4 5, 5 6, 4 7"; // the canonical course graph (circular layout; same edges S09/S11 weight)
     const base = () => ({
       make: () => new Graph({ layout: "circle" }),
@@ -72,6 +81,7 @@
       buildAll: (s, keys) => s.buildTrace(keys),   // Build animates the edges landing one at a time
       renderer: (c) => new GraphRenderer(c, { directed: true }),
       stateMsg: (g) => `directed graph — ${g.inorder()}; pairs "u v" in the box are the edges`,
+      info: graphInfo,
       costs: ["visit", "compare"], chrome: { showCosts: true },
       width: 960, height: 240,
     });
@@ -85,8 +95,9 @@
       labels: ["", "the frontier — BFS: the queue · DFS: the recursion stack · topo: the ready set"],
       height: [h, 48],
     });
-    const dfsOp = { name: "DFS from", arg: "number", run: (s, v) => s.dfs(v) };
-    const bfsOp = { name: "BFS from", arg: "number", run: (s, v) => s.bfs(v) };
+    const dfsOp = { name: "DFS from", arg: "number", desc: "dive along unvisited edges, backtrack at dead ends; a back edge to a stack ancestor = a CYCLE", run: (s, v) => s.dfs(v) };
+    const bfsOp = { name: "BFS from", arg: "number", desc: "explore in layers via the queue; each label = fewest edges from the start", run: (s, v) => s.bfs(v) };
+    const topoOp = { name: "Topo sort", desc: "Kahn: repeatedly output an in-degree-0 vertex; the finale lines the vertices up — every edge points right", run: (s) => s.topo() };
     initDeckDemos({
       "graph-tour": { // static view of tonight's DAG for Part 1 (no ops yet)
         make: () => { const g = new Graph({ layout: "circle" }); g.build(); return g; },
@@ -95,9 +106,52 @@
         width: 900, height: 230,
       },
       "graph-dfs":  { ...base(), ...dual(195), ops: [dfsOp] },
-      "graph-bfs":  { ...base(), ...dual(195), ops: [dfsOp, bfsOp] },
-      "graph-topo": { ...base(), ...dual(175), ops: [dfsOp, bfsOp, { name: "Topo sort", run: (s) => s.topo() }] },
+      "graph-bfs":  { ...base(), ...dual(195), ops: [dfsOp, bfsOp], defaultOp: "BFS from",
+                      scripts: [{ name: "compare the orders: DFS then BFS from 0", text: "dfs 0\nbfs 0" }] },
+      "search-race": { use: "search-race", width: 1000 },
+      "graph-topo": { ...base(), ...dual(175), ops: [dfsOp, bfsOp, topoOp], defaultOp: "Topo sort",
+                      presets: [
+                        { name: "tonight's DAG", initial: DAG },
+                        { name: "with a cycle (6→2 added)", initial: DAG + ", 6 2" },
+                      ],
+                      scripts: [{ name: "Kahn, then DFS double-checks", text: "topo\ndfs 0" }] },
     });
+
+    // Static run table: the BFS worked trace on the diamond (0→1, 0→2, 1→3,
+    // 2→3), one row per step, straight from the engine's own trace — the
+    // numbers cannot drift from what the interactive demo shows.
+    const mountWorked = () => {
+      const el = document.getElementById("bfs-worked");
+      if (el && !el.__mounted) {
+        el.__mounted = true;
+        const g = new Graph(); g.build([0, 1, 0, 2, 1, 3, 2, 3]);
+        renderTraceTable(el, {
+          trace: g.bfs(0),
+          action: (f) => f.msg.replace(/ — scan its neighbors$/, "").replace(/, enqueue it$/, ""),
+          cols: [
+            { label: "queue", get: (f) => `[${f.snapshot.frontier.items.join(" ")}]` },
+            ...[0, 1, 2, 3].map((v) => ({ label: `d(${v})`, get: (f) => f.highlight?.dist?.[v] ?? "–" })),
+            { label: "visit order", get: (f) => (f.highlight?.nodes?.done ?? []).join(" ") },
+          ],
+        });
+      }
+      // Sedgewick's "edges all point right" figure, drawn from OUR graph: run
+      // Kahn on tonight's DAG and paint its finale frame (vertices on a line
+      // in topological order, every edge a right-pointing arc) — static.
+      const line = document.getElementById("topo-line");
+      if (line && !line.__mounted) {
+        line.__mounted = true;
+        const g = new Graph(); g.build(DAG.split(/[\s,]+/).map(Number));
+        const last = g.topo().last;
+        const cv = document.createElement("canvas");
+        cv.width = 900; cv.height = 150; cv.style.width = "100%"; cv.style.height = "auto";
+        line.appendChild(cv);
+        new GraphRenderer(cv, { directed: true }).draw(last.snapshot, last.highlight);
+      }
+    };
+    if (window.Reveal && Reveal.isReady && Reveal.isReady()) mountWorked();
+    else if (window.Reveal) Reveal.on("ready", mountWorked);
+    else document.addEventListener("DOMContentLoaded", mountWorked);
   </script>
 </body>
 </html>

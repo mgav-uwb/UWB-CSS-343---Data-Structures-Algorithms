@@ -94,6 +94,17 @@
       .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
       .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      /* static run tables (rendered by lib/core/trace-table.js; styles copied
+         from lib/core/lib.css .u-ttable so the handout stays self-styled) */
+      .u-ttable { border-collapse: collapse; font: 500 12.5px ui-monospace, Menlo, monospace; color: #1a1c22; margin: 10px auto; }
+      .u-ttable th { font: 700 11px system-ui; letter-spacing: 0.05em; text-transform: uppercase; color: #66708a; background: #f3f0ff; border: 1px solid #e2dcff; padding: 4px 9px; }
+      .u-ttable td { border: 1px solid #eceef2; padding: 4px 9px; text-align: center; white-space: nowrap; }
+      .u-ttable .u-tt-num { color: #9aa3b5; }
+      .u-ttable .u-tt-act { text-align: left; color: #3a3f4d; }
+      .u-ttable tbody tr:last-child td { background: #f4fbf7; }
+      figure.linefig { margin: 1.5em 0; text-align: center; }
+      figure.linefig canvas { max-width: 100%; height: auto; border: 1px solid #eef0f4; border-radius: 10px; background: #fff; }
+      figure.linefig figcaption { font-size: 0.85em; color: var(--dim); margin-top: 6px; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -366,7 +377,7 @@ impl Graph {
         directed graph anchors every worked example and demo in this chapter:
       </p>
       <figure>
-        <svg viewBox="0 0 420 300" role="img" aria-label="The running directed acyclic graph on eight vertices, drawn with vertices evenly spaced around a circle in index order, the same layout as the interactive demo.">
+        <svg viewBox="0 0 420 300" role="img" aria-label="The running directed acyclic graph. Eight vertices numbered 0 through 7 are drawn as circles spaced evenly around a ring in index order, with 0 at the top and indices increasing clockwise. Eleven arrows show the directed edges, each pointing from a lower to a higher index: 0 points to 1, 0 points to 3, 0 points to 5, 1 points to 2, 1 points to 3, 2 points to 3, 3 points to 4, 3 points to 7, 4 points to 5, 4 points to 7, and 5 points to 6. Vertices 6 and 7 have no outgoing edges.">
           <defs>
             <marker id="ah" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L8,3 L0,6 Z" fill="#4a5163"/>
@@ -716,13 +727,10 @@ fn bfs(g: &amp;Graph, s: usize) {
       </div>
       <div class="ex">
         <span class="tag">Example (a BFS trace)</span>
-        The same diamond \(0\to1,\ 0\to2,\ 1\to3,\ 2\to3\):
-        <pre>  queue [0]              dist: 0&rarr;0
-  pop 0 &rarr; enq 1, 2      queue [1,2]   dist: 1&rarr;1, 2&rarr;1
-  pop 1 &rarr; enq 3         queue [2,3]   dist: 3&rarr;2
-  pop 2 &rarr; 3 seen, skip  queue [3]
-  pop 3 &rarr; done
-  visit order:  0 1 2 3       distances:  0 1 1 2</pre>
+        The same diamond \(0\to1,\ 0\to2,\ 1\to3,\ 2\to3\), one row per
+        step &mdash; generated from the demo engine&rsquo;s own trace, so it
+        matches the interactive demo step for step:
+        <div id="bfs-run-table" style="overflow-x:auto"></div>
         BFS pops \(0\), fans out to \(1\) and \(2\) (layer \(1\)), then reaches
         \(3\) (layer \(2\)). Vertex \(3\) is discovered from \(1\) first; when
         \(2\) later sees it, it is already queued, so \(2\)&rsquo;s edge is
@@ -790,6 +798,10 @@ fn bfs(g: &amp;Graph, s: usize) {
         within two edges of \(0\). Then run DFS from the same
         start without rebuilding, and compare: ring-by-ring versus
         dive-and-backtrack on identical edges is the whole thesis of the chapter.
+        Or watch both at once: the
+        <a href="../lib/demo.html?ds=search-race">BFS-vs-DFS race</a> runs them
+        side by side in lockstep, each panel&rsquo;s title carrying its live
+        frontier (the queue vs the stack).
       </div>
 
       <h3>DFS versus BFS, and one loop behind both</h3>
@@ -859,6 +871,15 @@ while (!f.empty()) {
         \(0\,1\,2\,3\) and \(0\,2\,1\,3\), since \(1\) and \(2\) are independent.
         When does an order exist?
       </p>
+      <figure class="linefig">
+        <div id="topo-line"></div>
+        <figcaption>The definition made visible (after Sedgewick&rsquo;s
+        &ldquo;edges all point right&rdquo; figure): the running DAG&rsquo;s
+        vertices on a line in topological order &mdash; same vertices, same
+        edges, and every arrow flows rightward. Drawn by the demo engine from
+        its own Kahn run; the interactive topo demo ends every successful run
+        with this frame.</figcaption>
+      </figure>
       <p>
         A cycle destroys it immediately: \(a \to b \to \cdots \to a\) would demand
         \(a\) before \(b\) before \(\cdots\) before \(a\), which no linear order
@@ -932,7 +953,9 @@ repeat until the queue is empty:
         7{:}2\). The only source is \(0\); outputting it drops \(1\) to in-degree
         \(0\) (and \(3\) to \(2\), \(5\) to \(1\)); each output in turn frees the
         next index, and breaking ties by smaller index gives the order
-        \(0\ 1\ 2\ 3\ 4\ 5\ 6\ 7\).
+        \(0\ 1\ 2\ 3\ 4\ 5\ 6\ 7\). Row by row, from the engine&rsquo;s own
+        trace (the labels column is the eight live in-degrees):
+        <div id="kahn-run-table" style="overflow-x:auto"></div>
       </div>
 
       <h3>Topological sort via DFS post-order</h3>
@@ -988,8 +1011,11 @@ answer = pop the stack   <span class="cm">// reverse of finish order</span></pre
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=graph">Topological-sort demo</a> (Kahn, with
         live in-degree labels). Run it on the running DAG to watch the in-degrees
-        tick down and vertices pop as they reach \(0\). Then append the edge
-        \(6 \to 2\) and rebuild: now \(2 \to 3 \to 5 \to 6 \to 2\) is a cycle,
+        tick down and vertices pop as they reach \(0\) &mdash; and hold on the
+        finale: the vertices rearrange onto a line in the output order, every
+        edge a right-pointing arc (the figure above, earned live). Then pick the
+        &ldquo;with a cycle (6&rarr;2 added)&rdquo; preset and rebuild: now
+        \(2 \to 3 \to 5 \to 6 \to 2\) is a cycle,
         Kahn strands the cycle&rsquo;s vertices (they never reach in-degree \(0\)),
         and DFS from \(0\) flags the back edge &mdash; two detectors, one bug.
       </div>
@@ -1187,6 +1213,48 @@ answer = pop the stack   <span class="cm">// reverse of finish order</span></pre
         if (document.readyState !== "loading") apply(saved);
         else document.addEventListener("DOMContentLoaded", () => apply(saved));
       })();
+    </script>
+    <!-- Run tables + the topological line-up figure — all generated by the
+         demo library FROM ITS OWN TRACES, so the numbers cannot drift from
+         what the interactive demos show (lib/core/trace-table.js). -->
+    <script type="module">
+      import { Graph, GraphRenderer, renderTraceTable } from "../lib/index.js";
+      // BFS on the diamond (§5)
+      {
+        const g = new Graph(); g.build([0, 1, 0, 2, 1, 3, 2, 3]);
+        renderTraceTable(document.getElementById("bfs-run-table"), {
+          trace: g.bfs(0),
+          cols: [
+            { label: "queue", get: (f) => `[${f.snapshot.frontier.items.join(" ")}]` },
+            ...[0, 1, 2, 3].map((v) => ({ label: `d(${v})`, get: (f) => f.highlight?.dist?.[v] ?? "–" })),
+            { label: "visit order", get: (f) => (f.highlight?.nodes?.done ?? []).join(" ") },
+          ],
+        });
+      }
+      // Kahn on the running DAG (§6) — rows at each output/final step
+      const DAG = [0, 1, 0, 3, 1, 2, 1, 3, 2, 3, 0, 5, 3, 4, 3, 7, 4, 5, 5, 6, 4, 7];
+      {
+        const g = new Graph(); g.build(DAG);
+        renderTraceTable(document.getElementById("kahn-run-table"), {
+          trace: g.topo(),
+          pick: (f) => /^(compute|\d+ has in-degree 0|topological order)/.test(f.msg),
+          action: (f) => f.msg.replace(/^(\d+) has in-degree 0 → output it.*$/, "output $1 (in-degree 0)").replace(/topological order:.*$/, "done — all 8 output: valid order").replace(/ \(shown on each vertex\)/, ""),
+          cols: [
+            { label: "ready", get: (f) => `[${f.snapshot.frontier.items.join(" ")}]` },
+            { label: "in-degrees 0–7", get: (f) => f.highlight?.dist ? Object.keys(f.highlight.dist).sort((a, b) => a - b).map((k) => f.highlight.dist[k]).join(" ") : "" },
+            { label: "order so far", get: (f) => (f.highlight?.nodes?.done ?? []).join(" ") },
+          ],
+        });
+      }
+      // the line-up figure (§6): Kahn's finale frame, painted static
+      {
+        const g = new Graph(); g.build(DAG);
+        const last = g.topo().last;
+        const cv = document.createElement("canvas");
+        cv.width = 860; cv.height = 150;
+        document.getElementById("topo-line").appendChild(cv);
+        new GraphRenderer(cv, { directed: true }).draw(last.snapshot, last.highlight);
+      }
     </script>
   </body>
 </html>

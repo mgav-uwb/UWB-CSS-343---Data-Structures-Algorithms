@@ -208,7 +208,7 @@
         yet still provably \(\Theta(\log n)\) tall.
       </p>
       <figure>
-        <svg viewBox="0 0 460 250" role="img" aria-label="Left: the keys 1 through 7 inserted in sorted order into a plain BST, forming a right-leaning path of height six. Right: the same keys in an AVL tree, a perfectly bushy tree of height two rooted at 4.">
+        <svg viewBox="0 0 460 250" role="img" aria-label="Two trees built from the keys 1 through 7. Left, labeled 'plain BST: height 6': the keys inserted in sorted order form a single right-leaning path; 1 is the root, its right child is 2, whose right child is 3, and so on down to 7, giving height 6. Right, labeled 'AVL: height 2': the same keys as a perfectly bushy AVL tree; 4 is the root with left child 2 and right child 6; 2 has children 1 and 3; 6 has children 5 and 7.">
           <g stroke="#4a5163" stroke-width="1.6" fill="none">
             <line x1="55" y1="30" x2="80" y2="62"/>
             <line x1="80" y1="62" x2="105" y2="94"/>
@@ -382,7 +382,7 @@
         <em>middle</em> subtree changes parent.
       </div>
       <figure>
-        <svg viewBox="0 0 470 190" role="img" aria-label="A right rotation at y. Before: y with balance factor plus two, its left child x with balance factor plus one, x's subtrees A and B, and y's right subtree C. After: x is the root with subtree A on the left and y on the right, y holding subtrees B and C, all balance factors zero.">
+        <svg viewBox="0 0 470 190" role="img" aria-label="A right rotation at node y, before and after. Before: y is the subtree root with balance factor plus 2; its left child is x with balance factor plus 1, and its right subtree is the triangle C. Node x has left subtree A and right subtree B. An arrow labeled rotateRight(y) points to the after picture: x is now the subtree root with left subtree A and right child y; y now has left subtree B (the subtree that moved over from x's right side) and right subtree C. Both x and y show balance factor 0.">
           <!-- before -->
           <g stroke="#4a5163" stroke-width="1.6" fill="none">
             <line x1="110" y1="32" x2="72" y2="84"/>
@@ -566,7 +566,7 @@ fn rotate_left(mut x: Box&lt;Node&gt;) -&gt; Box&lt;Node&gt; {    // RR fix: mir
         lean right.
       </p>
       <figure>
-        <svg viewBox="0 0 470 190" role="img" aria-label="A left rotation at x, the mirror of the right rotation. Before: x with balance factor minus two, its right child y with balance factor minus one. After: y is the root with x on its left, all balance factors zero.">
+        <svg viewBox="0 0 470 190" role="img" aria-label="A left rotation at node x, the mirror of the right rotation, before and after. Before: x is the subtree root with balance factor minus 2; its left subtree is the triangle A and its right child is y with balance factor minus 1. Node y has left subtree B and right subtree C. An arrow labeled rotateLeft(x) points to the after picture: y is now the subtree root with right subtree C and left child x; x keeps left subtree A and gains right subtree B (the subtree that moved over from y's left side). Both x and y show balance factor 0.">
           <!-- before -->
           <g stroke="#4a5163" stroke-width="1.6" fill="none">
             <line x1="100" y1="32" x2="62" y2="70"/>
@@ -672,7 +672,7 @@ fn rotate_left(mut x: Box&lt;Node&gt;) -&gt; Box&lt;Node&gt; {    // RR fix: mir
         (\(\mathrm{bf}=-1\)) &mdash; a left-then-right kink. A left rotation at
         \(10\) straightens it into an LL, and a right rotation at \(30\) finishes.
         <figure>
-          <svg viewBox="0 0 660 200" role="img" aria-label="An LR double rotation on concrete keys. Panel one: node 30 is left-heavy at balance factor plus two with left child 10 leaning right after inserting 25. Panel two: after a left rotation at 10 the imbalance is a straight LL. Panel three: after a right rotation at 30 the tree is balanced with root 20.">
+          <svg viewBox="0 0 660 200" role="img" aria-label="An LR double rotation in three panels. Panel one, after inserting 25: root 30 with balance factor plus 2 has left child 10 and right child 40; 10 has left child 5 and right child 20; 20 has right child 25, the new key, so the left child leans right. An arrow labeled rotateLeft(10) points to panel two: 30 is still the root at balance factor plus 2, but its left child is now 20; 20 has left child 10 and right child 25, and 10 has left child 5; the kink is now a straight left-left line. An arrow labeled rotateRight(30) points to panel three, the balanced result: 20 is the root at balance factor 0, with left child 10 and right child 30; 10 has left child 5, and 30 has left child 25 and right child 40.">
             <!-- panel A -->
             <g stroke="#4a5163" stroke-width="1.5" fill="none">
               <line x1="90" y1="26" x2="58" y2="70"/> <line x1="90" y1="26" x2="126" y2="70"/>
@@ -756,7 +756,7 @@ fn rotate_left(mut x: Box&lt;Node&gt;) -&gt; Box&lt;Node&gt; {    // RR fix: mir
         right child \(50\) leaning left (a right-then-left kink). A right rotation
         at \(50\) straightens it into RR; a left rotation at \(30\) finishes.
         <figure>
-          <svg viewBox="0 0 660 200" role="img" aria-label="An RL double rotation on concrete keys. Panel one: node 30 is right-heavy at balance factor minus two with right child 50 leaning left after inserting 35. Panel two: after a right rotation at 50 it is a straight RR. Panel three: after a left rotation at 30 the tree is balanced with root 40.">
+          <svg viewBox="0 0 660 200" role="img" aria-label="An RL double rotation in three panels, the mirror of the LR case. Panel one, after inserting 35: root 30 with balance factor minus 2 has left child 20 and right child 50; 50 has balance factor plus 1 with left child 40 and right child 55; 40 has left child 35, the new key, so the right child leans left. An arrow labeled rotateRight(50) points to panel two: 30 is still the root at balance factor minus 2, but its right child is now 40; 40 has left child 35 and right child 50, and 50 has right child 55; the kink is now a straight right-right line. An arrow labeled rotateLeft(30) points to panel three, the balanced result: 40 is the root at balance factor 0, with left child 30 and right child 50; 30 has left child 20 and right child 35, and 50 has right child 55.">
             <!-- panel A -->
             <g stroke="#4a5163" stroke-width="1.5" fill="none">
               <line x1="90" y1="26" x2="58" y2="70"/> <line x1="90" y1="26" x2="122" y2="70"/>
@@ -1126,7 +1126,7 @@ fn insert(t: Link, key: i32) -&gt; Link {
         <span class="qed">&#8718;</span>
       </div>
       <figure>
-        <svg viewBox="0 0 470 200" role="img" aria-label="The minimum-size AVL trees of heights zero through three, with one, two, four, and seven nodes respectively. Each is a root over two minimal subtrees whose heights differ by one.">
+        <svg viewBox="0 0 470 200" role="img" aria-label="The four smallest AVL trees of heights 0 through 3, drawn as unlabeled circles. Height 0: a single node, N equals 1. Height 1: a root with one left child, N equals 2. Height 2: a root whose left child has a left child of its own and whose right child is a leaf, N equals 4. Height 3: a root whose left subtree is the four-node height-2 shape and whose right subtree is the two-node height-1 shape, N equals 7. In every tree the root's two subtrees are the minimal trees of heights h minus 1 and h minus 2, the most lopsided shape the AVL invariant allows.">
           <!-- h=0 -->
           <g font-family="system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">
             <circle cx="40" cy="40" r="10" fill="#fff" stroke="#2a2d36" stroke-width="1.4"/>

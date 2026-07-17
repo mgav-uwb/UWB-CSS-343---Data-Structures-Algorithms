@@ -34,7 +34,7 @@
 
 <script type="module">
   import { mountDemo, resolveSpec } from "./deck.js";
-  import { DEMOS } from "./demos/registry.js";
+  import { DEMOS, DEMO_LIST } from "./demos/registry.js";
 
   const params = new URLSearchParams(location.search);
   const ds = params.get("ds") || "avl";
@@ -48,7 +48,7 @@
     catch (err) { console.error("bad ?config= JSON", err); }
   }
 
-  document.getElementById("picker").innerHTML = Object.values(DEMOS)
+  document.getElementById("picker").innerHTML = DEMO_LIST // deduped: alias slugs list once
     .map((d) => `<a href="?ds=${d.id}" class="${d.id === spec.id ? "on" : ""}">${d.title}</a>`).join("");
   document.getElementById("blurb").textContent = spec.blurb || "";
   document.getElementById("proto").innerHTML = spec.proto

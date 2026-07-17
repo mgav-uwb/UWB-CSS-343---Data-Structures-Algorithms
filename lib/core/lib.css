@@ -46,6 +46,66 @@
 .u-opbar select:hover { border-color: #7c5cff; }
 .u-opbar .u-run { padding: 7px 16px; }
 
+/* two-row control strip (core/control-bar.js) */
+.u-opbar2 { display: block; }
+.u-opbar2 .u-row { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; padding: 3px 0; }
+.u-opbar2 .u-row + .u-row { border-top: 1px dashed #e2dcff; margin-top: 4px; padding-top: 7px; }
+.u-rowlabel { font: 700 10px system-ui; letter-spacing: 0.08em; text-transform: uppercase; color: #8a93a6; width: 40px; flex: none; }
+/* the expandable boxes are 1-row textareas (inputs strip newlines; scripts
+   need them) — strictly ONE line collapsed (wrap="off"); the overlay editor
+   is where long content gets room, so the boxes stay small */
+.u-opbar textarea { box-sizing: border-box; font: 600 13px/17px ui-monospace, Menlo, monospace; border: 1px solid #d7dbe6; border-radius: 8px; padding: 6px 9px; height: 31px; resize: none; overflow: hidden; white-space: pre; background: #fff; color: inherit; }
+.u-opbar2 .u-seq { width: 180px; }
+.u-opbar2 .u-val { width: 96px; }
+/* overflowing content fades out at the tail — "there is more, click to edit";
+   multi-line scripts additionally get a "⋯" badge (the box shows line 1 only) */
+.u-opbar textarea.u-fade { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 26px), transparent); }
+.u-ovwrap.u-more::after { content: "⋯"; position: absolute; right: 7px; top: 50%; transform: translateY(-58%); color: #8a93a6; font: 700 13px system-ui; pointer-events: none; }
+.u-opbar textarea.u-disabled, .u-opbar textarea:disabled { background: #eceef2; color: #a7adba; cursor: not-allowed; }
+.u-qwrap { position: relative; display: inline-flex; }
+.u-qbtn { width: 24px; height: 26px; padding: 0 !important; border-radius: 50% !important; font-weight: 700; flex: none; }
+.u-helppop { position: absolute; top: calc(100% + 5px); left: 0; z-index: 30; width: 380px; max-width: 74vw; background: #fffdf5; border: 1px solid #e0d49a; border-radius: 8px; padding: 9px 12px; font: 400 12.5px/1.5 system-ui; color: #3a3f4d; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15); }
+.u-helppop code { background: #f0ecdc; padding: 0 4px; border-radius: 3px; font: 600 11.5px ui-monospace, Menlo, monospace; }
+.u-helppop .u-oprow { margin: 3px 0; }
+.u-helppop .u-opmeta { color: #8a93a6; font-size: 11.5px; }
+.u-helppop .u-opscript { border-top: 1px dashed #e0d49a; margin-top: 7px; padding-top: 6px; color: #66708a; }
+.u-ovwrap { position: relative; display: inline-flex; }
+.u-overlay { position: absolute; top: -5px; left: -5px; z-index: 40; background: #fff; border: 1.5px solid #7c5cff; border-radius: 8px; padding: 6px; box-shadow: 0 6px 24px rgba(80, 60, 160, 0.25); }
+.u-overlay textarea { box-sizing: border-box; width: 430px; height: 96px; max-width: 76vw; border: none !important; outline: none; resize: none; overflow: auto; white-space: pre; font: 600 13px/17px ui-monospace, Menlo, monospace; padding: 4px 6px; }
+.u-overlay .u-ovhint { display: block; font: 500 10px system-ui; color: #9aa3b5; padding: 2px 4px 0; }
+/* the input-format instructions live at the BOTTOM of the expanded panel */
+.u-overlay .u-ovhelp { display: block; max-width: 430px; border-top: 1px solid #eceef2; margin-top: 5px; padding: 7px 4px 2px; font: 400 12px/1.5 system-ui; color: #3a3f4d; white-space: normal; }
+.u-overlay .u-ovhelp code { background: #f3f0ff; padding: 0 4px; border-radius: 3px; font: 600 11px ui-monospace, Menlo, monospace; }
+.u-warnband { display: none; margin-top: 6px; padding: 6px 10px; border-radius: 8px; background: #fff7e6; border: 1px solid #ecc56a; color: #7a5200; font: 600 12.5px system-ui; }
+.u-warnband.on { display: block; }
+
+/* per-frame state readout under the render (core/info-bar.js) — tracks the
+   SCRUBBED frame, so stepping back shows the M / α / tombstones of that moment */
+.u-infobar { font: 600 12.5px ui-monospace, Menlo, monospace; color: #4b3ccc; background: #f7f6ff; border: 1px solid #e2dcff; border-radius: 8px; padding: 5px 10px; margin: 6px 0 2px; }
+
+/* static state-stack figures (core/state-stack.js) */
+.u-stack { font: 14px system-ui, sans-serif; }
+.u-stack-tbl { display: flex; }
+.u-stack-cell { width: 46px; height: 38px; border: 1px solid #b9c0d0; border-left: none; display: flex; align-items: center; justify-content: center; font: 600 14px ui-monospace, Menlo, monospace; background: #fff; position: relative; color: #1a1c22; }
+.u-stack-cell:first-child { border-left: 1px solid #b9c0d0; border-radius: 6px 0 0 6px; }
+.u-stack-cell:last-child { border-radius: 0 6px 6px 0; }
+.u-stack-cell.u-new { background: #7c5cff; border-color: #7c5cff; color: #fff; font-weight: 700; }
+.u-stack-cell.u-probe { background: #fff5e9; }
+.u-stack-cell.u-probe::after { content: "✗"; position: absolute; top: 1px; right: 4px; font-size: 10px; color: #e8590c; }
+.u-stack-cell.u-tomb { background: #eceef2; color: #8a93a6; }
+.u-stack-idx { display: flex; margin: 2px 0 0; }
+.u-stack-idx span { width: 46px; text-align: center; font: 500 11px ui-monospace, Menlo, monospace; color: #9aa3b5; }
+.u-stack-act { font: 500 13px ui-monospace, Menlo, monospace; color: #3a3f4d; background: #f3f0ff; border-left: 3px solid #7c5cff; padding: 5px 10px; border-radius: 0 6px 6px 0; margin: 10px 0 6px; }
+.u-stack-act.fail { background: #fdeaea; border-left-color: #b3261e; color: #7a1c16; }
+
+/* static run tables (core/trace-table.js) — one row per trace frame */
+.u-ttable { border-collapse: collapse; font: 500 12.5px ui-monospace, Menlo, monospace; color: #1a1c22; }
+.u-ttable th { font: 700 11px system-ui; letter-spacing: 0.05em; text-transform: uppercase; color: #66708a; background: #f3f0ff; border: 1px solid #e2dcff; padding: 4px 9px; }
+.u-ttable td { border: 1px solid #eceef2; padding: 4px 9px; text-align: center; white-space: nowrap; }
+.u-ttable .u-tt-num { color: #9aa3b5; }
+.u-ttable .u-tt-act { text-align: left; color: #3a3f4d; }
+.u-ttable tbody tr:last-child td { background: #f4fbf7; }
+
 /* case-selector bar (CaseDemo) */
 .u-casebar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
 .u-casebar button { font: 600 13px system-ui; border: 1px solid #b9a9ff; background: #f7f8fb; color: #4b3ccc; border-radius: 8px; padding: 6px 13px; cursor: pointer; }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlBar test</title>
+  <link rel="stylesheet" href="../core/lib.css">
+</head>
+<body style="max-width:960px;margin:2rem auto;font:14px system-ui">
+  <h3>a: full config (presets, named input, ops, scripts, defaultOp Delete)</h3>
+  <div id="a"></div>
+  <h3>b: arg-less op selected → disabled box</h3>
+  <div id="b"></div>
+  <h3>c: build-only (no run row)</h3>
+  <div id="c"></div>
+  <h3>event log</h3>
+  <ol id="log"></ol>
+  <script type="module">
+    import { ControlBar } from "../core/control-bar.js";
+    const log = (s) => { const li = document.createElement("li"); li.textContent = s; document.getElementById("log").appendChild(li); };
+    const on = (tag) => ({
+      build: () => log(`${tag} build`),
+      reset: () => log(`${tag} reset`),
+      run: (op, t) => log(`${tag} run: ${op ? op.name : "(no op)"} ${JSON.stringify(t)}`),
+    });
+    const a = new ControlBar(document.getElementById("a"), {
+      presets: [{ name: "worksheet M=7", initial: "1..21:2", values: { m: "7" } }, { name: "flood", initial: "1..70" }],
+      initial: "1..21:2",
+      inputs: [{ key: "m", label: "M", value: "7", width: 45 }],
+      ops: [{ name: "Insert", arg: "number" }, { name: "Delete", arg: "number" }, { name: "Search", arg: "number", ghost: true }],
+      scripts: [{ name: "insert-collide-delete", text: "insert 33\ndelete 14\nsearch 33" }],
+      defaultOp: "Delete",
+    }, on("a"));
+    a.warn("table full — 3 of 20 keys NOT inserted (demo of the warning band)");
+    new ControlBar(document.getElementById("b"), {
+      initial: "1..10",
+      ops: [{ name: "Heapify" }, { name: "Insert", arg: "number" }],
+    }, on("b"));
+    new ControlBar(document.getElementById("c"), { initial: "PATH:5", ops: [], showRun: false }, on("c"));
+  </script>
+</body>
+</html>

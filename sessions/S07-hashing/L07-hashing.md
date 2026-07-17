@@ -368,6 +368,36 @@ Keep **α = O(1)** → every operation is **O(1)** expected.
 
 --
 
+## 🎬 Flood it — watch the promise break
+
+<div class="algo-viz" data-algo="hash-chain" data-example="1..70">
+<pre class="viz-fallback">
+   Same table, M frozen at 7 — but now 70 keys (build 1..70):
+   every bucket holds a 10-chain, α = 70/7 = 10, and a search
+   near the chain's end pays 1 + 10 compares.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Same table, **ten times the keys**, M frozen at 7. The deep searches now cost 1 + a 10-long chain — **α = n/M climbed because n grew and M did NOT**.</small>
+
+--
+
+## 🎬 The move: resize
+
+<div class="algo-viz" data-algo="hash-chain-resize">
+<pre class="viz-fallback">
+   The same flood, but the table doubles M at α = 1 and rehashes
+   every key — the chains shorten mid-build: M: 7 → 14 → … → 112,
+   final α = 0.63, longest chain ~2.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>The same flood — but the table **doubles M and rehashes everything at α = 1**. Run the flood preset and watch the chains **shorten mid-build**. THIS is the actor behind "expected Θ(1)".</small>
+
+--
+
 ## Chaining: the ledger
 
 **Strengths**
@@ -530,6 +560,38 @@ Delete 14 by **emptying its slot** — and you punch a **hole in the cluster**:
 
 --
 
+## 🎬 Delete, side by side
+
+<div class="algo-viz" data-algo="hash-delete-race">
+<pre class="viz-fallback">
+   The same keys, deletes, and searches into BOTH tables:
+   chaining (M = 7): delete = one unlink, no residue.
+   probing (M = 11, fixed): delete = a TOMBSTONE (†) that
+   searches still walk and only a future insert reclaims.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Run the script: same deletes into both. **Top (chaining):** unlink, α drops, done. **Bottom (probing):** tombstones **†** pile up — the survivor search walks two of them and still wins; the ghost search walks them all the way to an empty slot.</small>
+
+--
+
+## "Couldn't we just…" — three tempting deletes
+
+<div class="algo-viz" data-algo="probe-delete-pitfalls">
+<pre class="viz-fallback">
+   Three shortcut deletes, each ending on the search it breaks:
+   · blank the slot      → present key 36 comes back NOT FOUND
+   · shift the run left  → 15 (which sat AT its home) vanishes
+   · swap in the last    → 5 (displaced past its home) vanishes
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Each button runs one shortcut and **ends on the search it breaks** — a **present** key comes back *not found*. Deleting in open addressing means preserving **other keys'** probe paths.</small>
+
+--
+
 ## Chaining vs probing — the ledger
 
 |              | separate chaining     | linear probing            |
@@ -596,12 +658,7 @@ Colliding keys get **different strides** → even same-home keys part ways → e
 
 `M = 11` (prime), `h(x) = x mod 11`, `h2(x) = 7 − (x mod 7)`:
 
-```text
-   89 → 1                      [ _ 89 _ _ _ _ _ _ _ _ _ ]
-   18 → 7                      [ _ 89 _ _ _ _ _ 18 _ _ _ ]
-   40 → 7 taken; h2(40)=2      (7+2)%11 = 9  → slot 9
-   29 → 7 taken; h2(29)=6      (7+6)%11 = 2  → slot 2
-```
+<div id="double-worked" style="max-width:620px;margin:0 auto;text-align:left"></div>
 
 40 and 29 both collided with 18 at slot **7** — but stepped by **2** and **6** into different regions. No cluster forms.
 
@@ -616,6 +673,23 @@ Colliding keys get **different strides** → even same-home keys part ways → e
 | **double**    | `+i·h2(k)`  | ~none (best)          |
 
 Yet real libraries mostly use **linear** probing: with a strong hash and **low α**, its cache behavior beats the others' better distribution.
+
+--
+
+## 🎬 The probe family, racing
+
+<div class="algo-viz" data-algo="probe-race">
+<pre class="viz-fallback">
+   The same five keys — 3, 14, 25, 36, 47, all homing to slot 3
+   at M = 11 — into three fixed tables:
+   linear:    3, 4, 5, 6, 7   (a wall — primary clustering)
+   quadratic: 3, 4, 7, 1, 8   (scattered, but one shared path)
+   double:    each key strides by h2(k) — they part ways
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Same five keys, all homing to slot **3**. **Linear** builds the wall. **Quadratic** scatters — but every slot-3 key retraces the *same* scatter. **Double** strides by h2(k), so even same-home keys part ways. The compares row is the bill.</small>
 
 ---
 
@@ -656,6 +730,8 @@ Clustering makes linear probing worse than the ideal. Knuth (1962):
 ```
 
 Misses pay the **square** — keep **α ≤ ½** for linear probing.
+
+The hit curve is just the **running average of the miss curve** over the table's insertion history.
 
 --
 

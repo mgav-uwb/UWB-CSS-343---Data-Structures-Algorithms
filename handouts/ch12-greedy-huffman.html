@@ -493,7 +493,7 @@ fn build_huffman(freqs: &amp;[(char, u64)]) -&gt; Node {
         </figcaption>
       </figure>
       <figure>
-        <svg viewBox="0 0 420 288" role="img" aria-label="The Huffman trie for the CLRS frequencies. The root has frequency 100; its left child is the leaf f (45) and its right child is an internal node 55; the 55 node's children are internal nodes 25 and 30; 25 has leaf children c (12) and d (13); 30 has an internal child 14 and the leaf e (16); 14 has leaf children a (5) and b (9). Left edges are labeled 0, right edges 1.">
+        <svg viewBox="0 0 420 288" role="img" aria-label="The Huffman trie for the CLRS frequencies. The root has frequency 100; its left child is the leaf f (45) and its right child is an internal node 55; the 55 node's children are internal nodes 25 and 30; 25 has leaf children c (12) and d (13); 30 has an internal child 14 and the leaf e (16); 14 has leaf children a (5) and b (9). Left edges are labeled 0, right edges 1, so the root-to-leaf paths give the codes f = 0, c = 100, d = 101, e = 111, a = 1100, and b = 1101.">
           <g stroke="#8a9099" stroke-width="1.6" fill="none">
             <line x1="141" y1="40" x2="45" y2="92"/>    <!-- root-f -->
             <line x1="141" y1="40" x2="237" y2="92"/>   <!-- root-55 -->

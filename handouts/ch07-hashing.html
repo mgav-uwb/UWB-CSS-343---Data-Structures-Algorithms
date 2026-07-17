@@ -130,6 +130,24 @@
       .toc ol { margin: 4px 0; padding-left: 22px; }
       .toc a { text-decoration: none; }
       .note { font-size: 13.5px; color: var(--dim); }
+      /* static state-stack figure (lib/core/state-stack.js renders into it;
+         styles copied from lib/core/lib.css .u-stack* so the handout stays
+         self-styled — do NOT pull all of lib.css into a document page) */
+      figure.stackfig { margin: 1.5em 0; }
+      figure.stackfig figcaption { font-size: 0.85em; color: var(--dim); margin-top: 8px; }
+      .u-stack { font: 14px system-ui, sans-serif; }
+      .u-stack-tbl { display: flex; }
+      .u-stack-cell { width: 46px; height: 38px; border: 1px solid #b9c0d0; border-left: none; display: flex; align-items: center; justify-content: center; font: 600 14px ui-monospace, Menlo, monospace; background: #fff; position: relative; color: #1a1c22; }
+      .u-stack-cell:first-child { border-left: 1px solid #b9c0d0; border-radius: 6px 0 0 6px; }
+      .u-stack-cell:last-child { border-radius: 0 6px 6px 0; }
+      .u-stack-cell.u-new { background: #7c5cff; border-color: #7c5cff; color: #fff; font-weight: 700; }
+      .u-stack-cell.u-probe { background: #fff5e9; }
+      .u-stack-cell.u-probe::after { content: "✗"; position: absolute; top: 1px; right: 4px; font-size: 10px; color: #e8590c; }
+      .u-stack-cell.u-tomb { background: #eceef2; color: #8a93a6; }
+      .u-stack-idx { display: flex; margin: 2px 0 0; }
+      .u-stack-idx span { width: 46px; text-align: center; font: 500 11px ui-monospace, Menlo, monospace; color: #9aa3b5; }
+      .u-stack-act { font: 500 13px ui-monospace, Menlo, monospace; color: #3a3f4d; background: #f3f0ff; border-left: 3px solid #7c5cff; padding: 5px 10px; border-radius: 0 6px 6px 0; margin: 10px 0 6px; }
+      .u-stack-act.fail { background: #fdeaea; border-left-color: #b3261e; color: #7a1c16; }
       @media print {
         body { background: #fff; }
         .page { box-shadow: none; margin: 0; max-width: none; }
@@ -450,6 +468,33 @@ fn hash(s: &amp;str, m: i64) -&gt; i64 {
         pass is \(O(L)\), one multiply-add-mod per character &mdash; this is in
         essence Java&rsquo;s <code>String.hashCode</code>.
       </div>
+      <div class="aside">
+        <span class="tag">Why the &ldquo;digits&rdquo; may exceed the base</span>
+        Something should look wrong: in ordinary base-\(R\) notation a digit must
+        satisfy \(0 \le d &lt; R\), and a value of \(R\) or more is illegal &mdash;
+        you <em>carry</em> it into the next position. Yet our &ldquo;digits&rdquo;
+        are character codes &mdash; ASCII \(0\)&ndash;\(127\), or Unicode code
+        points up to \(1{,}114{,}111\) &mdash; almost all far larger than
+        \(R = 31\), and we never carry. That is fine, because the digit-size rule
+        exists to make a numeral <strong>unique</strong> (a bijection between
+        numbers and digit strings), and a hash does not want uniqueness. This
+        whole chapter is built on inputs colliding, and \(\bmod M\) forces
+        collisions regardless &mdash; so we drop the constraint and keep only what
+        a hash actually needs: each position carries a distinct, well-mixed weight
+        \(R^{\,i}\), so every character influences the result and altering or
+        reordering characters moves it. Any \(R &gt; 1\) achieves that; an
+        <em>odd</em> \(R\) such as \(31\) also stays coprime to a power-of-two
+        modulus, which mixes the low bits. Whether \(R\) happens to be smaller
+        than some character code is irrelevant &mdash; the only requirement, for a
+        code value of <em>any</em> size, is that the step
+        \(h = (R\,h + c)\bmod M\) be well-defined arithmetic, and it is.
+        <br><span class="note">(One consequence of dropping the rule: the wide
+        value is not injective even before \(\bmod M\) &mdash; a large code in a
+        low position can equal a smaller code plus a multiple of \(R\) one
+        position up. That is a harmless pre-collision, not a defect; \(R^{\,i}\)
+        still scatters the positions across the integer&rsquo;s range, and we were
+        going to tolerate collisions anyway.)</span>
+      </div>
 
       <h3>Two stages: hashCode, then compress</h3>
       <p>
@@ -747,10 +792,15 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         <em>hits</em> stops at its key, which sits about halfway down its chain on
         average, costing about \(1 + \alpha/2\). Both are \(\Theta(1 + \alpha)\).
         So as long as we keep \(\alpha = O(1)\) &mdash; a bounded number of keys
-        per slot &mdash; every operation is expected \(\Theta(1)\). The dial is
-        \(\alpha\): if \(M\) is fixed while \(n\) grows, chaining degrades
-        linearly in \(\alpha\), gracefully but surely, which is why even chaining
-        eventually resizes (<a href="#load">&sect;7</a>).
+        per slot &mdash; every operation is expected \(\Theta(1)\). Read that
+        premise carefully: \(\alpha = n/M\) is <em>not</em> automatically a
+        constant, because \(n\) is out of our hands &mdash; the user keeps
+        inserting. &ldquo;Keep \(\alpha = O(1)\)&rdquo; is therefore a <em>thing we
+        do</em>, not something that happens for free: we hold \(\alpha\) bounded by
+        growing \(M\) to match \(n\), which is exactly what resizing does
+        (<a href="#load">&sect;7</a>). With \(M\) fixed while \(n\) grows,
+        chaining degrades linearly in \(\alpha\) &mdash; gracefully but surely
+        &mdash; which is why even chaining eventually resizes.
       </p>
       <div class="ex">
         <span class="tag">Example (a chaining table, and an insert)</span>
@@ -892,6 +942,51 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
           \(36\) rehashes to \(3\) (taken by \(25\)) and probes to \(4\). Keys can
           end up <em>closer</em> to home than before the delete.</li>
       </ol>
+      <div class="aside">
+        <span class="tag">Why not swap in the last key and shrink?</span>
+        That trick deletes from an unordered array in \(O(1)\), and it is exactly
+        how you delete from a chaining bucket backed by a dynamic array &mdash; so
+        the instinct is good. It fails in open addressing because there is no
+        independent per-home group to swap within. One shared array braids every
+        home&rsquo;s probe run together, and a slot need not be &ldquo;owned&rdquo;
+        by the key that hashes to it (linear probing parks displaced keys in
+        whatever slot was free). Any key you relocate may be a <strong>bridge</strong>
+        that some other key probed past; move it and blank the vacated slot, and
+        you have re-created the same mid-cluster hole as a naive delete, stranding
+        whatever relied on that bridge. And to even <em>find</em> &ldquo;the last
+        key of this home&rsquo;s run&rdquo; you must walk the cluster anyway &mdash;
+        at which point fix 2 is doing strictly more useful work for the same walk.
+        Fix 2 <em>is</em> the disciplined form of &ldquo;pull a later key into the
+        hole&rdquo;: it moves a key only when its home \(h(k)\) lets it legally
+        slide up, and closes the gap step by step so no bridge is ever severed.
+      </div>
+      <div class="aside">
+        <span class="tag">What is a tombstone, concretely?</span>
+        A tombstone is a slot <em>state</em>, not a key value. The clean
+        implementation gives every slot a two-bit state &mdash;
+        <code>EMPTY</code> / <code>OCCUPIED</code> / <code>DELETED</code> &mdash;
+        and search stops only at <code>EMPTY</code>. Reserving an in-band key
+        value (<code>-1</code>, <code>INT_MIN</code>) works only when the key
+        domain has a value to sacrifice. Real tables do both: CPython&rsquo;s
+        dict historically parked a reserved <code>dummy</code> sentinel object
+        in deleted slots; Google&rsquo;s <code>dense_hash_map</code> makes
+        <em>you</em> reserve an &ldquo;empty key&rdquo; and a &ldquo;deleted
+        key&rdquo;; Swiss tables (Abseil, Rust&rsquo;s hashbrown) keep a separate
+        control byte per slot with dedicated codes for <em>empty</em> and
+        <em>deleted</em>.
+        <br><span class="note">(Tombstones also count against the load factor
+        &mdash; a table that deletes heavily fills with ghosts and must rehash to
+        evict them, one reason heavy-delete workloads often prefer chaining.)</span>
+      </div>
+      <figure class="stackfig">
+        <div id="tombstone-lifecycle"></div>
+        <figcaption>The tombstone lifecycle at \(M = 11\): three colliders
+        (\(14, 25, 36\), all homing to slot \(3\)) build a run; deleting the
+        middle one leaves a marker (&dagger;) that searches still walk &mdash;
+        the survivor search pays a probe but keeps its answer, the failed search
+        must walk the marker before it may stop &mdash; and the final insert
+        reclaims it.</figcaption>
+      </figure>
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=hash-lp">Linear-probing demo</a> (with
@@ -994,6 +1089,12 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         No cluster forms &mdash; under linear probing these keys would already be
         piling up at slots \(7,8,9\).
       </div>
+      <p>
+        How rare is a repeat? Two keys follow the same probe sequence only when
+        <em>both</em> hashes collide &mdash; probability on the order of
+        \(1/M^2\), not \(1/M\) &mdash; which is why double hashing tracks the
+        uniform-hashing ideal so closely.
+      </p>
       <table>
         <tr><th>method</th><th>step</th><th>clustering</th></tr>
         <tr><td>linear</td><td>\(+1\)</td><td>primary (worst)</td></tr>
@@ -1017,6 +1118,20 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         first find the cost under an idealized model, then state Knuth&rsquo;s
         exact result for linear probing, then keep \(\alpha\) bounded by
         resizing.
+      </p>
+      <p>
+        One structural point before the analysis, because it changes the
+        <em>stakes</em> of resizing. In chaining, resizing is a tuning choice:
+        the table never fills, \(\alpha\) may pass \(1\), and letting it drift
+        just makes chains longer. In open addressing it is <strong>mandatory</strong>.
+        Each slot holds at most one key, so \(n \le M\) and \(\alpha \le 1\)
+        always; at \(\alpha = 1\) the array is full and the next insert has
+        nowhere to probe &mdash; it simply fails. And the empty slots are not
+        waste, they are <em>load-bearing</em>: a search or insert walks the probe
+        sequence until it hits an empty slot, which is the &ldquo;stop, not
+        here&rdquo; signal, so the unused space is the working room the algorithm
+        needs to terminate. A near-full open-addressing table has almost no such
+        room, which is precisely the \(1/(1-\alpha)\) blow-up derived next.
       </p>
 
       <h3>The idealized probe cost: a geometric series</h3>
@@ -1081,6 +1196,29 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         averages fifty probes. This is the quantitative form of &ldquo;clusters
         snowball,&rdquo; and it forces the load-factor ceiling below.
       </p>
+      <div class="aside">
+        <span class="tag">Where Knuth&rsquo;s numbers come from (two steps)</span>
+        <strong>Why the miss cost squares.</strong> Under uniform hashing a miss
+        costs about \(1/(1-\alpha)\). Linear probing is worse because clusters
+        bite <em>twice</em>: a random home slot lands inside a cluster with
+        probability proportional to its <em>length</em>, and the walk to the
+        cluster&rsquo;s end also costs proportional to its <em>length</em>
+        &mdash; a length\(^2\) weighting over the cluster distribution, which
+        squares the uniform-hashing factor:
+        \[ \text{miss} \approx \tfrac{1}{2}\!\left(1 + \tfrac{1}{(1-\alpha)^2}\right). \]
+        <strong>Why the hit cost is the average of past misses.</strong> A
+        successful search retraces exactly the probe path its key walked on the
+        day it was <em>inserted</em> &mdash; and an insert costs a miss at
+        <em>that day&rsquo;s</em> load factor. Averaging the miss cost over the
+        table&rsquo;s history \(x = 0 \ldots \alpha\):
+        \[ \text{hit} \approx \frac{1}{\alpha}\int_0^{\alpha} \tfrac{1}{2}\!\left(1 + \tfrac{1}{(1-x)^2}\right) dx
+           \;=\; \tfrac{1}{2}\!\left(1 + \tfrac{1}{1-\alpha}\right). \]
+        No new idea enters in step two &mdash; the hit formula is bookkeeping on
+        top of the miss formula. <span class="note">(Check the integral:
+        \(\int_0^{\alpha} \frac{dx}{(1-x)^2} = \frac{1}{1-\alpha} - 1 = \frac{\alpha}{1-\alpha}\),
+        so the average is \(\tfrac{1}{2}\bigl(1 + \tfrac{1}{1-\alpha}\bigr)\)
+        exactly.)</span>
+      </div>
 
       <h3>Load-factor ceilings</h3>
       <table>
@@ -1107,7 +1245,16 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
       <p>
         A resize cannot copy slots, because each key&rsquo;s index is
         \(h(k) \bmod M\) and \(M\) has changed; every key must be hashed anew into
-        the larger table. That is \(\Theta(n)\) work. But <em>doubling</em> makes
+        the larger table. That is \(\Theta(n)\) work. It helps to see that \(M\) is
+        a single number wearing three hats at once &mdash; the array&rsquo;s
+        <em>size</em>, the count of <em>distinct hash values</em> \(0..M-1\), and
+        the <em>modulus</em> in \(h(k)\bmod M\) &mdash; because the hash
+        function&rsquo;s job is to map any key into a valid index, so its output
+        range must equal the set of slots. Growing the table is thus not just
+        &ldquo;allocate more room and copy&rdquo;; it is adopting a <em>wider hash
+        function</em>, under which a key&rsquo;s index genuinely changes
+        (\(33 \bmod 10 = 3\) but \(33 \bmod 20 = 13\)) &mdash; which is why we must
+        rehash rather than copy. But <em>doubling</em> makes
         it amortized \(\Theta(1)\) per insertion, by the same argument that makes
         a dynamic array&rsquo;s <code>push_back</code> amortized \(\Theta(1)\):
       </p>
@@ -1130,10 +1277,10 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         \(\Theta(1)\) amortized. <span class="qed">&#8718;</span>
       </div>
       <p>
-        Resizing also <em>dissolves</em> existing collisions: two keys that
-        collided at \(M\) usually hash to different slots at \(2M\), which is why
-        we rehash rather than copy. (Halving the table when it becomes sparse
-        keeps memory bounded, by the same accounting.)
+        A welcome side effect: the wider hash function also <em>dissolves</em>
+        existing collisions &mdash; two keys that collided at \(M\) usually hash to
+        different slots at \(2M\). (Halving the table when it becomes sparse keeps
+        memory bounded, by the same accounting.)
       </p>
       <div class="demo">
         <span class="tag">Interactive</span>
@@ -1394,6 +1541,22 @@ fn fib_hash(k: u32, p: u32) -&gt; u32 {
         if (document.readyState !== "loading") apply(saved);
         else document.addEventListener("DOMContentLoaded", () => apply(saved));
       })();
+    </script>
+    <!-- Tombstone-lifecycle figure (§5): a STATIC state-stack rendered by the
+         demo library — each operation's end state, stacked, markers derived
+         from the trace (see lib/core/state-stack.js). -->
+    <script type="module">
+      import { renderStateStack, OpenAddressing } from "../lib/index.js";
+      renderStateStack(document.getElementById("tombstone-lifecycle"), {
+        make: () => new OpenAddressing(11, { probe: "linear", resizeAt: Infinity, deleteMode: "tombstone" }),
+        build: [14, 25, 36],
+        steps: [
+          { run: (s) => s.remove(25), caption: "delete 25 → tombstone at slot 4 (probe paths through 4 survive)" },
+          { run: (s) => s.search(36), caption: "search 36 · h(36) = 3 → 14, † (keep going), 36 ✓ — the tombstone cost a probe, not the answer" },
+          { run: (s) => s.search(47) },
+          { run: (s) => s.insert(47), caption: "insert 47 · h(47) = 3 → the remembered tombstone slot 4 is reused" },
+        ],
+      });
     </script>
   </body>
 </html>

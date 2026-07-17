@@ -394,7 +394,7 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
         the recursion tree shows why directly:
       </p>
       <figure>
-        <svg viewBox="0 0 460 250" role="img" aria-label="The mergesort recursion tree on eight elements. The root, of size n, splits into two size-n/2 subproblems, which split into four size-n/4 subproblems, which split into the size-one leaves. Each level does n total work, and there are log n levels.">
+        <svg viewBox="0 0 460 250" role="img" aria-label="The mergesort recursion tree. The root box, of size n, splits into two size-n/2 boxes, which split into four size-n/4 boxes; dashed edges continue down to a final row labeled 'n size-1 leaves'. Annotations at the right total each level's work: the root level does n work, the second level does 2 times n/2 equals n, the third does 4 times n/4 equals n, and the leaf level again n. With log n levels of n work each, the whole tree costs n log n.">
           <g stroke="#b9c0d0" stroke-width="1.5" fill="none">
             <line x1="150" y1="34" x2="85" y2="92"/>
             <line x1="150" y1="34" x2="215" y2="92"/>

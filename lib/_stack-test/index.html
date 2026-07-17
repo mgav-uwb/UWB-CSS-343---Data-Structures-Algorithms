@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>state-stack test</title>
+  <link rel="stylesheet" href="../core/lib.css">
+</head>
+<body style="max-width:760px;margin:2rem auto;font:14px system-ui">
+  <h3>M = 11, h(x) = x mod 11, h2(x) = 7 − (x mod 7) — inserts, delete, failed search</h3>
+  <div id="fig"></div>
+  <script type="module">
+    import { renderStateStack, OpenAddressing } from "../index.js";
+    renderStateStack(document.getElementById("fig"), {
+      make: () => new OpenAddressing(11, { probe: "double", q: 7, resizeAt: Infinity, deleteMode: "tombstone" }),
+      steps: [
+        { run: (s) => s.insert(89), caption: "insert 89 · h(89) = 1 → slot 1" },
+        { run: (s) => s.insert(18), caption: "insert 18 · h(18) = 7 → slot 7" },
+        { run: (s) => s.insert(40), caption: "insert 40 · h(40) = 7 taken · h2(40) = 7−5 = 2 · (7+2) mod 11 → slot 9" },
+        { run: (s) => s.insert(29), caption: "insert 29 · h(29) = 7 taken · h2(29) = 7−1 = 6 · (7+6) mod 11 → slot 2" },
+        { run: (s) => s.remove(18), caption: "delete 18 → tombstone at slot 7" },
+        { run: (s) => s.search(51) },
+      ],
+    });
+  </script>
+</body>
+</html>

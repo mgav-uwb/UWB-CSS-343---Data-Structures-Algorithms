@@ -251,7 +251,7 @@
         stop when you match a stored key or fall off at a leaf.
       </p>
       <figure>
-        <svg viewBox="0 0 460 210" role="img" aria-label="A 2-3 tree of height 2: root 2-node holding 50, with two 3-node children holding 20 and 35, and 70 and 85, each with three leaf children.">
+        <svg viewBox="0 0 460 210" role="img" aria-label="A 2-3 tree of height 2 with all leaves on the bottom level. The root is a 2-node holding 50. Its left child is a 3-node holding 20 and 35, whose three leaf children hold 10; 25 and 30; and 40 and 45. Its right child is a 3-node holding 70 and 85, whose three leaf children hold 60 and 65; 75 and 80; and 90 and 95. The node holding 70 and 85 and the leaf holding 60 and 65 are highlighted green, marking the search path for the key 65: right from the root, then left from the 3-node.">
           <g stroke="#4a5163" stroke-width="1.5" fill="none">
             <line x1="215" y1="42" x2="120" y2="92"/>
             <line x1="240" y1="42" x2="335" y2="92"/>
@@ -334,7 +334,7 @@
         their guard in the parent.
       </p>
       <figure>
-        <svg viewBox="0 0 500 200" role="img" aria-label="Splitting a 3-node. On the left, the full leaf 30-50 receives 40, forming a temporary 4-node 30-40-50 with 40 highlighted. On the right, 40 has promoted to a new parent 2-node, leaving 30 and 50 as its two children.">
+        <svg viewBox="0 0 500 200" role="img" aria-label="Splitting a 3-node when 40 is inserted into the full leaf holding 30 and 50. On the left, a single wide box labeled 'temp 4-node' holds the three keys 30, 40, 50 in order, with the middle key 40 highlighted red. An arrow points to the right picture: 40 has been promoted into a new 2-node of its own, drawn above and highlighted green, with the 2-node holding 30 as its left child and the 2-node holding 50 as its right child.">
           <g font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">
             <!-- before: temp 4-node -->
             <rect x="24" y="82" width="150" height="30" rx="6" fill="#fff" stroke="#2a2d36" stroke-width="1.6"/>
@@ -526,7 +526,7 @@
         same depth.&rdquo;
       </p>
       <figure>
-        <svg viewBox="0 0 520 220" role="img" aria-label="The 2-3 to red-black correspondence. On the left a 3-node holding 30 and 50 with three leaf children 10, 40, 70. On the right the same keys as a binary tree: 50 at the root with a red left link to 30, and 30 has children 10 and 40 while 50 has right child 70.">
+        <svg viewBox="0 0 520 220" role="img" aria-label="The 2-3 to red-black correspondence. On the left, labeled 'one 3-node': a single 3-node holding 30 and 50 with three leaf children holding 10, 40, and 70, in left-to-right order. An arrow points to the right picture, the same five keys as a binary tree: 50 is the root, joined to its left child 30 by a thick red link labeled 'red link' (30 is drawn in red); 30 has left child 10 and right child 40; 50 has right child 70; every other link is black. In-order traversal gives 10, 30, 40, 50, 70 in both pictures.">
           <g font-family="system-ui, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">
             <!-- LEFT: 3-node with three children -->
             <g stroke="#4a5163" stroke-width="1.5" fill="none">
@@ -813,7 +813,7 @@ fn flip_colors(h: &amp;mut Box&lt;Node&gt;) {               // two red children 
         disk read per level, and the height is \(\log_M n\).
       </p>
       <figure>
-        <svg viewBox="0 0 520 190" role="img" aria-label="An order-5 B-tree with two levels: a root node holding 30 and 60, with three leaf children holding 10 and 20, 40 and 50, and 70 and 80 and 90.">
+        <svg viewBox="0 0 520 190" role="img" aria-label="An order-5 B-tree of height 1. The root node, highlighted green, holds the two keys 30 and 60 and has three leaf children: the left leaf holds 10 and 20, the middle leaf holds 40 and 50, and the right leaf holds 70, 80, and 90. Keys less than 30 go left, keys between 30 and 60 go to the middle, and keys greater than 60 go right.">
           <g font-family="system-ui, sans-serif" font-size="13.5" font-weight="600" text-anchor="middle">
             <g stroke="#4a5163" stroke-width="1.5" fill="none">
               <line x1="230" y1="54" x2="86"  y2="120"/>

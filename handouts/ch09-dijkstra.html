@@ -335,7 +335,7 @@ impl WGraph {
         weights:
       </p>
       <figure>
-        <svg viewBox="0 0 420 300" role="img" aria-label="The running weighted directed acyclic graph on eight vertices: the same graph as Chapter 8, with a weight on each edge, vertices spaced evenly around a circle in index order.">
+        <svg viewBox="0 0 420 300" role="img" aria-label="The running weighted directed acyclic graph, the same eight-vertex graph as Chapter 8 with a green weight on each edge. Vertices 0 through 7 are circles spaced evenly around a ring in index order, 0 at the top, indices increasing clockwise. The eleven directed edges and their weights are: edge from 0 to 1 with weight 4, edge from 0 to 3 with weight 6, edge from 0 to 5 with weight 20, edge from 1 to 2 with weight 1, edge from 1 to 3 with weight 5, edge from 2 to 3 with weight 8, edge from 3 to 4 with weight 2, edge from 3 to 7 with weight 11, edge from 4 to 5 with weight 3, edge from 4 to 7 with weight 7, and edge from 5 to 6 with weight 9. Vertices 6 and 7 have no outgoing edges.">
           <defs>
             <marker id="ah" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L8,3 L0,6 Z" fill="#4a5163"/>
@@ -757,7 +757,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         assembled from whichever relaxation last lowered each label.
       </p>
       <figure>
-        <svg viewBox="0 0 420 300" role="img" aria-label="The shortest-paths tree Dijkstra computes from vertex 0. Seven tree edges are drawn thick and green; the four unused edges thin and gray. Each vertex is labelled with its final shortest distance from 0.">
+        <svg viewBox="0 0 420 300" role="img" aria-label="The shortest-paths tree Dijkstra computes from vertex 0, drawn on the same eight-vertex ring layout as the running graph. Seven tree edges are thick and green: edge from 0 to 1, edge from 0 to 3, edge from 1 to 2, edge from 3 to 4, edge from 4 to 5, edge from 4 to 7, and edge from 5 to 6. The four unused edges are thin and gray: edge from 0 to 5, edge from 1 to 3, edge from 2 to 3, and edge from 3 to 7. Beside each vertex is its final shortest distance from 0: vertex 0 has distance 0, vertex 1 has 4, vertex 2 has 5, vertex 3 has 6, vertex 4 has 8, vertex 5 has 11, vertex 6 has 20, and vertex 7 has 15.">
           <defs>
             <marker id="ahg" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L8,3 L0,6 Z" fill="#0a7d4d"/>

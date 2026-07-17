@@ -463,18 +463,9 @@ void bfs(Graph& g, int s) {
 
 ## BFS — a worked trace
 
-```text
-   0 → 1        adj:  0 → [1,2]   1 → [3]
-   ↓   ↓              2 → [3]     3 → []
-   2 → 3
+The diamond again — `0 → [1,2] · 1 → [3] · 2 → [3] · 3 → []` — one row per step, from the engine's own run:
 
-   queue [0]             dist: 0→0
-   pop 0 → enq 1, 2      queue [1,2]   dist: 1→1, 2→1
-   pop 1 → enq 3         queue [2,3]   dist: 3→2
-   pop 2 → 3 seen, skip  queue [3]
-   pop 3 → done
-   visit order: 0 1 2 3     distances: 0 1 1 2
-```
+<div id="bfs-worked" style="display:flex;justify-content:center"></div>
 
 --
 
@@ -559,6 +550,22 @@ Same cost, one data-structure apart — different questions.
 
 --
 
+## 🎬 BFS vs DFS, racing
+
+<div class="algo-viz" data-algo="search-race">
+<pre class="viz-fallback">
+   The same graph, the same start — BFS on top, DFS below,
+   one step per tick in lockstep. The title lines show each
+   frontier live: the queue drains layer by layer while the
+   stack dives and backtracks.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Run the script preset (race from 0). **Top:** the queue paints layer by layer, labels = distances. **Bottom:** the stack dives 0 → 1 → 2 → 3 → … and backtracks. Same vertices, same Θ(V+E) — the **frontier container** is the whole difference.</small>
+
+--
+
 ## One loop, four algorithms
 
 ```text
@@ -624,6 +631,10 @@ A **topological order** lists the vertices so that **every edge points forward**
 ```
 
 A schedule that **respects all dependencies**. When does one exist?
+
+Tonight's DAG, lined up in topological order — **edges all point right**:
+
+<div id="topo-line" style="max-width:860px;margin:0 auto"></div>
 
 --
 
@@ -722,7 +733,7 @@ Output order = a topological order. Θ(V + E).
 </pre>
 </div>
 
-<small>Run **Topo sort** (labels = live in-degrees). Then append `6 2`, **Build**, re-run: the cycle 2→3→4→5→6→2 strands six vertices in **red**. **DFS from 0** flags the back edge.</small>
+<small>Run **Topo sort** (labels = live in-degrees) — the run ENDS with the line-up: vertices in output order, every edge pointing right. Then pick the **cycle preset** (6→2 added), Build, re-run: the cycle strands six vertices in **red**. The script preset runs Kahn, then **DFS** flags the back edge.</small>
 
 --
 
