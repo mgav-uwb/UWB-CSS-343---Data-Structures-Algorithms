@@ -1,0 +1,1643 @@
+<!doctype html>
+<!-- CSS 343 course chapter - Strings: tries and substring search.
+     Self-contained primary reading. Math renders via MathJax (CDN). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chapter 16: Strings, Tries &amp; Substring Search - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 { font-size: 20px; margin: 34px 0 10px; padding-top: 6px; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      pre .cm { color: #7a8296; }
+      .code-tabs { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+      .ct-tabs { display: flex; flex-wrap: wrap; background: #eef1f6; border-bottom: 1px solid var(--line); }
+      .ct-tab { font-family: system-ui, sans-serif; font-size: 12.5px; padding: 6px 13px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; }
+      .ct-tab.on { color: var(--ink); background: #fff; border-bottom-color: var(--demo); font-weight: 600; }
+      .code-tabs pre { margin: 0; border: none; border-radius: 0; border-left: none; }
+      .code-tabs pre[hidden] { display: none; }
+      .ct-src { font-family: system-ui, sans-serif; font-size: 11.5px; color: var(--dim); margin: 0; padding: 5px 13px; border-top: 1px solid var(--line); background: #fafbfc; }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .proof { margin: 10px 0 4px; padding-left: 14px; border-left: 2px solid var(--line); color: #2c2f37; }
+      .proof .qed { float: right; }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      figure { margin: 18px 0 6px; text-align: center; }
+      figure svg { max-width: 100%; height: auto; }
+      figcaption { font-family: system-ui, sans-serif; font-size: 13px; color: var(--dim); margin: 7px auto 0; max-width: 92%; }
+      details { margin: 8px 0 8px 2px; font-size: 15px; }
+      summary { cursor: pointer; color: var(--accent); font-family: system-ui, sans-serif; font-size: 14px; }
+      details[open] summary { margin-bottom: 6px; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13px; }
+      table.trace td, table.trace th { padding: 5px 7px; text-align: center; font-variant-numeric: tabular-nums; }
+      table.trace td.lab { text-align: left; white-space: nowrap; color: var(--dim); font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+      table.trace td.cell { font-family: "SF Mono", Menlo, Consolas, monospace; }
+      table.trace td.lt { background: var(--accentbg); color: var(--accent); font-weight: 700; }
+      table.trace td.piv { background: var(--warnbg); color: var(--warn); font-weight: 700; }
+      table.trace td.scan { outline: 2px solid var(--demo); outline-offset: -2px; }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        details { display: block; } details summary { display: none; }
+        .demo { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This chapter uses MathJax for its mathematics and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Chapter 16 &mdash; Strings: Tries &amp; Substring Search</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Course text, primary reading for Lecture 16.
+      </div>
+      <div class="src">
+        Keys with exploitable structure: when keys are strings, a trie stores
+        them along paths of characters, so search and insert cost the key
+        <em>length</em> &mdash; independent of how many keys are stored &mdash;
+        and prefix queries (autocomplete, longest-prefix match) come free.
+        R-way tries, their space cost, and the two fixes (compressed tries and
+        ternary search tries); then the other classic string problem, finding a
+        pattern <em>inside</em> a text: the brute-force baseline,
+        Knuth&ndash;Morris&ndash;Pratt&rsquo;s failure function and its
+        never-back-up linear scan, and Boyer&ndash;Moore&rsquo;s skip-ahead
+        heuristics. With worked traces, full implementations, links to the
+        demos, and exercises.
+      </div>
+
+      <p class="lead">
+        Every symbol table so far has treated its keys as opaque: a binary
+        search tree <em>compares</em> whole keys, a hash table <em>hashes</em>
+        whole keys. This chapter&rsquo;s keys are <strong>strings</strong>, and
+        strings have internal structure &mdash; characters &mdash; that both of
+        those tools ignore. Exploiting it pays twice. A <strong>trie</strong>
+        stores keys by their character path, so a lookup costs the key&rsquo;s
+        <em>length</em> \(L\), no matter whether the table holds a hundred keys
+        or a billion, and the structure answers prefix queries
+        (&ldquo;everything starting with <code>sh</code>&rdquo;) that a hash
+        table cannot approach. And in <strong>substring search</strong> &mdash;
+        find a pattern inside a text &mdash; the pattern&rsquo;s
+        <em>self-overlap</em> structure lets Knuth&ndash;Morris&ndash;Pratt
+        (KMP) scan the text once, never re-reading a character, turning the
+        brute-force \(\Theta(nm)\) worst case into a guaranteed
+        \(\Theta(n+m)\). One theme, both halves: strings are not opaque keys,
+        and the algorithms that look inside them win.
+      </p>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#why">String keys: what comparing and hashing miss</a></li>
+          <li><a href="#trie">R-way tries</a></li>
+          <li><a href="#space">Saving space: compressed tries and TSTs</a></li>
+          <li><a href="#prefix">Prefix operations: autocomplete and longest-prefix</a></li>
+          <li><a href="#brute">Substring search: the problem, and brute force</a></li>
+          <li><a href="#kmp">Knuth&ndash;Morris&ndash;Pratt: never back up</a></li>
+          <li><a href="#bm">Boyer&ndash;Moore and the wider family</a></li>
+          <li><a href="#toolkit">The string toolkit</a></li>
+          <li><a href="#ex">Exercises (with solutions)</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="why">1. String keys: what comparing and hashing miss</h2>
+      <p>
+        Store \(n\) string keys, each of length up to \(L\), in the symbol
+        tables of the earlier chapters and count the character work. A balanced
+        binary search tree (BST, <a href="ch03-trees-bst.html">Chapter 3</a>)
+        does \(O(\log n)\) key comparisons per search &mdash; but each
+        comparison walks the two strings character by character, up to \(L\)
+        steps, so a search really costs \(O(L \log n)\). A hash table
+        (<a href="ch07-hashing.html">Chapter 7</a>) does better: the polynomial
+        string hash reads every character once, so a lookup is \(\Theta(L)\)
+        &mdash; but the price of that speed is that hashing deliberately
+        <em>scatters</em> the keys, so the table is unordered and completely
+        blind to prefixes. Neither tool can answer &ldquo;list every key
+        starting with <code>sh</code>&rdquo; without scanning everything.
+      </p>
+      <pre>  BST:   O(log n) COMPARES, each up to L chars  &rarr;  O(L log n)
+  hash:  O(1) probes, but hashes the WHOLE key  &rarr;  &Theta;(L), no order, no prefixes</pre>
+      <p>
+        Both treat a string as one atomic value. The trie&rsquo;s idea is to
+        stop doing that: use the <em>characters themselves</em> as the search
+        path. The result is \(\Theta(L)\) search &mdash; matching the hash
+        table&rsquo;s bound &mdash; while keeping the keys ordered <em>and</em>
+        physically grouped by shared prefix, which is exactly the property the
+        prefix operations of <a href="#prefix">&sect;4</a> exploit. The second
+        half of the chapter (<a href="#brute">&sect;5</a> onward) applies the
+        same &ldquo;look inside the string&rdquo; principle to a different
+        problem: finding a pattern inside a text.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="trie">2. R-way tries</h2>
+      <div class="def">
+        <span class="tag">Definition (trie)</span>
+        A <strong>trie</strong> (from re<em>trie</em>val; pronounced
+        &ldquo;try&rdquo;) is a tree that stores string keys along
+        <strong>paths of characters</strong> from the root: each edge is
+        labeled with one character, and each node carries an
+        <strong>is-word flag</strong> marking whether some stored key ends
+        there. A key is present exactly when its character path exists
+        <em>and</em> the final node is word-marked. In an
+        <strong>R-way trie</strong> each node holds an array of \(R\) child
+        pointers, one per character of the alphabet (\(R = 26\) for lowercase
+        letters, \(R = 256\) for bytes).
+      </div>
+      <p>
+        Keys that share a prefix share the corresponding nodes: storing
+        <code>she</code> and <code>sea</code> creates one <code>s</code> node
+        with two children, not two separate paths. Here is the trie holding
+        \(\{\)<code>she</code>, <code>sea</code>, <code>sells</code>\(\}\):
+      </p>
+      <figure>
+        <svg viewBox="0 0 380 322" role="img" aria-label="A trie holding the keys she, sea, and sells. The root has a single child s. The s node has two children: e on the left and h on the right. Under e are two children: a, which is word-marked and completes the key sea, and l, which continues down through a second l to a word-marked s, completing sells. Under h is a word-marked e completing she. Word-marked nodes are drawn with a doubled green ring.">
+          <g stroke="#b9c0d0" stroke-width="1.5" fill="none">
+            <line x1="190" y1="30" x2="190" y2="82"/>
+            <line x1="190" y1="82" x2="120" y2="134"/>
+            <line x1="190" y1="82" x2="260" y2="134"/>
+            <line x1="120" y1="134" x2="70" y2="186"/>
+            <line x1="120" y1="134" x2="160" y2="186"/>
+            <line x1="260" y1="134" x2="260" y2="186"/>
+            <line x1="160" y1="186" x2="160" y2="238"/>
+            <line x1="160" y1="238" x2="160" y2="290"/>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+            <circle cx="190" cy="30" r="13" fill="#f0f2f6" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="190" y="35" fill="#8a9099" font-size="12">&#8709;</text>
+            <circle cx="190" cy="82" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="190" y="87" fill="#1a1c22">s</text>
+            <circle cx="120" cy="134" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="120" y="139" fill="#1a1c22">e</text>
+            <circle cx="260" cy="134" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="260" y="139" fill="#1a1c22">h</text>
+            <circle cx="70" cy="186" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="70" cy="186" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="70" y="191" fill="#0a7d4d">a</text>
+            <circle cx="160" cy="186" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="160" y="191" fill="#1a1c22">l</text>
+            <circle cx="260" cy="186" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="260" cy="186" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="260" y="191" fill="#0a7d4d">e</text>
+            <circle cx="160" cy="238" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="160" y="243" fill="#1a1c22">l</text>
+            <circle cx="160" cy="290" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="160" cy="290" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="160" y="295" fill="#0a7d4d">s</text>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="12.5" font-style="italic" fill="#8a9099">
+            <text x="46" y="190" text-anchor="end">sea</text>
+            <text x="284" y="190" text-anchor="start">she</text>
+            <text x="184" y="294" text-anchor="start">sells</text>
+          </g>
+        </svg>
+        <figcaption>
+          The trie holding \(\{\)<code>she</code>, <code>sea</code>,
+          <code>sells</code>\(\}\). Each node stores one character of a path;
+          a doubled green ring marks &ldquo;a key ends here.&rdquo;
+          <code>she</code> is the path s&ndash;h&ndash;e, <code>sea</code> is
+          s&ndash;e&ndash;a, <code>sells</code> is s&ndash;e&ndash;l&ndash;l&ndash;s;
+          all three share the single <code>s</code> node, and <code>sea</code>
+          and <code>sells</code> also share the <code>e</code>.
+        </figcaption>
+      </figure>
+      <h3>Search and insert are the same walk</h3>
+      <p>
+        <strong>Search</strong> follows <code>next[c]</code> for each character
+        of the key in turn. If a needed child is missing, the walk
+        <em>falls off</em> the trie and the key is absent. If the walk survives
+        to the end of the key, the key is present <em>iff the final node is
+        word-marked</em> &mdash; the path might exist only as a prefix of a
+        longer key. <strong>Insert</strong> is the identical walk, except that
+        it <em>creates</em> each missing node along the way and sets the
+        is-word flag on the last one. Neither operation ever compares two keys;
+        the structure has encoded all the comparisons. Following a character is
+        a single array index &mdash; <code>t = t-&gt;next[c]</code> &mdash; so
+        both operations cost \(\Theta(L)\) for a key of length \(L\),
+        independent of \(n\).
+      </p>
+      <div class="code-tabs" data-snippet="strings/trie">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// R-way trie: each node has one child slot per alphabet character plus an
+// is-word flag. Operations walk ONE character per step: Theta(L) for a key of
+// length L, independent of how many keys are stored.
+const int R = 26;                          // alphabet: lowercase a..z
+
+struct Node {
+    Node* next[R] = {};                    // one slot per possible character
+    bool  isWord = false;
+};
+
+// search: follow next[c] for each character. Fall off -&gt; absent; reach the
+// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+bool search(Node* t, const string&amp; key) {
+    for (char ch : key) {
+        int c = ch - &#x27;a&#x27;;
+        if (!t-&gt;next[c]) return false;     // fell off: no such path
+        t = t-&gt;next[c];
+    }
+    return t-&gt;isWord;                      // path exists — is it a word?
+}
+
+// insert: the same walk, creating only the MISSING nodes; mark the last one.
+void insert(Node* t, const string&amp; key) {
+    for (char ch : key) {
+        int c = ch - &#x27;a&#x27;;
+        if (!t-&gt;next[c]) t-&gt;next[c] = new Node();   // create the missing suffix
+        t = t-&gt;next[c];
+    }
+    t-&gt;isWord = true;                      // mark: a key ends here
+}
+
+// collect: emit every key stored in the subtree under t (DFS, in order).
+void collect(Node* t, string&amp; path, vector&lt;string&gt;&amp; out) {
+    if (t-&gt;isWord) out.push_back(path);    // a stored key ends here
+    for (int c = 0; c &lt; R; c++)
+        if (t-&gt;next[c]) {
+            path.push_back(&#x27;a&#x27; + c);       // extend the path by this character
+            collect(t-&gt;next[c], path, out);
+            path.pop_back();
+        }
+}
+
+// keysWithPrefix (autocomplete): walk down the prefix, then collect the
+// subtree below it. Theta(prefix length + output size).
+vector&lt;string&gt; keysWithPrefix(Node* t, const string&amp; prefix) {
+    for (char ch : prefix) {               // 1. walk down the prefix path
+        if (!t-&gt;next[ch - &#x27;a&#x27;]) return {}; // no key has this prefix
+        t = t-&gt;next[ch - &#x27;a&#x27;];
+    }
+    vector&lt;string&gt; out;
+    string path = prefix;
+    collect(t, path, out);                 // 2. gather the whole subtree below
+    return out;
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// R-way trie: each node has one child slot per alphabet character plus an
+// is-word flag. Operations walk ONE character per step: Theta(L) for a key of
+// length L, independent of how many keys are stored.
+static final int R = 26;                   // alphabet: lowercase a..z
+
+static class Node {
+    Node[] next = new Node[R];             // one slot per possible character
+    boolean isWord = false;
+}
+
+// search: follow next[c] for each character. Fall off -&gt; absent; reach the
+// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+static boolean search(Node t, String key) {
+    for (char ch : key.toCharArray()) {
+        int c = ch - &#x27;a&#x27;;
+        if (t.next[c] == null) return false;   // fell off: no such path
+        t = t.next[c];
+    }
+    return t.isWord;                       // path exists — is it a word?
+}
+
+// insert: the same walk, creating only the MISSING nodes; mark the last one.
+static void insert(Node t, String key) {
+    for (char ch : key.toCharArray()) {
+        int c = ch - &#x27;a&#x27;;
+        if (t.next[c] == null) t.next[c] = new Node();  // create missing suffix
+        t = t.next[c];
+    }
+    t.isWord = true;                       // mark: a key ends here
+}
+
+// collect: emit every key stored in the subtree under t (DFS, in order).
+static void collect(Node t, StringBuilder path, List&lt;String&gt; out) {
+    if (t.isWord) out.add(path.toString());    // a stored key ends here
+    for (int c = 0; c &lt; R; c++)
+        if (t.next[c] != null) {
+            path.append((char) (&#x27;a&#x27; + c)); // extend the path by this character
+            collect(t.next[c], path, out);
+            path.deleteCharAt(path.length() - 1);
+        }
+}
+
+// keysWithPrefix (autocomplete): walk down the prefix, then collect the
+// subtree below it. Theta(prefix length + output size).
+static List&lt;String&gt; keysWithPrefix(Node t, String prefix) {
+    for (char ch : prefix.toCharArray()) { // 1. walk down the prefix path
+        if (t.next[ch - &#x27;a&#x27;] == null) return List.of();  // no key has it
+        t = t.next[ch - &#x27;a&#x27;];
+    }
+    List&lt;String&gt; out = new ArrayList&lt;&gt;();
+    collect(t, new StringBuilder(prefix), out);  // 2. gather the subtree below
+    return out;
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># R-way trie: each node has one child slot per alphabet character plus an
+# is-word flag. Operations walk ONE character per step: Theta(L) for a key of
+# length L, independent of how many keys are stored.
+R = 26                                     # alphabet: lowercase a..z
+
+class Node:
+    def __init__(self):
+        self.next = [None] * R             # one slot per possible character
+        self.is_word = False
+
+# search: follow next[c] for each character. Fall off -&gt; absent; reach the
+# end -&gt; present iff the final node is word-marked (a path is NOT a key).
+def search(t, key):
+    for ch in key:
+        c = ord(ch) - ord(&#x27;a&#x27;)
+        if t.next[c] is None:              # fell off: no such path
+            return False
+        t = t.next[c]
+    return t.is_word                       # path exists — is it a word?
+
+# insert: the same walk, creating only the MISSING nodes; mark the last one.
+def insert(t, key):
+    for ch in key:
+        c = ord(ch) - ord(&#x27;a&#x27;)
+        if t.next[c] is None:              # create the missing suffix
+            t.next[c] = Node()
+        t = t.next[c]
+    t.is_word = True                       # mark: a key ends here
+
+# collect: emit every key stored in the subtree under t (DFS, in order).
+def collect(t, path, out):
+    if t.is_word:                          # a stored key ends here
+        out.append(path)
+    for c in range(R):
+        if t.next[c] is not None:          # extend the path by this character
+            collect(t.next[c], path + chr(ord(&#x27;a&#x27;) + c), out)
+
+# keysWithPrefix (autocomplete): walk down the prefix, then collect the
+# subtree below it. Theta(prefix length + output size).
+def keys_with_prefix(t, prefix):
+    for ch in prefix:                      # 1. walk down the prefix path
+        c = ord(ch) - ord(&#x27;a&#x27;)
+        if t.next[c] is None:              # no key has this prefix
+            return []
+        t = t.next[c]
+    out = []
+    collect(t, prefix, out)                # 2. gather the whole subtree below
+    return out</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// R-way trie: each node has one child slot per alphabet character plus an
+// is-word flag. Operations walk ONE character per step: O(L) for a key of
+// length L, independent of how many keys are stored.
+const R: usize = 26;                       // alphabet: lowercase a..z
+
+struct Node {
+    next: Vec&lt;Option&lt;Box&lt;Node&gt;&gt;&gt;,          // one slot per possible character
+    is_word: bool,
+}
+
+fn new_node() -&gt; Box&lt;Node&gt; {
+    Box::new(Node { next: (0..R).map(|_| None).collect(), is_word: false })
+}
+
+// search: follow next[c] for each character. Fall off -&gt; absent; reach the
+// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+fn search(mut t: &amp;Node, key: &amp;str) -&gt; bool {
+    for ch in key.bytes() {
+        match &amp;t.next[(ch - b&#x27;a&#x27;) as usize] {
+            None =&gt; return false,          // fell off: no such path
+            Some(kid) =&gt; t = kid,
+        }
+    }
+    t.is_word                              // path exists — is it a word?
+}
+
+// insert: the same walk, creating only the MISSING nodes; mark the last one.
+fn insert(mut t: &amp;mut Node, key: &amp;str) {
+    for ch in key.bytes() {
+        let c = (ch - b&#x27;a&#x27;) as usize;
+        t = t.next[c].get_or_insert_with(new_node);   // create missing suffix
+    }
+    t.is_word = true;                      // mark: a key ends here
+}
+
+// collect: emit every key stored in the subtree under t (DFS, in order).
+fn collect(t: &amp;Node, path: &amp;mut String, out: &amp;mut Vec&lt;String&gt;) {
+    if t.is_word {                         // a stored key ends here
+        out.push(path.clone());
+    }
+    for c in 0..R {
+        if let Some(kid) = &amp;t.next[c] {
+            path.push((b&#x27;a&#x27; + c as u8) as char);   // extend by this character
+            collect(kid, path, out);
+            path.pop();
+        }
+    }
+}
+
+// keysWithPrefix (autocomplete): walk down the prefix, then collect the
+// subtree below it. O(prefix length + output size).
+fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; {
+    for ch in prefix.bytes() {             // 1. walk down the prefix path
+        match &amp;t.next[(ch - b&#x27;a&#x27;) as usize] {
+            None =&gt; return vec![],         // no key has this prefix
+            Some(kid) =&gt; t = kid,
+        }
+    }
+    let mut out = Vec::new();
+    collect(t, &amp;mut prefix.to_string(), &amp;mut out); // 2. gather the subtree
+    out
+}</pre>
+<p class="ct-src">source: <code>code/strings/trie.cpp &middot; code/strings/trie.java &middot; code/strings/trie.py &middot; code/strings/trie.rs</code></p>
+<!--/ct--></div>
+      <div class="ex">
+        <span class="tag">Example (a worked search &mdash; and the is-word subtlety)</span>
+        Take the trie holding \(\{\)<code>she</code>, <code>shell</code>,
+        <code>shells</code>\(\}\) and search for <code>shell</code>:
+        <pre>  search "shell":  s &rarr; h &rarr; e &rarr; l &rarr; l     (follow 5 characters)
+                   final node is word-marked &rarr; FOUND
+  search "shel":   s &rarr; h &rarr; e &rarr; l           (the path exists&hellip;)
+                   &hellip;but its node is NOT word-marked &rarr; not a key</pre>
+        <code>shel</code> is a perfectly good <em>path</em> &mdash; it lies on
+        the way to <code>shell</code> and <code>shells</code> &mdash; but no
+        stored key ends there, so the flag correctly rejects it. Returning
+        &ldquo;did I reach the end of the path&rdquo; instead of
+        <code>isWord</code> is the classic trie-implementation bug. And note the
+        cost: five character steps for <code>shell</code>, whether the trie
+        holds these three keys or three million &mdash; adding keys never slows
+        a search, only longer <em>keys</em> do.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a worked insert)</span>
+        Insert <code>sea</code> into a trie holding \(\{\)<code>she</code>,
+        <code>shell</code>\(\}\):
+        <pre>  s:  exists (shared with she/shell)  &rarr; follow it
+  e:  's' has no 'e' child            &rarr; CREATE a node
+  a:  create a node, mark it a word
+
+  "sea" and "she" now share exactly one node: 's'</pre>
+        Insert allocates only the <em>missing suffix</em> of its key &mdash;
+        here two nodes &mdash; and reuses every shared-prefix node already
+        present. That reuse is what keeps a trie compact on dictionary-like key
+        sets full of common prefixes, and it is why insert, like search,
+        touches at most \(L\) nodes.
+      </div>
+      <h3>The cost, and the catch</h3>
+      <table>
+        <tr><th>operation</th><th>cost</th></tr>
+        <tr><td>search / insert</td><td>\(\Theta(L)\) &mdash; the key&rsquo;s length</td></tr>
+        <tr><td>search miss</td><td>often \(&lt; L\) &mdash; the walk falls off at the first missing child</td></tr>
+        <tr><td>space</td><td>up to \(\Theta(R \cdot N \cdot L)\) pointers for \(N\) keys</td></tr>
+      </table>
+      <p>
+        The headline is the first row: cost bounded by key length,
+        <em>independent of the number of keys</em>. A miss is often cheaper
+        still &mdash; searching a trie of English words for
+        <code>xylophone</code> falls off at the first or second character. The
+        catch is the third row: every R-way node reserves \(R\) child pointers
+        whether it uses them or not, and deep in a trie most nodes have one or
+        two children, leaving the other \(24\) (or \(254\)) slots null. For
+        \(R = 256\) the waste dominates the data. Fixing that space cost
+        without giving up the \(\Theta(L)\) walk is the subject of
+        <a href="#space">&sect;3</a>.
+      </p>
+      <div class="aside">
+        <span class="tag">Deletion, and shared structure</span>
+        Deleting a key takes two steps: <strong>unmark</strong> its final node
+        (<code>isWord = false</code>), then <strong>prune</strong> bottom-up
+        &mdash; a node with no children that is not itself a word is useless,
+        so remove it and reconsider its parent, stopping at the first node
+        still needed. The care is in the stopping: never remove a node
+        <em>shared</em> by other keys. Deleting <code>shell</code> from
+        \(\{\)<code>shell</code>, <code>shells</code>\(\}\) only clears a flag
+        &mdash; every node on its path is still on <code>shells</code>&rsquo;s
+        path. This shared-structure trap is deletion&rsquo;s version of the
+        is-word subtlety.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=trie">Trie demo</a>. The build inserts
+        <code>she, sells, sea, shells, shell</code> one word at a time &mdash;
+        watch shared prefixes being reused as the five keys need only \(11\)
+        nodes (with \(5\) of them word-marked, shown with a trailing
+        &bull;). Then <strong>Search</strong> <code>shells</code> (walks the
+        shared path to a word-marked node) versus <code>shel</code> (the path
+        exists, the flag does not &mdash; the subtlety live). <strong>Insert</strong>
+        <code>sun</code> and watch only the missing suffix appear &mdash; the
+        <code>alloc</code> counter tells you exactly how many nodes were new.
+        Every operation&rsquo;s counters total the key&rsquo;s length, no
+        matter how many words the trie holds.
+      </div>
+      <div class="aside">
+        <span class="tag">You have already met a trie</span>
+        The Huffman code tree of
+        <a href="ch12-greedy-huffman.html">Chapter 12</a> is a binary trie over
+        the alphabet \(\{0, 1\}\): each codeword is a root-to-leaf path of
+        bits. Prefix-freeness &mdash; no codeword is a prefix of another
+        &mdash; is precisely the statement that every &ldquo;word&rdquo; in
+        that trie is a <em>leaf</em>, which is why decoding can walk bits until
+        it hits a leaf and never needs a separator. Same structure, alphabet of
+        size \(2\).
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="space">3. Saving space: compressed tries and TSTs</h2>
+      <p>
+        Two standard fixes attack the \(R\)-pointers-per-node cost from
+        different directions: store <em>fewer nodes</em>, or store
+        <em>cheaper nodes</em>.
+      </p>
+      <h3>Compressed tries (radix trees)</h3>
+      <p>
+        Deep in a trie, long runs of single-child nodes are common &mdash; the
+        tail of any key that shares nothing beyond its prefix. A
+        <strong>compressed trie</strong> (also <em>radix tree</em>) collapses
+        every such chain into one edge labeled with the whole substring:
+      </p>
+      <pre>  {she, shells}:   "sh" &#9472;&#9472;&#9654; "e" (word) &#9472;&#9472;&#9654; "lls" (word)
+  (no separate s, h, e, l, l, s nodes &mdash; three nodes total)</pre>
+      <p>
+        Now nodes exist only where keys <em>branch</em> or <em>end</em>, so the
+        node count is bounded by the number of keys rather than the number of
+        characters &mdash; far fewer nodes and far fewer pointer hops, with the
+        same trie semantics. <strong>Patricia tries</strong> apply this idea to
+        binary keys; they are the structure inside IP (Internet Protocol)
+        routing tables and many key&ndash;value stores.
+      </p>
+      <h3>Ternary search tries</h3>
+      <div class="def">
+        <span class="tag">Definition (ternary search trie)</span>
+        A <strong>ternary search trie (TST)</strong> replaces each R-way
+        node&rsquo;s child <em>array</em> with a small binary search tree over
+        only the characters actually used at that position. Each node stores
+        one character \(c\) and <strong>three</strong> links:
+        <code>left</code> (query character \(&lt; c\)), <code>right</code>
+        (\(&gt; c\)), and <code>mid</code> (\(= c\) &mdash; advance to the
+        key&rsquo;s next character), plus the usual is-word flag.
+      </div>
+      <pre>  struct Node {
+      char c;
+      Node *left, *mid, *right;   <span class="cm">// &lt; c,   == c (next char),   &gt; c</span>
+      bool isWord;
+  };</pre>
+      <p>
+        A lookup, at each position of the key, walks <code>left</code>/<code>right</code>
+        links to find the current character among the node&rsquo;s siblings
+        &mdash; a little BST search over the characters used there &mdash; and
+        only on an exact character match descends <code>mid</code> and advances
+        the query. Only <code>mid</code> edges consume characters, and the key
+        takes \(L\) of them; each is preceded by an \(O(\log R)\) sibling
+        search. Worst case \(\Theta(L \log R)\), and in practice close to
+        \(\Theta(L)\), because most nodes have very few children. In exchange,
+        a node is three pointers instead of \(R\) &mdash; no null-slot waste at
+        all. TSTs are Sedgewick&rsquo;s default string symbol table: trie-like
+        speed at BST-like space, the practical choice once the alphabet is
+        large.
+      </p>
+      <h3>Where that leaves the symbol-table decision</h3>
+      <table>
+        <tr><th></th><th>trie / TST</th><th>hash table</th><th>balanced BST</th></tr>
+        <tr><td>search cost</td><td><strong>\(\Theta(L)\)</strong></td><td>\(\Theta(L)\) to hash</td><td>\(\Theta(L \log n)\)</td></tr>
+        <tr><td>ordered iteration</td><td><strong>yes</strong></td><td>no</td><td>yes</td></tr>
+        <tr><td>prefix queries</td><td><strong>yes</strong></td><td>no</td><td>no</td></tr>
+        <tr><td>space</td><td>high (R-way) / moderate (TST)</td><td>moderate</td><td>moderate</td></tr>
+      </table>
+      <p>
+        This extends the hash-versus-tree decision of
+        <a href="ch07-hashing.html">Chapter 7</a> with a third column. A hash
+        table also reads all \(L\) characters (to hash them) and remains the
+        simplest choice for plain membership. The trie&rsquo;s
+        <em>unique</em> powers are the two things hashing destroys by design:
+        order, and prefix locality. If the workload ever asks
+        &ldquo;what starts with&hellip;&rdquo; or &ldquo;what is the longest
+        stored prefix of&hellip;&rdquo; &mdash; the operations of the next
+        section &mdash; the trie is the only tool on the table that answers
+        without a full scan.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="prefix">4. Prefix operations: autocomplete and longest-prefix</h2>
+      <p>
+        The trie&rsquo;s structure already groups keys by shared prefix:
+        <em>all keys with prefix \(P\) are exactly the subtree under
+        \(P\)&rsquo;s node</em>. No extra index, no sorting &mdash; the tree
+        <em>is</em> the prefix index. Two operations fall out of that
+        observation for free, and they are the reason to choose a trie at all.
+      </p>
+      <h3>keysWithPrefix &mdash; autocomplete</h3>
+      <p>
+        To find every key starting with a prefix: <strong>walk</strong> the
+        trie down the prefix path, then <strong>collect</strong> every
+        word-marked node in the subtree below, by depth-first traversal (the
+        <code>keysWithPrefix</code>/<code>collect</code> pair in
+        <a href="#trie">&sect;2</a>&rsquo;s code). In a hash table the keys
+        sharing a prefix are scattered across buckets with no way to enumerate
+        them short of scanning every key; in the trie they are literally one
+        subtree.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (keysWithPrefix, worked)</span>
+        Trie holding \(\{\)<code>she</code>, <code>shell</code>,
+        <code>shells</code>, <code>sea</code>\(\}\); query prefix
+        <code>she</code>:
+        <pre>  1. walk s &rarr; h &rarr; e            (reach the "she" node)
+  2. DFS the subtree below it, emitting word-marked nodes:
+     she (marked itself), shell, shells
+  &rarr; { she, shell, shells }     ("sea" branched off at 's' &mdash; never visited)</pre>
+        The cost is \(\Theta(\text{prefix length} + \text{output size})\):
+        the walk touches three nodes, and the collection touches only the keys
+        that actually share the prefix. That output-sensitivity is why
+        autocomplete feels instant even over huge dictionaries.
+      </div>
+      <figure>
+        <svg viewBox="0 0 470 372" role="img" aria-label="The trie holding she, sells, sea, shells, and shells' five keys, with the query keysWithPrefix of s h highlighted. The walk from the root through s to h is outlined in purple; the subtree below the h node, containing e (word she), l, l (word shell), and s (word shells), is filled green. The keys sea and sells hang under the e child of s, outside the highlighted subtree.">
+          <g stroke="#b9c0d0" stroke-width="1.5" fill="none">
+            <line x1="235" y1="28" x2="235" y2="78"/>
+            <line x1="235" y1="78" x2="140" y2="130"/>
+            <line x1="140" y1="130" x2="85" y2="182"/>
+            <line x1="140" y1="130" x2="195" y2="182"/>
+            <line x1="195" y1="182" x2="195" y2="234"/>
+            <line x1="195" y1="234" x2="195" y2="286"/>
+          </g>
+          <g stroke="#6b40d8" stroke-width="2.2" fill="none">
+            <line x1="235" y1="78" x2="330" y2="130"/>
+          </g>
+          <g stroke="#0a7d4d" stroke-width="1.8" fill="none">
+            <line x1="330" y1="130" x2="330" y2="182"/>
+            <line x1="330" y1="182" x2="330" y2="234"/>
+            <line x1="330" y1="234" x2="330" y2="286"/>
+            <line x1="330" y1="286" x2="330" y2="338"/>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="middle">
+            <circle cx="235" cy="28" r="13" fill="#f0f2f6" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="235" y="33" fill="#8a9099" font-size="12">&#8709;</text>
+            <circle cx="235" cy="78" r="14" fill="#fff" stroke="#6b40d8" stroke-width="2.2"/>
+            <text x="235" y="83" fill="#6b40d8">s</text>
+            <circle cx="140" cy="130" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="140" y="135" fill="#1a1c22">e</text>
+            <circle cx="330" cy="130" r="14" fill="#fff" stroke="#6b40d8" stroke-width="2.2"/>
+            <text x="330" y="135" fill="#6b40d8">h</text>
+            <circle cx="85" cy="182" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="85" cy="182" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="85" y="187" fill="#0a7d4d">a</text>
+            <circle cx="195" cy="182" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="195" y="187" fill="#1a1c22">l</text>
+            <circle cx="330" cy="182" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="330" cy="182" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="330" y="187" fill="#0a7d4d">e</text>
+            <circle cx="195" cy="234" r="14" fill="#f6f8fb" stroke="#b9c0d0" stroke-width="1.4"/>
+            <text x="195" y="239" fill="#1a1c22">l</text>
+            <circle cx="330" cy="234" r="14" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="330" y="239" fill="#1a1c22">l</text>
+            <circle cx="195" cy="286" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="195" cy="286" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="195" y="291" fill="#0a7d4d">s</text>
+            <circle cx="330" cy="286" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="330" cy="286" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="330" y="291" fill="#0a7d4d">l</text>
+            <circle cx="330" cy="338" r="16" fill="none" stroke="#0a7d4d" stroke-width="1.4"/>
+            <circle cx="330" cy="338" r="12" fill="#eaf6ef" stroke="#0a7d4d" stroke-width="1.6"/>
+            <text x="330" y="343" fill="#0a7d4d">s</text>
+          </g>
+          <g font-family="system-ui, sans-serif" font-size="12.5" font-style="italic" fill="#8a9099">
+            <text x="61" y="186" text-anchor="end">sea</text>
+            <text x="219" y="290" text-anchor="start">sells</text>
+            <text x="354" y="186" text-anchor="start">she</text>
+            <text x="354" y="290" text-anchor="start">shell</text>
+            <text x="354" y="342" text-anchor="start">shells</text>
+          </g>
+        </svg>
+        <figcaption>
+          <code>keysWithPrefix("sh")</code> on the demo trie (keys
+          <code>she, sells, sea, shells, shell</code>). The purple outline is
+          the walk down the prefix path s&ndash;h; the green subtree below it
+          contains exactly the answer \(\{\)<code>she</code>,
+          <code>shell</code>, <code>shells</code>\(\}\). The
+          <code>sea</code>/<code>sells</code> branch is never visited.
+        </figcaption>
+      </figure>
+      <h3>longestPrefixOf</h3>
+      <p>
+        The mirror-image query: the longest <em>stored key</em> that is a
+        prefix <em>of the query</em>. Walk the query string down the trie,
+        remembering the most recent word-marked node passed; when the walk
+        falls off or the query ends, the last remembered word is the answer
+        &mdash; a single \(\Theta(L)\) descent.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (longestPrefixOf, worked)</span>
+        Keys \(\{\)<code>she</code>, <code>shells</code>\(\}\); query
+        <code>shellsort</code>:
+        <pre>  s h e     &rarr; passed "she", a word     (remember "she")
+  l l s     &rarr; passed "shells", a word  (remember it &mdash; longer)
+  o         &rarr; no child &rarr; stop
+  &rarr; longestPrefixOf("shellsort") = "shells"</pre>
+        This is exactly IP <em>longest-prefix match</em>: a router stores
+        network prefixes in a (Patricia) trie, walks a destination address bit
+        by bit, and forwards along the most specific &mdash; longest &mdash;
+        matching prefix it passed. It is also how word segmenters and lexers
+        peel the longest recognized token off the front of the input.
+      </div>
+      <h3>From prefix queries to real autocomplete</h3>
+      <p>
+        Production autocomplete is <code>keysWithPrefix</code> plus a
+        <em>ranking</em>: store a weight (frequency, recency) at each
+        word-marked node, and while collecting the subtree keep only the top
+        few completions by weight &mdash; a small heap
+        (<a href="ch06-heaps-pq.html">Chapter 6</a>) does it in one pass. That
+        is why suggestions arrive curated rather than alphabetical: the trie
+        supplies the candidate set in \(\Theta(\text{prefix} + \text{output})\),
+        and the weights supply the intelligence. The branching structure
+        supports approximate matching too: a wildcard character
+        (<code>c?t</code>) means &ldquo;try <em>every</em> child at this
+        position,&rdquo; and a bounded edit-distance search
+        (&ldquo;did you mean?&rdquo;) explores paths within an edit budget
+        &mdash; the same tree, searched more forgivingly.
+      </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=trie">Trie demo</a>, again &mdash; now the
+        <strong>Prefix</strong> operation. Type <code>sh</code>: the walk
+        highlights the prefix path, and the status line reports both queries at
+        once &mdash; <code>longestPrefixOf("sh")</code> (none;
+        <code>sh</code> passes no word-marked node) and
+        <code>keysWithPrefix("sh") = {she, shell, shells}</code>, the
+        subtree of the figure above. Try <code>she</code> (now the longest
+        prefix is <code>she</code> itself) and <code>sea</code>. Load the
+        <em>shared prefixes</em> preset (<code>to, tea, ted, ten, in,
+        inn</code>) and query <code>te</code> for a three-way autocomplete.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="brute">5. Substring search: the problem, and brute force</h2>
+      <div class="def">
+        <span class="tag">Definition (substring search)</span>
+        Given a <strong>text</strong> of length \(n\) and a
+        <strong>pattern</strong> of length \(m\) (usually \(m \ll n\)), find
+        the index of the first occurrence of the pattern as a contiguous
+        substring of the text (or report that none exists).
+      </div>
+      <p>
+        This is <code>text.indexOf(pattern)</code>, <code>grep</code>,
+        find-in-editor, DNA motif search &mdash; one of the most-executed
+        operations in computing. The running example for the rest of the
+        chapter:
+      </p>
+      <pre>  text:     A B A B A B C A B A B A B C A B      (n = 16)
+  pattern:      A B A B C                        (m = 5)
+  &rarr; first match at index 2   (text[2..6] = ABABC)</pre>
+      <h3>Brute force: try every alignment</h3>
+      <p>
+        The obvious algorithm tries the pattern at every start position
+        \(i = 0, 1, \dots, n-m\): compare left to right, and on any mismatch
+        <strong>slide the pattern by one</strong> and restart the comparison.
+      </p>
+      <div class="code-tabs" data-snippet="strings/brute-search">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Brute-force substring search: try the pattern at EVERY start position; on a
+// mismatch, slide by ONE and restart the comparison. Worst case Theta(nm) —
+// text characters get re-examined after a partial match.
+int bruteSearch(const string&amp; t, const string&amp; p) {
+    int n = t.size(), m = p.size();
+    for (int i = 0; i &lt;= n - m; i++) {     // each start position
+        int j = 0;
+        while (j &lt; m &amp;&amp; t[i + j] == p[j]) j++;   // compare left to right
+        if (j == m) return i;              // all m matched: found at i
+    }
+    return -1;                             // no occurrence
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Brute-force substring search: try the pattern at EVERY start position; on a
+// mismatch, slide by ONE and restart the comparison. Worst case Theta(nm) —
+// text characters get re-examined after a partial match.
+static int bruteSearch(String t, String p) {
+    int n = t.length(), m = p.length();
+    for (int i = 0; i &lt;= n - m; i++) {     // each start position
+        int j = 0;
+        while (j &lt; m &amp;&amp; t.charAt(i + j) == p.charAt(j)) j++;  // left to right
+        if (j == m) return i;              // all m matched: found at i
+    }
+    return -1;                             // no occurrence
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># Brute-force substring search: try the pattern at EVERY start position; on a
+# mismatch, slide by ONE and restart the comparison. Worst case Theta(nm) —
+# text characters get re-examined after a partial match.
+def brute_search(t, p):
+    n, m = len(t), len(p)
+    for i in range(n - m + 1):             # each start position
+        j = 0
+        while j &lt; m and t[i + j] == p[j]:  # compare left to right
+            j += 1
+        if j == m:                         # all m matched: found at i
+            return i
+    return -1                              # no occurrence</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// Brute-force substring search: try the pattern at EVERY start position; on a
+// mismatch, slide by ONE and restart the comparison. Worst case O(nm) —
+// text characters get re-examined after a partial match.
+fn brute_search(t: &amp;str, p: &amp;str) -&gt; i32 {
+    let (t, p) = (t.as_bytes(), p.as_bytes());
+    let (n, m) = (t.len(), p.len());
+    if m &gt; n { return -1; }
+    for i in 0..=(n - m) {                 // each start position
+        let mut j = 0;
+        while j &lt; m &amp;&amp; t[i + j] == p[j] { j += 1; }   // compare left to right
+        if j == m { return i as i32; }     // all m matched: found at i
+    }
+    -1                                     // no occurrence
+}</pre>
+<p class="ct-src">source: <code>code/strings/brute-search.cpp &middot; code/strings/brute-search.java &middot; code/strings/brute-search.py &middot; code/strings/brute-search.rs</code></p>
+<!--/ct--></div>
+      <div class="ex">
+        <span class="tag">Example (brute force, worked)</span>
+        Search for <code>ABABC</code> in <code>ABCABABC</code>. Each row is one
+        alignment of the pattern; <span style="color:#0a7d4d;font-weight:700">green</span>
+        cells are compared-and-matched, the
+        <span style="color:#9a5b00;font-weight:700">amber</span> cell is the
+        comparison that failed:
+        <table class="trace">
+          <tr><th class="lab">text &rarr;</th><th>A</th><th>B</th><th>C</th><th>A</th><th>B</th><th>A</th><th>B</th><th>C</th><th>compares</th></tr>
+          <tr><td class="lab">shift 0</td>
+            <td class="cell lt">A</td><td class="cell lt">B</td><td class="cell piv">A</td><td class="cell">B</td><td class="cell">C</td><td></td><td></td><td></td><td>3</td></tr>
+          <tr><td class="lab">shift 1</td>
+            <td></td><td class="cell piv">A</td><td class="cell">B</td><td class="cell">A</td><td class="cell">B</td><td class="cell">C</td><td></td><td></td><td>1</td></tr>
+          <tr><td class="lab">shift 2</td>
+            <td></td><td></td><td class="cell piv">A</td><td class="cell">B</td><td class="cell">A</td><td class="cell">B</td><td class="cell">C</td><td></td><td>1</td></tr>
+          <tr><td class="lab">shift 3</td>
+            <td></td><td></td><td></td><td class="cell lt">A</td><td class="cell lt">B</td><td class="cell lt">A</td><td class="cell lt">B</td><td class="cell lt">C</td><td>5</td></tr>
+        </table>
+        Shift 0 matches <code>AB</code>, then <code>A</code> falls on the
+        text&rsquo;s <code>C</code>; shifts 1 and 2 die on their first
+        comparison; shift 3 matches all five &mdash; found at index \(3\),
+        \(10\) comparisons in all. Note the waste at shift 0&nbsp;&rarr;&nbsp;1:
+        having matched <code>AB</code>, brute force forgets it and re-reads
+        <code>text[1]</code> from scratch.
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (brute-force cost)</span>
+        Brute force makes at most \((n-m+1)\,m = \Theta(nm)\) character
+        comparisons, and the bound is achieved: on text
+        \(\texttt{AA}\cdots\texttt{A}\) (all \(n\) characters
+        <code>A</code>) with pattern \(\texttt{AA}\cdots\texttt{AB}\)
+        (\(m-1\) <code>A</code>s then a <code>B</code>), every one of the
+        \(n-m+1\) alignments matches \(m-1\) characters before failing on the
+        last, costing \(m\) comparisons each.
+      </div>
+      <p>
+        The instance is worth internalizing with real numbers: text
+        <code>AAAAAAAAAAAB</code> (\(n = 12\)) and pattern <code>AAAB</code>
+        (\(m = 4\)) drive brute force through all \(9\) alignments at \(4\)
+        comparisons each &mdash; \(36\) comparisons, with the match finally at
+        index \(8\). The deep inefficiency is not the sliding but the
+        <em>re-examining</em>: after a partial match, brute force throws away
+        everything it learned about the text and reads the same characters
+        again. Knuth&ndash;Morris&ndash;Pratt&rsquo;s insight is that a partial
+        match already tells you exactly how far the pattern can safely jump.
+      </p>
+      <div class="aside">
+        <span class="tag">When brute force is the right call</span>
+        Do not over-engineer. On typical natural-language text, a mismatch
+        occurs within the first character or two of most alignments, so brute
+        force runs nearly linearly &mdash; which is why simple library
+        <code>find</code> routines are essentially brute force (or
+        Boyer&ndash;Moore) and are fine in practice. Reach for the fancier
+        algorithms when the input is long and repetitive (DNA, binary data),
+        adversarial, streamed, or searched so often that pattern preprocessing
+        amortizes. Match the tool to the workload.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="kmp">6. Knuth&ndash;Morris&ndash;Pratt: never back up</h2>
+      <p>
+        The <strong>Knuth&ndash;Morris&ndash;Pratt (KMP)</strong> algorithm
+        eliminates the re-reading. The key observation: when a mismatch occurs
+        after matching \(j\) characters, those last \(j\) text characters are
+        not unknown &mdash; they equal the pattern&rsquo;s first \(j\)
+        characters, which we know perfectly well. So instead of rewinding the
+        text, slide the <em>pattern</em> forward to the next alignment
+        consistent with what was just matched, and resume. The text pointer
+        \(i\) <strong>never decreases</strong>; on a mismatch only the pattern
+        pointer \(j\) falls back.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (the key insight)</span>
+        <pre>  text:     A B A B A B C &hellip;
+  pattern:  A B A B C
+                    &uarr; mismatch at pattern[4]</pre>
+        We matched <code>ABAB</code> and failed at <code>pattern[4]</code>.
+        Brute force would slide by one and re-read from <code>text[1]</code>.
+        But look at what was matched: <code>AB</code> is a <em>prefix</em> of
+        the pattern that is also a <em>suffix</em> of the matched
+        <code>ABAB</code>. Slide the pattern so that prefix re-aligns under the
+        text&rsquo;s last two matched characters, resume comparing at
+        <code>pattern[2]</code> &mdash; and never move \(i\) back. The
+        &ldquo;how much of my partial match survives&rdquo; number is what KMP
+        precomputes, for every mismatch position, before ever touching the
+        text.
+      </div>
+      <div class="def">
+        <span class="tag">Definition (failure function)</span>
+        For a pattern \(P\) of length \(m\), the <strong>failure
+        function</strong> is the array
+        \[
+          \mathit{fail}[j] = \text{length of the longest }\textit{proper}\text{
+          prefix of } P[0..j] \text{ that is also a suffix of } P[0..j],
+        \]
+        for \(j = 0, \dots, m-1\), where \(P[0..j]\) means the first \(j+1\)
+        characters (inclusive). &ldquo;Proper&rdquo; excludes the whole string,
+        so \(\mathit{fail}[0] = 0\) always. Reading: <em>if my partial match
+        ends at \(P[j]\) and then breaks, \(\mathit{fail}[j]\) matched
+        characters survive.</em> After matching \(j\) characters, a mismatch
+        sends the pattern pointer to \(j = \mathit{fail}[j-1]\) &mdash; and the
+        text pointer stays put.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (failure function, worked)</span>
+        Pattern <code>AABAA</code>:
+        <table class="trace">
+          <tr><td class="lab">j</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+          <tr><td class="lab">P[j]</td><td class="cell">A</td><td class="cell">A</td><td class="cell">B</td><td class="cell">A</td><td class="cell">A</td></tr>
+          <tr><td class="lab">fail[j]</td><td>0</td><td>1</td><td>0</td><td>1</td><td>2</td></tr>
+        </table>
+        Walk it: \(\mathit{fail}[1] = 1\) (prefix <code>A</code> = suffix
+        <code>A</code> of <code>AA</code>); \(\mathit{fail}[2] = 0\)
+        (<code>AAB</code> ends in <code>B</code>, no prefix survives);
+        \(\mathit{fail}[3] = 1\) (<code>AABA</code> ends with the prefix
+        <code>A</code>); \(\mathit{fail}[4] = 2\) (<code>AABAA</code> ends with
+        the prefix <code>AA</code>). So a mismatch after matching all of
+        <code>AABAA</code> falls back to \(j = \mathit{fail}[4] = 2\): the
+        <code>AA</code> the text just supplied re-serves as the pattern&rsquo;s
+        first two characters.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a second table &mdash; the exam classic)</span>
+        Pattern <code>ABABAC</code>:
+        <table class="trace">
+          <tr><td class="lab">j</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+          <tr><td class="lab">P[j]</td><td class="cell">A</td><td class="cell">B</td><td class="cell">A</td><td class="cell">B</td><td class="cell">A</td><td class="cell">C</td></tr>
+          <tr><td class="lab">fail[j]</td><td>0</td><td>0</td><td>1</td><td>2</td><td>3</td><td>0</td></tr>
+        </table>
+        The <code>ABAB</code> self-overlap grows the entries \(1, 2, 3\)
+        (prefixes <code>A</code>, <code>AB</code>, <code>ABA</code> re-appear
+        as suffixes), and the final <code>C</code> matches no prefix, resetting
+        to \(0\). A mismatch at \(j = 5\) &mdash; after matching
+        <code>ABABA</code> &mdash; falls back to
+        \(j = \mathit{fail}[4] = 3\): the <code>ABA</code> prefix re-aligns
+        under the text&rsquo;s last three matched characters. Fill in one of
+        these tables by hand; it is the standard exam question on KMP.
+      </div>
+      <h3>Building the table, and the search</h3>
+      <p>
+        The failure function is computed by matching the pattern against
+        <em>itself</em>: a running index \(k\) tracks the current longest
+        prefix-suffix, growing by one when the next character extends it and
+        falling back through the (partially built) table when it does not
+        &mdash; the same never-back-up logic, applied to the pattern. The build
+        is \(\Theta(m)\); then the scan reads each text character with the same
+        extend-or-fall-back step. Both loops below are four lines long, and
+        getting the build loop right is the crux of implementing KMP &mdash;
+        trace it once on <code>AABAA</code>.
+      </p>
+      <div class="code-tabs" data-snippet="strings/kmp">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Failure function: fail[j] = length of the longest proper prefix of the
+// pattern&#x27;s first j+1 characters that is also a suffix of them. Built by
+// matching the pattern against ITSELF — k falls back through the very table
+// under construction. Theta(m).
+vector&lt;int&gt; failureFn(const string&amp; p) {
+    int m = p.size();
+    vector&lt;int&gt; fail(m, 0);
+    int k = 0;                             // length of the current prefix-suffix
+    for (int j = 1; j &lt; m; j++) {
+        while (k &gt; 0 &amp;&amp; p[j] != p[k]) k = fail[k - 1];  // shrink until it extends
+        if (p[j] == p[k]) k++;             // extend the prefix-suffix
+        fail[j] = k;
+    }
+    return fail;
+}
+
+// KMP search: the text pointer i NEVER decreases — on a mismatch only the
+// pattern pointer j falls back, via the table. Theta(n) scan after the
+// Theta(m) build: Theta(n + m) total, guaranteed.
+int kmpSearch(const string&amp; t, const string&amp; p) {
+    vector&lt;int&gt; fail = failureFn(p);
+    int j = 0;                             // characters matched so far
+    for (int i = 0; i &lt; (int)t.size(); i++) {
+        while (j &gt; 0 &amp;&amp; t[i] != p[j]) j = fail[j - 1];  // fall back in the pattern
+        if (t[i] == p[j]) j++;             // extend the partial match
+        if (j == (int)p.size()) return i - j + 1;       // full match: report start
+    }
+    return -1;                             // no occurrence
+}</pre>
+<pre class="ct-pane" data-lang="java" hidden>// Failure function: fail[j] = length of the longest proper prefix of the
+// pattern&#x27;s first j+1 characters that is also a suffix of them. Built by
+// matching the pattern against ITSELF — k falls back through the very table
+// under construction. Theta(m).
+static int[] failureFn(String p) {
+    int m = p.length();
+    int[] fail = new int[m];
+    int k = 0;                             // length of the current prefix-suffix
+    for (int j = 1; j &lt; m; j++) {
+        while (k &gt; 0 &amp;&amp; p.charAt(j) != p.charAt(k)) k = fail[k - 1];
+        if (p.charAt(j) == p.charAt(k)) k++;   // extend the prefix-suffix
+        fail[j] = k;
+    }
+    return fail;
+}
+
+// KMP search: the text pointer i NEVER decreases — on a mismatch only the
+// pattern pointer j falls back, via the table. Theta(n) scan after the
+// Theta(m) build: Theta(n + m) total, guaranteed.
+static int kmpSearch(String t, String p) {
+    int[] fail = failureFn(p);
+    int j = 0;                             // characters matched so far
+    for (int i = 0; i &lt; t.length(); i++) {
+        while (j &gt; 0 &amp;&amp; t.charAt(i) != p.charAt(j)) j = fail[j - 1];
+        if (t.charAt(i) == p.charAt(j)) j++;   // extend the partial match
+        if (j == p.length()) return i - j + 1; // full match: report start
+    }
+    return -1;                             // no occurrence
+}</pre>
+<pre class="ct-pane" data-lang="py" hidden># Failure function: fail[j] = length of the longest proper prefix of the
+# pattern&#x27;s first j+1 characters that is also a suffix of them. Built by
+# matching the pattern against ITSELF — k falls back through the very table
+# under construction. Theta(m).
+def failure_fn(p):
+    m = len(p)
+    fail = [0] * m
+    k = 0                                  # length of the current prefix-suffix
+    for j in range(1, m):
+        while k &gt; 0 and p[j] != p[k]:      # shrink until it extends
+            k = fail[k - 1]
+        if p[j] == p[k]:                   # extend the prefix-suffix
+            k += 1
+        fail[j] = k
+    return fail
+
+# KMP search: the text pointer i NEVER decreases — on a mismatch only the
+# pattern pointer j falls back, via the table. Theta(n) scan after the
+# Theta(m) build: Theta(n + m) total, guaranteed.
+def kmp_search(t, p):
+    fail = failure_fn(p)
+    j = 0                                  # characters matched so far
+    for i in range(len(t)):
+        while j &gt; 0 and t[i] != p[j]:      # fall back in the pattern
+            j = fail[j - 1]
+        if t[i] == p[j]:                   # extend the partial match
+            j += 1
+        if j == len(p):                    # full match: report start index
+            return i - j + 1
+    return -1                              # no occurrence</pre>
+<pre class="ct-pane" data-lang="rs" hidden>// Failure function: fail[j] = length of the longest proper prefix of the
+// pattern&#x27;s first j+1 characters that is also a suffix of them. Built by
+// matching the pattern against ITSELF — k falls back through the very table
+// under construction. O(m).
+fn failure_fn(p: &amp;str) -&gt; Vec&lt;usize&gt; {
+    let p = p.as_bytes();
+    let mut fail = vec![0usize; p.len()];
+    let mut k = 0;                         // length of the current prefix-suffix
+    for j in 1..p.len() {
+        while k &gt; 0 &amp;&amp; p[j] != p[k] { k = fail[k - 1]; }  // shrink until extends
+        if p[j] == p[k] { k += 1; }        // extend the prefix-suffix
+        fail[j] = k;
+    }
+    fail
+}
+
+// KMP search: the text pointer i NEVER decreases — on a mismatch only the
+// pattern pointer j falls back, via the table. O(n) scan after the O(m)
+// build: O(n + m) total, guaranteed.
+fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
+    let fail = failure_fn(p);
+    let (t, p) = (t.as_bytes(), p.as_bytes());
+    let mut j = 0;                         // characters matched so far
+    for i in 0..t.len() {
+        while j &gt; 0 &amp;&amp; t[i] != p[j] { j = fail[j - 1]; }  // fall back in pattern
+        if t[i] == p[j] { j += 1; }        // extend the partial match
+        if j == p.len() { return (i + 1 - j) as i32; }    // full match: start
+    }
+    -1                                     // no occurrence
+}</pre>
+<p class="ct-src">source: <code>code/strings/kmp.cpp &middot; code/strings/kmp.java &middot; code/strings/kmp.py &middot; code/strings/kmp.rs</code></p>
+<!--/ct--></div>
+      <div class="thm">
+        <span class="tag">Proposition (KMP cost)</span>
+        KMP makes at most \(2n\) character comparisons in the scan, after a
+        \(\Theta(m)\) preprocessing pass: \(\Theta(n + m)\) total,
+        <em>guaranteed</em>, on every input.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Bound the scan&rsquo;s comparisons by watching
+        the quantity \(i - j\) (the pattern&rsquo;s current alignment) and
+        \(i\) itself. Each comparison ends in one of two ways. A
+        <em>match</em> advances \(i\) by one &mdash; and \(i\) only ever
+        increases, so at most \(n\) comparisons are matches. A
+        <em>mismatch</em> with \(j &gt; 0\) drops \(j\) to
+        \(\mathit{fail}[j-1] &lt; j\) while \(i\) stays, so the alignment
+        \(i - j\) strictly increases; a mismatch at \(j = 0\) advances \(i\),
+        which also increases \(i - j\). The alignment starts at \(0\), never
+        decreases, and cannot exceed \(n\), so at most \(n\) comparisons are
+        mismatches. Total: at most \(2n\) comparisons, and the text pointer
+        never moved backward. The same argument applied to the build loop
+        (pattern against itself) gives \(2m\).
+        <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a full KMP run)</span>
+        Pattern <code>AABAAC</code>, whose table is
+        \(\mathit{fail} = [0, 1, 0, 1, 2, 0]\); text <code>AABAABAAC</code>
+        (\(n = 9\)). Every comparison of the scan, in order:
+        <table class="trace">
+          <tr><th class="lab">#</th><th>i</th><th>j</th><th>text[i]</th><th>P[j]</th><th>outcome</th></tr>
+          <tr><td class="lab">1</td><td>0</td><td>0</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=1, j=1</td></tr>
+          <tr><td class="lab">2</td><td>1</td><td>1</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=2, j=2</td></tr>
+          <tr><td class="lab">3</td><td>2</td><td>2</td><td class="cell">B</td><td class="cell">B</td><td class="lt">match &mdash; i=3, j=3</td></tr>
+          <tr><td class="lab">4</td><td>3</td><td>3</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=4, j=4</td></tr>
+          <tr><td class="lab">5</td><td>4</td><td>4</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=5, j=5</td></tr>
+          <tr><td class="lab">6</td><td>5</td><td>5</td><td class="cell">B</td><td class="cell">C</td><td class="piv">mismatch &mdash; j = fail[4] = 2, i STAYS at 5</td></tr>
+          <tr><td class="lab">7</td><td>5</td><td>2</td><td class="cell">B</td><td class="cell">B</td><td class="lt">match &mdash; i=6, j=3</td></tr>
+          <tr><td class="lab">8</td><td>6</td><td>3</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=7, j=4</td></tr>
+          <tr><td class="lab">9</td><td>7</td><td>4</td><td class="cell">A</td><td class="cell">A</td><td class="lt">match &mdash; i=8, j=5</td></tr>
+          <tr><td class="lab">10</td><td>8</td><td>5</td><td class="cell">C</td><td class="cell">C</td><td class="lt">match &mdash; j=6=m: FOUND at 8&minus;6+1&hellip;</td></tr>
+        </table>
+        &hellip;that is, at index \(i - j + 1 = 3\):
+        <code>text[3..8] = AABAAC</code>. Ten comparisons, one fall-back, and
+        the payoff visible in row 6: after matching <code>AABAA</code>, the
+        <code>C</code>-versus-<code>B</code> mismatch sets
+        \(j = \mathit{fail}[4] = 2\) &mdash; the matched suffix
+        <code>AA</code> re-serves as the pattern&rsquo;s prefix &mdash; and
+        \(i\) stays at \(5\). <code>text[0..4]</code> is never read again.
+        (Brute force on this same pair tries four alignments and makes \(15\)
+        comparisons &mdash; its six extra are all re-examinations of text
+        characters KMP read once.)
+      </div>
+      <div class="aside">
+        <span class="tag">Sedgewick&rsquo;s DFA view</span>
+        Sedgewick presents the same precomputation as a full
+        <strong>deterministic finite automaton (DFA)</strong> over the pattern:
+        a 2-D table \(\mathit{dfa}[c][j]\) giving, for <em>every</em> alphabet
+        character \(c\) and pattern state \(j\), the next state directly. The
+        scan then has no fall-back loop at all &mdash; one array lookup per
+        text character, \(j = \mathit{dfa}[t[i]][j]\). The build costs
+        \(\Theta(Rm)\) (one entry per character&ndash;state pair) instead of
+        \(\Theta(m)\), buying a perfectly branch-free \(\Theta(n)\) scan. It is
+        the identical algorithm with the fall-backs tabulated in advance
+        &mdash; and it is this chapter&rsquo;s bridge to
+        <a href="ch17-regex-automata.html">Chapter 17</a>, where the
+        &ldquo;pattern&rdquo; itself generalizes from one string to a whole
+        <em>language</em> and the automaton becomes the star.
+      </div>
+      <div class="aside">
+        <span class="tag">First match, all matches</span>
+        The code above returns the <em>first</em> occurrence.
+        Find-and-replace-all, <code>grep -c</code>, and hit-highlighting need
+        <em>every</em> occurrence, and the change is one line: on a full match,
+        instead of returning, record the index, set
+        \(j = \mathit{fail}[m-1]\), and keep scanning. That fall-back (rather
+        than \(j = 0\)) correctly finds <em>overlapping</em> occurrences
+        &mdash; the two <code>AA</code>s inside <code>AAA</code> &mdash; and
+        since \(i\) still never backs up, reporting all matches is still
+        \(\Theta(n + m)\).
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=string-search">Substring-search race</a>.
+        Brute force and KMP run the <em>same</em> text/pattern pair in
+        lockstep, one comparison per tick, with live compare counters. On the
+        default pair &mdash; this chapter&rsquo;s running example
+        <code>ABABABCABABABCAB</code>&nbsp;/&nbsp;<code>ABABC</code> &mdash;
+        both find the match at index \(2\), but watch the pointers: brute
+        force&rsquo;s text index jumps backward after each partial match
+        (\(11\) compares), while KMP&rsquo;s only ever advances (\(8\)
+        compares, one fall-back \(j: 4 \to 2\), exactly the
+        <code>ABAB</code> insight above). Then type the adversarial pair
+        <code>A^11B A^3B</code> (repeat shorthand for
+        <code>AAAAAAAAAAAB AAAB</code>): brute force pays \(36\) comparisons to
+        KMP&rsquo;s \(20\), and KMP finishes and freezes while brute force is
+        still re-scanning. The failure table rides along in the KMP
+        panel&rsquo;s status line.
+      </div>
+      <p>
+        Scaled up, the gap is not academic: on an all-<code>A</code>s text with
+        \(n = 10^6\) and \(m = 1000\), brute force makes about
+        \(n \cdot m = 10^9\) comparisons and KMP about \(n + m \approx 10^6\)
+        &mdash; a thousandfold difference on a megabyte of data. And because
+        the text pointer never retreats, KMP reads its input strictly left to
+        right, once: it runs happily on a <em>stream</em> it cannot rewind
+        &mdash; network traffic, a pipe, a file too big to buffer &mdash; which
+        no algorithm that backs up or looks ahead can do.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="bm">7. Boyer&ndash;Moore and the wider family</h2>
+      <p>
+        KMP guarantees linearity; <strong>Boyer&ndash;Moore</strong> goes
+        after raw speed, and on typical text it examines <em>fewer than
+        \(n\)</em> characters &mdash; sublinear &mdash; which is why it (or a
+        variant) sits inside <code>grep</code> and most editors&rsquo; find.
+        This section is a survey &mdash; the idea and one trace; this
+        course&rsquo;s implementations are brute force and KMP.
+      </p>
+      <p>
+        Two reversals produce the speed. Compare each alignment
+        <strong>right to left</strong>; then, on a mismatch, use the
+        mismatched <em>text</em> character &mdash; the <strong>bad
+        character</strong> &mdash; to decide the jump. If that character does
+        not occur in the pattern at all, no alignment overlapping it can
+        possibly match, so the pattern leaps <em>past it entirely</em>: up to
+        \(m\) positions skipped for one comparison. If it does occur, slide
+        the pattern so its <em>last</em> occurrence lines up under the text
+        character (never sliding backward &mdash; the shift is at least 1).
+      </p>
+      <div class="ex">
+        <span class="tag">Example (Boyer&ndash;Moore, worked)</span>
+        Search for <code>SEARCH</code> (\(m = 6\)) in
+        <code>STRING&nbsp;SEARCH</code> (\(n = 13\)). Cells show the
+        pattern&rsquo;s placement; only
+        <span style="color:#0a7d4d;font-weight:700">green</span>
+        (compared, matched) and
+        <span style="color:#9a5b00;font-weight:700">amber</span>
+        (compared, mismatched) cells were actually examined &mdash; plain cells
+        were skipped without a look:
+        <table class="trace">
+          <tr><th class="lab">text &rarr;</th><th>S</th><th>T</th><th>R</th><th>I</th><th>N</th><th>G</th><th>&#9251;</th><th>S</th><th>E</th><th>A</th><th>R</th><th>C</th><th>H</th><th>compares</th></tr>
+          <tr><td class="lab">align 0</td>
+            <td class="cell">S</td><td class="cell">E</td><td class="cell">A</td><td class="cell">R</td><td class="cell">C</td><td class="cell piv">H</td>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>1</td></tr>
+          <tr><td class="lab">align 6</td>
+            <td></td><td></td><td></td><td></td><td></td><td></td>
+            <td class="cell">S</td><td class="cell">E</td><td class="cell">A</td><td class="cell">R</td><td class="cell">C</td><td class="cell piv">H</td><td></td><td>1</td></tr>
+          <tr><td class="lab">align 7</td>
+            <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+            <td class="cell lt">S</td><td class="cell lt">E</td><td class="cell lt">A</td><td class="cell lt">R</td><td class="cell lt">C</td><td class="cell lt">H</td><td>6</td></tr>
+        </table>
+        Alignment 0: the rightmost comparison pits <code>pattern[5] =
+        H</code> against <code>text[5] = G</code> &mdash; and <code>G</code>
+        occurs nowhere in <code>SEARCH</code>, so the pattern jumps past it:
+        shift by \(6\), one comparison for six positions. Alignment 6:
+        <code>H</code> against <code>text[11] = C</code> &mdash;
+        <code>C</code> <em>does</em> occur in the pattern (last occurrence at
+        index \(4\)), so slide until they line up: shift by \(5 - 4 = 1\).
+        Alignment 7: the right-to-left comparison matches all six &mdash;
+        found at index \(7\). Total: \(8\) comparisons to search a
+        \(13\)-character text; six of the text&rsquo;s characters were never
+        examined at all. That is the sublinear effect, and it grows with
+        \(m\): a longer pattern skips <em>further</em>.
+      </div>
+      <div class="aside">
+        <span class="tag">The full algorithm: two rules</span>
+        Industrial Boyer&ndash;Moore precomputes two shift tables from the
+        pattern and jumps by whichever is larger. The <strong>bad-character
+        rule</strong> is the one traced above (as a lone heuristic it is the
+        <em>Boyer&ndash;Moore&ndash;Horspool</em> variant, a popular
+        simplification). The <strong>good-suffix rule</strong> is KMP&rsquo;s
+        idea pointed the other way: the alignment just matched a
+        <em>suffix</em> of the pattern before failing, so slide to the next
+        place that suffix (or a prefix of the pattern matching its tail)
+        re-occurs. Combined, they make Boyer&ndash;Moore the practical
+        champion on natural text; its plain worst case is \(\Theta(nm)\)
+        (e.g. all-<code>A</code> texts), with known fixes that restore a
+        linear guarantee at some constant-factor cost.
+      </div>
+      <h3>Rabin&ndash;Karp: hashing the windows</h3>
+      <p>
+        One more classic completes the family, and it is
+        <a href="ch07-hashing.html">Chapter 7</a> applied to substrings.
+        <strong>Rabin&ndash;Karp</strong> hashes the pattern once, then slides
+        a length-\(m\) window across the text keeping a <strong>rolling
+        hash</strong>: the polynomial string hash can be updated in \(O(1)\)
+        per shift (subtract the leaving character&rsquo;s term, multiply,
+        add the entering character), so hashing all \(n-m+1\) windows costs
+        \(\Theta(n)\), not \(\Theta(nm)\). When a window&rsquo;s hash equals
+        the pattern&rsquo;s, verify character by character &mdash; equal hashes
+        do not prove equal strings (collisions,
+        <a href="ch07-hashing.html">Chapter 7</a>) &mdash; giving \(\Theta(n)\)
+        expected time. Its superpower is <em>many patterns at once</em>: hash
+        all of them into a set and test each window&rsquo;s hash against the
+        set in the same single pass &mdash; the engine inside plagiarism
+        detectors and signature scanners.
+      </p>
+      <table>
+        <tr><th>algorithm</th><th>preprocess</th><th>search</th><th>idea</th></tr>
+        <tr><td>brute force</td><td>none</td><td>\(\Theta(nm)\) worst</td><td>try every alignment</td></tr>
+        <tr><td>Knuth&ndash;Morris&ndash;Pratt</td><td>\(\Theta(m)\)</td><td><strong>\(\Theta(n+m)\) guaranteed</strong></td><td>failure function; text pointer never backs up</td></tr>
+        <tr><td>Boyer&ndash;Moore</td><td>\(\Theta(m+R)\)</td><td><strong>sublinear</strong> typical</td><td>right-to-left compare; skip on the bad character</td></tr>
+        <tr><td>Rabin&ndash;Karp</td><td>\(\Theta(m)\)</td><td>\(\Theta(n)\) expected</td><td>rolling hash per window; verify on hash hits</td></tr>
+      </table>
+      <p>
+        The common thread: every fast searcher <strong>preprocesses the
+        pattern</strong> &mdash; failure function, skip tables, hash &mdash;
+        and then reads the huge text once (or less). The asymmetry is the
+        point: \(m\) is small and the pattern is reused, so work invested
+        there is amortized across the \(n\)-character scan; it is the same
+        precompute-to-answer-fast principle as a hash table&rsquo;s function
+        or a dynamic-programming table, applied to search.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="toolkit">8. The string toolkit</h2>
+      <p>
+        The chapter in one table &mdash; both halves are answers to
+        &ldquo;my keys/data are strings; which structure exploits that?&rdquo;:
+      </p>
+      <table>
+        <tr><th>need</th><th>tool</th><th>cost</th></tr>
+        <tr><td>string keys with <strong>prefix</strong> queries / order</td><td>trie / TST</td><td>\(\Theta(L)\)</td></tr>
+        <tr><td>exact string lookup, no order needed</td><td>hash table</td><td>\(\Theta(L)\)</td></tr>
+        <tr><td>find a pattern, <strong>guaranteed linear</strong> / streaming</td><td>KMP</td><td>\(\Theta(n+m)\)</td></tr>
+        <tr><td>find a pattern, fastest in practice</td><td>Boyer&ndash;Moore</td><td>sublinear typical</td></tr>
+        <tr><td>find <strong>many</strong> patterns in one pass</td><td>Rabin&ndash;Karp</td><td>\(\Theta(n)\) expected</td></tr>
+      </table>
+      <p>
+        These algorithms are among the most-run code on Earth: every search
+        box and spell-checker (tries), every router forwarding decision
+        (longest-prefix match), every <code>grep</code> and find-in-file
+        (Boyer&ndash;Moore), every genome alignment and packet-inspecting
+        firewall (huge repetitive texts, where the linear guarantee is the
+        difference between feasible and not), every compiler&rsquo;s lexer
+        (tries and automata over tokens). And the two halves share one lesson
+        worth carrying out of the chapter: a string is not an opaque key. Its
+        <em>characters</em> gave the trie a search cost independent of \(n\);
+        its <em>self-overlaps</em> gave KMP a scan that never backs up.
+        <a href="ch17-regex-automata.html">Chapter 17</a> pushes the second
+        idea to its natural limit: from searching for one fixed string to
+        matching a whole <em>language</em> of them &mdash; regular
+        expressions, and the finite automata that run them, starting from
+        exactly the DFA that KMP already built for a one-string language.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="ex">9. Exercises (with solutions)</h2>
+      <ol>
+        <li>
+          Insert <code>to</code>, <code>tea</code>, <code>ten</code> into an
+          empty R-way trie. How many nodes does it have (besides the root)?
+          Which are word-marked? Is a search for <code>te</code> successful?
+          <details>
+            <summary>solution</summary>
+            Five nodes: <code>t</code> with children <code>o</code> and
+            <code>e</code>, and <code>e</code> with children <code>a</code>
+            and <code>n</code> (paths t&ndash;o, t&ndash;e&ndash;a,
+            t&ndash;e&ndash;n). The three word-marked nodes are the ends
+            <code>o</code>, <code>a</code>, <code>n</code>; <code>t</code> and
+            <code>e</code> are shared, unmarked path nodes. Searching
+            <code>te</code> walks a perfectly valid path &mdash; but its final
+            node is not word-marked, so the search correctly fails: a
+            reachable path is not a stored key.
+          </details>
+        </li>
+        <li>
+          A trie holds \(\{\)<code>to</code>, <code>tea</code>,
+          <code>ted</code>, <code>ten</code>, <code>in</code>,
+          <code>inn</code>\(\}\). Compute
+          <code>keysWithPrefix("te")</code> and
+          <code>longestPrefixOf("innards")</code>, and state each
+          operation&rsquo;s cost in general.
+          <details>
+            <summary>solution</summary>
+            <code>keysWithPrefix("te")</code>: walk t&ndash;e, then collect
+            the subtree: \(\{\)<code>tea</code>, <code>ted</code>,
+            <code>ten</code>\(\}\) (neither <code>to</code> nor the
+            <code>in</code> branch is visited). Cost:
+            \(\Theta(\text{prefix length} + \text{output size})\).
+            <code>longestPrefixOf("innards")</code>: walk
+            i&nbsp;&rarr;&nbsp;n (passing the word <code>in</code>, remember
+            it) &rarr;&nbsp;n (passing <code>inn</code>, remember it &mdash;
+            longer) &rarr;&nbsp;<code>a</code> has no child &rarr; stop and
+            return the last word passed: <code>inn</code>. Cost: one descent,
+            \(\Theta(\text{query length})\) at most.
+          </details>
+        </li>
+        <li>
+          From a trie holding \(\{\)<code>she</code>, <code>shell</code>,
+          <code>shells</code>\(\}\), delete <code>shell</code>, then delete
+          <code>shells</code>. Describe exactly what each deletion changes.
+          <details>
+            <summary>solution</summary>
+            Deleting <code>shell</code> only clears the is-word flag on its
+            final <code>l</code> node: that node still has a child (the
+            <code>s</code> of <code>shells</code>), so nothing can be pruned
+            &mdash; every node on the path is still shared. Deleting
+            <code>shells</code> then unmarks its final <code>s</code> node and
+            prunes bottom-up: the <code>s</code> (childless, unmarked) goes,
+            then the second <code>l</code> (now childless, and its mark was
+            cleared by the first deletion), then the first <code>l</code>
+            (childless, unmarked) &mdash; three nodes removed &mdash; and
+            pruning stops at <code>e</code>, which is word-marked
+            (<code>she</code> survives). Forgetting the stop condition and
+            pruning into shared/marked nodes is the classic deletion bug.
+          </details>
+        </li>
+        <li>
+          Compute the failure function of <code>AAAA</code> and of
+          <code>ABCABD</code>.
+          <details>
+            <summary>solution</summary>
+            <code>AAAA</code>: \([0, 1, 2, 3]\) &mdash; each added
+            <code>A</code> extends the self-overlap by one (the longest proper
+            prefix of \(j+1\) <code>A</code>s that is also a suffix is
+            \(j\) <code>A</code>s). <code>ABCABD</code>:
+            \([0, 0, 0, 1, 2, 0]\) &mdash; <code>B</code> and <code>C</code>
+            match no prefix; then <code>A</code>, <code>B</code> rebuild the
+            overlap to \(1, 2\) (<code>AB</code> is both prefix and suffix of
+            <code>ABCAB</code>); the final <code>D</code> fails against
+            \(P[2] = \texttt{C}\), falls back to \(\mathit{fail}[1] = 0\),
+            fails against \(P[0] = \texttt{A}\), and settles at \(0\).
+          </details>
+        </li>
+        <li>
+          KMP is searching for <code>ABABC</code>
+          (\(\mathit{fail} = [0, 0, 1, 2, 0]\)) in
+          <code>ABABABCABABABCAB</code>. The first four comparisons match
+          <code>ABAB</code>; comparison five finds
+          \(\texttt{text}[4] = \texttt{A} \ne \texttt{C} = P[4]\). What exactly happens next,
+          and why is it safe not to move \(i\)?
+          <details>
+            <summary>solution</summary>
+            The mismatch after \(j = 4\) matched characters sets
+            \(j = \mathit{fail}[3] = 2\) while \(i\) stays at \(4\): the next
+            comparison is <code>text[4] = A</code> against
+            \(P[2] = \texttt{A}\) &mdash; a match &mdash; and the scan
+            proceeds to find the full match at index \(2\) after \(8\) total
+            comparisons. It is safe because the matched text
+            <code>text[0..3] = ABAB</code> is known: its suffix
+            <code>AB</code> equals the pattern&rsquo;s prefix
+            <code>AB</code>, so the only alignment worth trying next is the
+            one where that prefix re-uses the last two matched text characters
+            &mdash; everything the fall-back skipped provably cannot match.
+            The text characters before \(i = 4\) never need re-reading.
+          </details>
+        </li>
+        <li>
+          Exactly how many character comparisons does brute force make
+          searching for \(\texttt{A}^{m-1}\texttt{B}\) (that is, \(m-1\)
+          <code>A</code>s then <code>B</code>) in the text
+          \(\texttt{A}^{n-1}\texttt{B}\)? Evaluate at \(n = 12\),
+          \(m = 4\), and compare with KMP&rsquo;s guarantee.
+          <details>
+            <summary>solution</summary>
+            Every alignment \(i = 0, \dots, n-m\) compares \(m-1\) matching
+            <code>A</code>s and then one more character (a mismatching
+            <code>A</code> under <code>B</code> at every alignment except the
+            last, where the <code>B</code> matches and the search ends):
+            \(m\) comparisons per alignment, \((n-m+1)\,m\) in all. At
+            \(n = 12, m = 4\): \(9 \times 4 = 36\) comparisons, matching at
+            index \(8\) &mdash; the demo&rsquo;s adversarial pair. KMP&rsquo;s
+            scan is bounded by \(2n\) (each comparison either advances \(i\)
+            or strictly increases the alignment \(i - j\)); on this instance
+            it makes \(20\).
+          </details>
+        </li>
+        <li>
+          Boyer&ndash;Moore is matching <code>SEARCH</code> right to left, and
+          the very first comparison of an alignment mismatches at
+          \(P[5] = \texttt{H}\). Using the bad-character rule, give the shift
+          when the mismatched text character is (a) <code>X</code>, (b)
+          <code>S</code>, (c) <code>R</code>.
+          <details>
+            <summary>solution</summary>
+            The rule slides the pattern so its <em>last</em> occurrence of the
+            text character lands under it: shift
+            \(= j - \mathit{last}[c]\) with \(\mathit{last}[c] = -1\) for an
+            absent character (taking at least \(1\)). Last occurrences in
+            <code>SEARCH</code>: <code>S</code>:0, <code>E</code>:1,
+            <code>A</code>:2, <code>R</code>:3, <code>C</code>:4,
+            <code>H</code>:5. (a) <code>X</code> is absent:
+            \(5 - (-1) = 6\) &mdash; leap the whole pattern past it.
+            (b) <code>S</code>: \(5 - 0 = 5\). (c) <code>R</code>:
+            \(5 - 3 = 2\). One comparison can thus discard up to \(m\)
+            alignments &mdash; the sublinear engine.
+          </details>
+        </li>
+        <li>
+          A firewall must scan an unbounded, non-seekable network stream for a
+          fixed 64-byte signature, with a hard guarantee that scanning keeps up
+          with line rate. Which algorithm fits, and why do the other three
+          family members fail at least one requirement?
+          <details>
+            <summary>solution</summary>
+            KMP. Its text pointer never decreases, so it reads each streamed
+            byte exactly once with \(O(1)\) work amortized (at most \(2n\)
+            comparisons total) and \(\Theta(m)\) memory for the failure
+            function &mdash; both requirements met. Brute force re-examines
+            earlier text characters after a partial match (needs buffering
+            <em>and</em> loses the linear guarantee &mdash; \(\Theta(nm)\) on
+            repetitive traffic). Boyer&ndash;Moore compares right to left
+            inside a sliding window, so it needs an \(m\)-byte lookahead
+            buffer (workable), but its bad-character heuristic alone has a
+            \(\Theta(nm)\) worst case &mdash; an adversary can craft traffic
+            that breaks the line-rate guarantee. Rabin&ndash;Karp streams
+            fine, but its \(\Theta(n)\) is <em>expected</em>: hash-collision
+            verifications re-read window bytes, so the hard guarantee again
+            fails against adversarial input (though it becomes the right
+            answer the moment there are <em>many</em> signatures at once).
+          </details>
+        </li>
+      </ol>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 16 v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library.
+      </footer>
+    </div>
+    <script>
+      // code-tabs: per-snippet language selector, synced across the page (and
+      // across pages) via localStorage. Works offline — all languages inline.
+      (function () {
+        const KEY = "css343-lang";
+        function apply(lang) {
+          document.querySelectorAll(".code-tabs").forEach((ct) => {
+            const panes = [...ct.querySelectorAll(".ct-pane")];
+            const has = panes.some((p) => p.dataset.lang === lang);
+            const use = has ? lang : (panes[0] && panes[0].dataset.lang);
+            panes.forEach((p) => { p.hidden = p.dataset.lang !== use; });
+            ct.querySelectorAll(".ct-tab").forEach((t) =>
+              t.classList.toggle("on", t.dataset.lang === use));
+          });
+        }
+        document.addEventListener("click", (e) => {
+          const t = e.target.closest(".ct-tab");
+          if (!t) return;
+          localStorage.setItem(KEY, t.dataset.lang);
+          apply(t.dataset.lang);
+        });
+        const saved = localStorage.getItem(KEY) || "cpp";
+        if (document.readyState !== "loading") apply(saved);
+        else document.addEventListener("DOMContentLoaded", () => apply(saved));
+      })();
+    </script>
+  </body>
+</html>
