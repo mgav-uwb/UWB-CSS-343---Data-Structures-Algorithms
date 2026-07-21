@@ -19,7 +19,7 @@ using namespace std;
 const long INF = LONG_MAX;
 
 struct WGraph {
-    int V;
+    int V;                                  // number of vertices
     vector<vector<pair<int,int>>> adj;      // adj[u] = { {v, weight}, ... }, DIRECTED
     WGraph(int n) : V(n), adj(n) {}
     void addEdge(int u, int v, int w) { adj[u].push_back({v, w}); }

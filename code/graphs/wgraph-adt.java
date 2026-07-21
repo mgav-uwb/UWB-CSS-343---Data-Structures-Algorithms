@@ -1,5 +1,6 @@
 class Edge {
-    int to; long w;
+    int to;       // the neighbor this edge leads to
+    long w;       // the edge's weight (the cost of traversing it)
     Edge(int t, long weight) { to = t; w = weight; }
 }
 

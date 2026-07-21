@@ -1,4 +1,7 @@
-struct Edge { int to; long w; };     // a weighted out-edge
+struct Edge {
+    int  to;    // the neighbor this edge leads to
+    long w;     // the edge's weight (the cost of traversing it)
+};
 
 struct WGraph {
     int V;                            // number of vertices

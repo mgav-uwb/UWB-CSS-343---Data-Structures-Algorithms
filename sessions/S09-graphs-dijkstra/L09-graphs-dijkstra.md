@@ -205,10 +205,13 @@ This is *why* building paths from shorter ones can work at all.
 Adjacency list, now with weights:
 
 ```text
-struct Edge { int to; int w; };
-vector<vector<Edge>> adj;        // adj[u] = weighted out-edges
+struct Edge {
+    int to;   // the neighbor this edge leads to
+    int w;    // the edge's weight (cost to traverse)
+};
+vector<vector<Edge>> adj;    // adj[u] = u's weighted out-edges
 
-adj[0] = { {1,2}, {2,5} };       // 0→1 (2), 0→2 (5)
+adj[0] = { {1,2}, {2,5} };   // 0→1 (2), 0→2 (5)
 ```
 
 Same Θ(V + E) structure as L08 — each neighbor just carries a weight.
@@ -424,7 +427,7 @@ dist[s] = 0;  all others ∞;  PQ = { (0, s) }
 while (PQ not empty) {
     u = PQ.extractMin();          // nearest unsettled
     if (settled[u]) continue;     // stale entry — skip
-    settled[u] = true;
+    settled[u] = true;            // dist[u] is now FINAL
     for (Edge e : adj[u])         // relax out-edges
         if (!settled[e.to] && dist[u] + e.w < dist[e.to]) {
             dist[e.to] = dist[u] + e.w;

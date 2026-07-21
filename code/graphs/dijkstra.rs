@@ -5,8 +5,8 @@ use std::cmp::Reverse;
 // Reverse to pop the SMALLEST distance. Settle on pop; skip stale pops.
 fn dijkstra(g: &WGraph, s: usize) -> Vec<i64> {
     let n = g.adj.len();
-    let mut dist = vec![i64::MAX; n];
-    let mut settled = vec![false; n];
+    let mut dist = vec![i64::MAX; n];    // dist[v] = best-known cost s->v
+    let mut settled = vec![false; n];    // settled[v] = dist[v] is final
     let mut pq = BinaryHeap::new();
     dist[s] = 0;
     pq.push(Reverse((0i64, s)));

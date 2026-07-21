@@ -1,9 +1,9 @@
 // Lazy Dijkstra: a min-heap of {dist, vertex}. Settle a vertex the moment it
 // POPS as the minimum; skip stale pops; relax and push improved neighbors.
 long[] dijkstra(WGraph g, int s) {
-    long[] dist = new long[g.V];
-    Arrays.fill(dist, Long.MAX_VALUE);
-    boolean[] settled = new boolean[g.V];
+    long[] dist = new long[g.V];         // dist[v] = best-known cost s->v
+    Arrays.fill(dist, Long.MAX_VALUE);   // MAX_VALUE plays the role of infinity
+    boolean[] settled = new boolean[g.V]; // settled[v] = dist[v] is final
     // min-heap of {dist, vertex}, ordered by distance
     PriorityQueue<long[]> pq =
         new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));

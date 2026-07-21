@@ -313,7 +313,10 @@
   <button class="ct-tab" data-lang="py">Python</button>
   <button class="ct-tab" data-lang="rs">Rust</button>
 </div>
-<pre class="ct-pane" data-lang="cpp">struct Edge { int to; long w; };     // a weighted out-edge
+<pre class="ct-pane" data-lang="cpp">struct Edge {
+    int  to;    // the neighbor this edge leads to
+    long w;     // the edge&#x27;s weight (the cost of traversing it)
+};
 
 struct WGraph {
     int V;                            // number of vertices
@@ -325,7 +328,8 @@ struct WGraph {
     }
 };</pre>
 <pre class="ct-pane" data-lang="java" hidden>class Edge {
-    int to; long w;
+    int to;       // the neighbor this edge leads to
+    long w;       // the edge&#x27;s weight (the cost of traversing it)
     Edge(int t, long weight) { to = t; w = weight; }
 }
 
@@ -344,7 +348,7 @@ class WGraph {
 }</pre>
 <pre class="ct-pane" data-lang="py" hidden>class WGraph:
     def __init__(self, n):
-        self.V = n
+        self.V = n                          # number of vertices
         self.adj = [[] for _ in range(n)]   # adj[u] = list of (v, w) pairs
 
     def add_edge(self, u, v, w):
@@ -578,8 +582,8 @@ impl WGraph {
 // it POPS as the minimum; skip stale pops; relax its out-edges and push any
 // improved neighbor. Needs all weights &gt;= 0.
 vector&lt;long&gt; dijkstra(WGraph&amp; g, int s) {
-    vector&lt;long&gt; dist(g.V, LONG_MAX);
-    vector&lt;bool&gt; settled(g.V, false);
+    vector&lt;long&gt; dist(g.V, LONG_MAX);      // dist[v] = best-known cost s-&gt;v
+    vector&lt;bool&gt; settled(g.V, false);      // settled[v] = dist[v] is final
     priority_queue&lt;pair&lt;long,int&gt;, vector&lt;pair&lt;long,int&gt;&gt;,
                    greater&lt;&gt;&gt; pq;              // min-heap keyed by distance
     dist[s] = 0;
@@ -599,9 +603,9 @@ vector&lt;long&gt; dijkstra(WGraph&amp; g, int s) {
 <pre class="ct-pane" data-lang="java" hidden>// Lazy Dijkstra: a min-heap of {dist, vertex}. Settle a vertex the moment it
 // POPS as the minimum; skip stale pops; relax and push improved neighbors.
 long[] dijkstra(WGraph g, int s) {
-    long[] dist = new long[g.V];
-    Arrays.fill(dist, Long.MAX_VALUE);
-    boolean[] settled = new boolean[g.V];
+    long[] dist = new long[g.V];         // dist[v] = best-known cost s-&gt;v
+    Arrays.fill(dist, Long.MAX_VALUE);   // MAX_VALUE plays the role of infinity
+    boolean[] settled = new boolean[g.V]; // settled[v] = dist[v] is final
     // min-heap of {dist, vertex}, ordered by distance
     PriorityQueue&lt;long[]&gt; pq =
         new PriorityQueue&lt;&gt;((a, b) -&gt; Long.compare(a[0], b[0]));
@@ -624,8 +628,8 @@ long[] dijkstra(WGraph g, int s) {
 # Lazy Dijkstra: a min-heap of (dist, vertex). Settle a vertex the moment it
 # POPS as the minimum; skip stale pops; relax and push improved neighbors.
 def dijkstra(g, s):
-    dist = [float(&quot;inf&quot;)] * g.V
-    settled = [False] * g.V
+    dist = [float(&quot;inf&quot;)] * g.V         # dist[v] = best-known cost s-&gt;v
+    settled = [False] * g.V              # settled[v] = dist[v] is final
     dist[s] = 0
     pq = [(0, s)]                            # min-heap of (dist, vertex)
     while pq:
@@ -645,8 +649,8 @@ use std::cmp::Reverse;
 // Reverse to pop the SMALLEST distance. Settle on pop; skip stale pops.
 fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
     let n = g.adj.len();
-    let mut dist = vec![i64::MAX; n];
-    let mut settled = vec![false; n];
+    let mut dist = vec![i64::MAX; n];    // dist[v] = best-known cost s-&gt;v
+    let mut settled = vec![false; n];    // settled[v] = dist[v] is final
     let mut pq = BinaryHeap::new();
     dist[s] = 0;
     pq.push(Reverse((0i64, s)));

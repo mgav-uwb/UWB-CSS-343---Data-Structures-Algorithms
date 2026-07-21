@@ -3,8 +3,8 @@ import heapq
 # Lazy Dijkstra: a min-heap of (dist, vertex). Settle a vertex the moment it
 # POPS as the minimum; skip stale pops; relax and push improved neighbors.
 def dijkstra(g, s):
-    dist = [float("inf")] * g.V
-    settled = [False] * g.V
+    dist = [float("inf")] * g.V         # dist[v] = best-known cost s->v
+    settled = [False] * g.V              # settled[v] = dist[v] is final
     dist[s] = 0
     pq = [(0, s)]                            # min-heap of (dist, vertex)
     while pq:

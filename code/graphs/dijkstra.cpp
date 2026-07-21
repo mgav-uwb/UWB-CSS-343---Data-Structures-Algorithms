@@ -2,8 +2,8 @@
 // it POPS as the minimum; skip stale pops; relax its out-edges and push any
 // improved neighbor. Needs all weights >= 0.
 vector<long> dijkstra(WGraph& g, int s) {
-    vector<long> dist(g.V, LONG_MAX);
-    vector<bool> settled(g.V, false);
+    vector<long> dist(g.V, LONG_MAX);      // dist[v] = best-known cost s->v
+    vector<bool> settled(g.V, false);      // settled[v] = dist[v] is final
     priority_queue<pair<long,int>, vector<pair<long,int>>,
                    greater<>> pq;              // min-heap keyed by distance
     dist[s] = 0;
