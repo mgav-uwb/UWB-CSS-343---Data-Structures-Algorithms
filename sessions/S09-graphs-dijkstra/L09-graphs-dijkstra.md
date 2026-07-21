@@ -93,12 +93,12 @@ The **cost of a path** is now the **sum** of its edge weights.
 ## Path cost — worked
 
 ```text
-   path 0 → 1 → 3 → 5
-   weights   4   2   3
-   cost = 4 + 2 + 3 = 9
+   path 0 → 1 → 3           path 0 → 2 → 3
+   weights   2   1          weights   5   8
+   cost = 2 + 1 = 3         cost = 5 + 8 = 13
 ```
 
-Among all s→t paths, the **shortest** is the one with the **minimum sum**. There may be many routes — we want the cheapest.
+Among all s→t paths, the **shortest** is the one with the **minimum sum**: here 0 → 1 → 3, at cost 3.
 
 --
 
