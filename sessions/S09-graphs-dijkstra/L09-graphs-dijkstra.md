@@ -614,7 +614,7 @@ No need to settle the rest — a real speedup for point-to-point queries (and th
 
 ## The proof — setup
 
-Let S = the settled set (labels already final). Dijkstra is about to settle **u**, the nearest unsettled vertex. **Claim: dist[u] = δ(u).**
+Let S = the settled set. **Induction hypothesis: `dist[x] = δ(x)` for every x ∈ S** — true at the start (S = {s}, dist[s] = 0). Dijkstra is about to settle **u**, the nearest unsettled vertex. **Claim: dist[u] = δ(u) too.**
 
 ```text
    take ANY path P from s to u.
@@ -632,7 +632,8 @@ Let S = the settled set (labels already final). Dijkstra is about to settle **u*
    cost(P) =  cost(s ⇝ x)  +  w(x→y)  +  cost(y ⇝ u)
 
            ≥     δ(x)      +  w(x→y)  +  0      ← weights ≥ 0
-           ≥   dist[y]                 ← y relaxed when x settled
+           =   dist[x]     +  w(x→y)            ← IH: x ∈ S
+           ≥   dist[y]                 ← x→y relaxed when x settled
            ≥   dist[u]                 ← u is the NEAREST unsettled
 
    every path to u costs ≥ dist[u]  ⇒  dist[u] = δ(u)  ∎
