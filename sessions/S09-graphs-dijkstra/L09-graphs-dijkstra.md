@@ -144,10 +144,27 @@ Surprisingly, single-pair is **no easier**: the best known method is to run Dijk
 A graph can have **exponentially many** s → t paths — listing them is hopeless:
 
 ```text
-   even a modest grid has millions of routes
+   301 vertices can pack 2^100 ≈ 10^30 s→t routes
+   at 10^9 paths/sec: ≈ 40 trillion years
 ```
 
-Dijkstra finds shortest distances to **all V** vertices in **O(E log V)** — **without** enumerating a single path.
+Dijkstra finds shortest distances to **all V** vertices in **O(E log V)** — **without** enumerating a single path. *Proof of that 2¹⁰⁰ — next slide.*
+
+--
+
+## Exponentially many — a proof
+
+**Chain k copies of our diamond** (direct edge dropped), exit feeding entrance:
+
+```text
+        a1        a2        a3
+      ↗    ↘    ↗    ↘    ↗    ↘
+   v0        v1        v2        v3     k = 3 diamonds
+      ↘    ↗    ↘    ↗    ↘    ↗        V = 3k + 1
+        b1        b2        b3
+```
+
+Every path v0 → vk makes **k independent top/bottom choices** — **product rule**: 2 · 2 ⋯ 2 = **2ᵏ distinct paths**. ∎
 
 --
 
