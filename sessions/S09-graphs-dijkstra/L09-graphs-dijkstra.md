@@ -726,15 +726,6 @@ Same algorithm; the PQ replaces the plain queue.
 
 --
 
-## Dijkstra vs Prim
-
-Both grow a tree by greedily pulling the nearest frontier vertex from a PQ. They differ **only in the key**:
-
-- **Dijkstra** — `dist[u] + w` (distance from the **source**)
-- **Prim (MST, L11)** — `w` (cheapest edge to the **tree**)
-
---
-
 ## Which shortest-path algorithm?
 
 | situation | use | cost |
@@ -747,15 +738,20 @@ Both grow a tree by greedily pulling the nearest frontier vertex from a PQ. They
 
 --
 
-## A* — a preview
+## A* — Dijkstra with a hint
 
-Dijkstra explores in **all** directions equally. **A\*** adds a **heuristic** estimate of the remaining distance:
+Point-to-point on a **road map**. Every vertex has **coordinates** — cheap knowledge from *outside* the graph:
 
 ```text
-   priority = dist[u] + h(u)      h ≈ cost still to go
+   h(u) = straight-line distance u → target t
+        = √( (xᵤ−xₜ)² + (yᵤ−yₜ)² )
+          O(1), from coordinates — NOT from the edges
+
+   priority = dist[u] + h(u)      h(u) = cost still to go,
+                                  estimated
 ```
 
-Same relaxation, smarter order — faster **point-to-point** (GPS).
+**One changed line** of tonight's code — `PQ.push({dist[v] + h(v), v})` — and the frontier leans **toward the goal**.
 
 --
 

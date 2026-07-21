@@ -939,7 +939,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         the single pass. It also justifies the early exit: if you only need
         \(\delta(t)\), stop the instant \(t\) settles &mdash; its label will never
         change &mdash; often long before the whole graph is explored. That early
-        exit is the doorway to A\* (<a href="#frontier">&sect;6</a>).
+        exit is the doorway to A* (<a href="#frontier">&sect;6</a>).
       </p>
       <div class="aside">
         <span class="tag">The relaxation framework behind the proof</span>
@@ -1042,7 +1042,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         <tr><td>stack (LIFO)</td><td>deepest</td><td>DFS</td></tr>
         <tr><td>queue (FIFO)</td><td>oldest</td><td>BFS (fewest edges)</td></tr>
         <tr><td>priority queue by \(\texttt{dist}[u]\)</td><td>nearest</td><td><strong>Dijkstra</strong></td></tr>
-        <tr><td>priority queue by \(\texttt{dist}[u] + h(u)\)</td><td>most promising</td><td>A\*</td></tr>
+        <tr><td>priority queue by \(\texttt{dist}[u] + h(u)\)</td><td>most promising</td><td>A*</td></tr>
       </table>
       <p>
         BFS is literally Dijkstra with all weights equal to \(1\): its queue already
@@ -1060,20 +1060,34 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         PQ-driven growth; different priority. Recognizing the shared skeleton makes
         both easier to hold in mind.
       </div>
-      <h3>A\*: the same relaxation, a smarter order</h3>
+      <h3>A*: the same relaxation, a smarter order</h3>
       <p>
         Plain Dijkstra explores outward in all directions equally. For a single
-        target, <strong>A\*</strong> biases the priority by a
+        target, <strong>A*</strong> biases the priority by a
         <strong>heuristic</strong> \(h(u)\) estimating the cost still to go, so it
         expands toward the goal first:
       </p>
       <pre>  priority = dist[u] + h(u)          <span class="cm">// h(u) &asymp; remaining cost to the target</span></pre>
       <p>
+        What is \(h\), and how is it computed? <em>Not from the graph</em> &mdash;
+        knowing the true remaining cost is the very problem being solved. It comes
+        from cheap domain knowledge stored on the vertices. On a road map every
+        vertex carries coordinates, so
+        \(h(u) = \sqrt{(x_u - x_t)^2 + (y_u - y_t)^2}\) &mdash; the straight-line
+        distance to the target, one \(O(1)\) formula, no graph search; on a game
+        board, Manhattan distance plays the same role. This is why A* lives on
+        <em>embedded</em> graphs (maps, grids, game worlds): an abstract graph
+        offers no side-information to build an \(h\) from. The implementation is
+        one changed line of <a href="#dijkstra">&sect;3</a>&rsquo;s code: push
+        \(\{\texttt{dist}[v] + h(v),\, v\}\) instead of
+        \(\{\texttt{dist}[v],\, v\}\).
+      </p>
+      <p>
         It stays exact as long as \(h\) is <strong>admissible</strong> &mdash; never
         overestimates the true remaining cost (straight-line distance is admissible
         for roads, since a road is never shorter than the straight line). An
         admissible heuristic only reorders the exploration; it never misses the
-        shortest path. Set \(h \equiv 0\) and A\* degenerates to Dijkstra, a clean
+        shortest path. Set \(h \equiv 0\) and A* degenerates to Dijkstra, a clean
         sanity check. This is what real map routers build on &mdash; along with
         searching from both ends and precomputed shortcuts &mdash; but every layer
         sits on the same settle-and-relax core.
@@ -1204,7 +1218,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
             the correctness theorem says \(t\)&rsquo;s label is final the moment \(t\)
             pops, so you may stop then rather than settling the rest of the graph
             &mdash; often a large saving. Steering the search toward \(t\) with an
-            admissible heuristic (A\*) prunes even more, without losing exactness.
+            admissible heuristic (A*) prunes even more, without losing exactness.
           </details>
         </li>
         <li>
