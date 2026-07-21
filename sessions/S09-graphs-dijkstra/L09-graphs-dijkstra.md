@@ -12,7 +12,11 @@
   PROVEN correct for nonnegative weights by the leave-the-settled-set chain, and
   made fast (O(E log V)) by the L06 heap. Dijkstra = BFS + a priority queue.
 
-  Worked examples: the 4-vertex graph 0→1(2) 0→2(5) 1→2(1) 1→3(7) 2→3(3) is the
+  Worked examples: Part 1's RUNNING DIAMOND 0→1(2) 0→2(5) 1→3(4) 2→3(8) carries
+  weights→path cost (6 vs 13)→fewest≠cheapest (direct 0→3(9) added: BFS pays 9,
+  detour costs 6) and IS the Part-2 relax demo (settle order 0 1 2 3 shows all
+  three outcomes: discover ×3, improve 9→6, fail 13 ≥ 6; final 0 2 5 6).
+  The 4-vertex graph 0→1(2) 0→2(5) 1→2(1) 1→3(7) 2→3(3) is the
   main trace (dist 0 2 3 6) — IT IS ICA 09's test T1. The practice graph
   0→1(4) 0→2(1) 2→1(2) 1→3(3) is ICA T2 (detour beats direct, dist[1]=3).
   The DEMOS run on the CANONICAL course graph, weighted — the SAME graph as
@@ -79,11 +83,11 @@ But what if edges have **different costs**?
 Each edge carries a **weight**:
 
 ```text
-   0 —2— 1        weights = distance, time,
+   0 —2→ 1        weights = distance, time,
    |     |        price, latency, …
-   5     1
-   |     |
-   2 —8— 3
+   5     4
+   ↓     ↓
+   2 —8→ 3
 ```
 
 The **cost of a path** is now the **sum** of its edge weights.
@@ -94,22 +98,24 @@ The **cost of a path** is now the **sum** of its edge weights.
 
 ```text
    path 0 → 1 → 3           path 0 → 2 → 3
-   weights   2   1          weights   5   8
-   cost = 2 + 1 = 3         cost = 5 + 8 = 13
+   weights   2   4          weights   5   8
+   cost = 2 + 4 = 6         cost = 5 + 8 = 13
 ```
 
-Among all s→t paths, the **shortest** is the one with the **minimum sum**: here 0 → 1 → 3, at cost 3.
+Among all s→t paths, the **shortest** is the one with the **minimum sum**: here 0 → 1 → 3, at cost 6.
 
 --
 
 ## Fewest edges ≠ least weight
 
+Add one **direct edge** `0 —9→ 3` to our digraph:
+
 ```text
-   0 —1— 1 —1— 3      2 edges, cost 2
-   0 —————9———— 3      1 edge,  cost 9
+   fewest edges:  0 → 3          1 edge,  cost 9
+   least weight:  0 → 1 → 3      2 edges, cost 6
 ```
 
-The **fewest-edge** path (direct, cost 9) is **not** the cheapest (cost 2). **BFS would pick the wrong one.**
+**BFS picks the direct edge** (fewest edges = 1) — and pays **9** when **6** was available. Fewest ≠ cheapest.
 
 --
 
@@ -338,15 +344,16 @@ Relaxation records **`parent[v]`** — the edge that gave v its best distance. T
 <div class="algo-viz" data-algo="relax">
 <pre class="viz-fallback">
    dist[0]=0  dist[1]=∞  dist[2]=∞  dist[3]=∞
-   relax 0→1 (2):  0+2 < ∞  → dist[1]=2
-   relax 0→2 (5):  0+5 < ∞  → dist[2]=5
-   relax 1→3 (1):  2+1 < ∞  → dist[3]=3
-   relax 2→3 (8):  5+8=13 ≥ 3 → no change
-   final: 0, 2, 5, 3
+   relax 0→1 (2):  0+2 < ∞   → dist[1]=2
+   relax 0→2 (5):  0+5 < ∞   → dist[2]=5
+   relax 0→3 (9):  0+9 < ∞   → dist[3]=9
+   relax 1→3 (4):  2+4=6 < 9 → dist[3]=6  improved!
+   relax 2→3 (8):  5+8=13 ≥ 6 → no change
+   final: 0, 2, 5, 6
 </pre>
 </div>
 
-<small>Watch each relaxation lower a label — including one that **fails** (13 ≥ 3: no improvement). Part 3's demo runs the full algorithm on tonight's graph.</small>
+<small>Part 1's digraph, direct edge included. All three outcomes: **discover** (∞ → a value), **improve** (9 → 6 — BFS's wrong path corrected), **fail** (13 ≥ 6: no change). Part 3's demo runs the full algorithm on tonight's graph.</small>
 
 ---
 

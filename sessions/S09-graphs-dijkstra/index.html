@@ -53,7 +53,7 @@
        weighted edge list "u v w, u v w, …"); each slide's spec exposes only
        what the lecture has introduced by that point:
          wgraph-tour  (Part 1)  static picture of tonight's weighted digraph
-         relax        (Part 2)  scripted 4-relaxation mini trace (one concept)
+         relax        (Part 2)  scripted 5-relaxation mini trace (one concept)
          dijkstra     (Part 3)  Dijkstra from any start; Build animates
          dijkstra-neg (Part 4)  same engine — append "7 1 -20" and the final
                                 edge re-check flags the broken label in red -->
@@ -80,19 +80,21 @@
         label: "tonight's graph — 8 vertices, 11 weighted directed edges",
         width: 900, height: 225,
       },
-      // the slide's 4-relaxation trace: 0→1(2), 0→2(5) discover; 1→3(1) improves; 2→3(8) fails (13 ≥ 3)
+      // the slide's 5-relaxation trace: 0→1(2), 0→2(5), 0→3(9) discover;
+      // 1→3(4) IMPROVES dist[3] 9→6 (BFS's fewest-edge path corrected); 2→3(8) fails (13 ≥ 6)
       "relax": {
         make: () => {
           const g = new WeightedGraph();
           g.nodes = [{ id: 0, x: 0.10, y: 0.50 }, { id: 1, x: 0.45, y: 0.15 },
                      { id: 2, x: 0.45, y: 0.85 }, { id: 3, x: 0.85, y: 0.50 }];
           g.edges = [{ u: 0, v: 1, w: 2, directed: true }, { u: 0, v: 2, w: 5, directed: true },
-                     { u: 1, v: 3, w: 1, directed: true }, { u: 2, v: 3, w: 8, directed: true }];
-          g.adj = { 0: [{ v: 1, w: 2 }, { v: 2, w: 5 }], 1: [{ v: 3, w: 1 }], 2: [{ v: 3, w: 8 }], 3: [] };
+                     { u: 0, v: 3, w: 9, directed: true },
+                     { u: 1, v: 3, w: 4, directed: true }, { u: 2, v: 3, w: 8, directed: true }];
+          g.adj = { 0: [{ v: 1, w: 2 }, { v: 2, w: 5 }, { v: 3, w: 9 }], 1: [{ v: 3, w: 4 }], 2: [{ v: 3, w: 8 }], 3: [] };
           return g;
         },
         renderer: (c) => new GraphRenderer(c, { directed: true }),
-        run: (s) => s.dijkstra(0),                 // its trace IS the 4 relaxations, in settle order
+        run: (s) => s.dijkstra(0),                 // its trace IS the 5 relaxations, in settle order
         costs: ["visit", "compare"], chrome: { showCosts: true }, width: 800, height: 230,
       },
       "dijkstra": base(),
