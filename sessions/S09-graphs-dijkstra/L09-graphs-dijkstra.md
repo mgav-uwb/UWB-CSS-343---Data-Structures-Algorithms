@@ -452,17 +452,27 @@ Each iteration moves the **nearest frontier vertex** into *settled* and pushes i
 
 ## Dijkstra — a worked example
 
+PQ entries are **(dist, vertex)** — shown after **every** pop and push:
+
 ```text
    0→1(2)  0→2(5)  1→2(1)  1→3(7)  2→3(3)
 
-   settle 0 (0): relax → dist 1=2, 2=5
-   settle 1 (2): relax → 2: 2+1=3 < 5 ✓;  3: 2+7=9
-   settle 2 (3): relax → 3: 3+3=6 < 9 ✓
-   settle 3 (6): done
-   dist: 0 2 3 6
+   pop (0,0) → settle 0           PQ ∅
+     relax 0→1: dist[1]=2         PQ (2,1)
+     relax 0→2: dist[2]=5         PQ (2,1)(5,2)
+   pop (2,1) → settle 1           PQ (5,2)
+     relax 1→2: 2+1=3 < 5 ✓       PQ (3,2)(5,2) ← stale
+     relax 1→3: dist[3]=9         PQ (3,2)(5,2)(9,3)
+   pop (3,2) → settle 2           PQ (5,2)(9,3)
+     relax 2→3: 3+3=6 < 9 ✓       PQ (5,2)(6,3)(9,3)
+   pop (5,2) → 2 settled: SKIP    PQ (6,3)(9,3)
+   pop (6,3) → settle 3           PQ (9,3)
+   pop (9,3) → 3 settled: SKIP    PQ ∅ → done
+
+   dist: 0 2 3 6      settle order: 0 1 2 3
 ```
 
-<small>This exact graph is **ICA 09's test T1**.</small>
+<small>Improving a vertex **pushes a duplicate** — (5,2) goes stale the moment 1→2 finds 3 &lt; 5, (9,3) when 2→3 finds 6 &lt; 9 — and stales are **skipped at pop**. This exact graph is **ICA 09's test T1**.</small>
 
 --
 
