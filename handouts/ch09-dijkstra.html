@@ -970,11 +970,11 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
       </p>
       <div class="ex">
         <span class="tag">Example (Dijkstra settles too early)</span>
-        <pre>  s &mdash;1&rarr; a         edges:  s&rarr;a (1),  s&rarr;b (2),  b&rarr;a (&minus;4)
-  |        &uarr;
-  2       &minus;4        greedy from s: settle s(0); nearest is a(1) &mdash;
-  |        |           declared FINAL. Then settle b(2); relax b&rarr;a:
-  &rArr; b &mdash;&mdash;&mdash;&#39;           2 + (&minus;4) = &minus;2 &lt; 1, but a is already settled.</pre>
+        <pre>  s ──1──→ a        edges:  s→a (1),  s→b (2),  b→a (−4)
+  │        ↑
+  2       −4        greedy from s: settle s(0); nearest is a(1) —
+  │        │        declared FINAL. Then settle b(2); relax b→a:
+  └──→ b ──┘        2 + (−4) = −2 &lt; 1, but a is already settled.</pre>
         Vertex \(a\) settles at distance \(1\), but the true shortest route
         \(s \to b \to a\) costs \(2 + (-4) = -2\). The cheaper route arrives after
         \(a\) is frozen, so Dijkstra silently returns \(1\), not \(-2\). Nothing
