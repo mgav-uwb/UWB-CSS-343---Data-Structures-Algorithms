@@ -126,7 +126,7 @@ Two ingredients — both needed, both **proved per problem**:
 
 --
 
-## When greedy fails: try everything, remembered
+## When greedy fails
 
 `{1, 3, 4}` making n — solved **exactly**, in three lines:
 
@@ -138,7 +138,7 @@ Two ingredients — both needed, both **proved per problem**:
    best   0   1   2   1   1   2   2    best[6] = 2: 3+3 ✓
 ```
 
-Solve **every subproblem once**, build up: **dynamic programming** (L14). Slower than greedy, needs no license. Tonight's Bellman-Ford is this idea, for paths.
+Solve **every subproblem once**, build up: **dynamic programming** (L14). Slower than greedy, needs no license.
 
 ---
 
