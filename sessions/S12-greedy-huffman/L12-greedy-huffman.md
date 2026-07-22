@@ -10,8 +10,9 @@
   never reconsiders. It's correct only when the problem has the greedy-choice
   property + optimal substructure — proved by an EXCHANGE ARGUMENT. HUFFMAN coding
   is the poster child: repeatedly merge the two least-frequent symbols to build a
-  prefix-free code trie that provably minimizes the encoded length. We've already
-  seen greedy in Dijkstra, Prim, and Kruskal — tonight is the general pattern.
+  prefix-free code trie that provably minimizes the encoded length. L09 DEFINED greedy (template +
+  the coin pair) and L11 added Prim/Kruskal — tonight is the general pattern,
+  proved; Part 1 recaps, it must not re-teach.
 
   Covered in Spring-26 (Kim, Tree deck): Huffman coding (frequencies, tree build,
   codes) lived in the trees module. The GREEDY-method generalization is new
@@ -22,9 +23,10 @@
   lemma slides (exchange Δcost algebra + the cost(T) = cost(T′) + fx + fy
   substructure identity), not postulated.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 20 0:24 P2 when-optimal
-  20 0:44 BREAK 10 0:54 P3 Huffman build 30 1:24 P4 prefix codes 26 1:50 P5 wrap 14
-  2:04 ICA 2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 14 (RECAP of L09's
+  definition + coin pair — do not re-teach) 0:18 P2 when-optimal 24 0:42 BREAK 10
+  0:52 P3 Huffman build 30 1:22 P4 prefix codes 26 1:48 P5 wrap 14 2:02 ICA
+  2:30 end.
 -->
 
 ## CSS 343
@@ -52,36 +54,23 @@ Reading quiz due before class.
 
 ### Part 1 · The greedy method
 
-<small>(~22 min)</small>
+<small>(~14 min)</small>
 
 --
 
-## What is a greedy algorithm?
+## Greedy, recalled (L09)
 
-At each step, make the choice that looks **best right now** — and **never reconsider** it.
-
-```text
-   build a solution one piece at a time;
-   each piece = the locally optimal choice
-```
-
-No backtracking, no lookahead. Fast and simple — **when** it's correct.
-
---
-
-## The greedy template
+**Commit to the locally-best choice; never reconsider.**
 
 ```text
    greedy(problem):
-       solution = {}
-       while problem not solved:
-           x = the locally-BEST choice available now
-           add x to solution           // never undo it
-           reduce problem by x
-       return solution
+       while not solved:
+           x = the locally BEST choice available
+           commit to x               // never undone
+           shrink the problem
 ```
 
-Every greedy algorithm is this loop — the art is the **choice rule** and its **proof**.
+You watched it **win** (US coins; Dijkstra) and **lose** ({1,3,4} making 6: greedy 3 coins, optimal 2) — so every greedy **owes a proof**.
 
 --
 
@@ -107,18 +96,6 @@ Tonight: the general pattern, and **Huffman**.
 
 Greedy is the **cheapest** approach — **if** the problem allows it.
 
---
-
-## A greedy algorithm that works: coins
-
-Make change with **US coins** (25, 10, 5, 1) using the **fewest** coins:
-
-```text
-   greedy: take the largest coin ≤ remaining, repeat
-   41¢ → 25 + 10 + 5 + 1  = 4 coins   ✓ optimal
-```
-
-For US denominations, greedy is provably optimal.
 
 --
 
@@ -134,18 +111,6 @@ Given event intervals, how few rooms/platforms serve them all?
 
 Greedy sweep, O(n log n) — provably minimal.
 
---
-
-## The SAME rule FAILS: coins {1, 3, 4}
-
-Same "take the biggest" rule, denominations **{1, 3, 4}**, make **6¢**:
-
-```text
-   greedy: 4 + 1 + 1        = 3 coins
-   optimal: 3 + 3           = 2 coins   ✗ greedy loses!
-```
-
-Greedy optimality is a property of the **problem**, not the rule. **Every greedy needs a proof — or a counterexample kills it.**
 
 --
 

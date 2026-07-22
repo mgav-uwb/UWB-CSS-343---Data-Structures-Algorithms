@@ -124,8 +124,9 @@
       </div>
       <div class="src">
         Edges now carry weights, and &ldquo;shortest&rdquo; means least total
-        weight rather than fewest edges. The one operation every shortest-path
-        algorithm is built from (edge relaxation), Dijkstra&rsquo;s greedy
+        weight rather than fewest edges. The greedy method itself, introduced via
+        change-making; the one operation every shortest-path
+        algorithm is built from (edge relaxation); Dijkstra&rsquo;s greedy
         ordering of it, a proof that the greedy choice is correct when weights are
         nonnegative, the priority-queue implementation that makes it
         \(O(E\log V)\), and the exact line of the proof that negative weights
@@ -150,6 +151,7 @@
       <div class="toc">
         <strong>Contents</strong>
         <ol>
+          <li><a href="#greedy">Greedy algorithms</a></li>
           <li><a href="#weighted">Weighted graphs and the shortest-path problem</a></li>
           <li><a href="#relax">Edge relaxation: the one operation</a></li>
           <li><a href="#dijkstra">Dijkstra&rsquo;s algorithm</a></li>
@@ -161,7 +163,81 @@
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="weighted">1. Weighted graphs and the shortest-path problem</h2>
+      <h2 id="greedy">1. Greedy algorithms</h2>
+      <p>
+        Dijkstra&rsquo;s algorithm belongs to a named family, so we name the
+        family first.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (greedy algorithm)</span>
+        A <strong>greedy algorithm</strong> builds a solution one step at a time
+        by always taking the choice that looks <em>best right now</em>, committing
+        to it, and <em>never reconsidering</em> a committed choice.
+      </div>
+      <pre>  greedy(problem):
+      while not solved:
+          x = the locally BEST choice available
+          commit to x               <span class="cm">// never undone</span>
+          shrink the problem</pre>
+      <p>
+        No backtracking and no lookahead is what makes greedy fast &mdash; one
+        pass, no search tree &mdash; and also what makes it risky: a choice that
+        looks best now can foreclose the best overall solution. Whether it does
+        depends on the <em>problem</em>, not the strategy. The classic
+        demonstration is <strong>making change</strong> with the fewest coins,
+        rule: <em>take the largest coin that fits, repeat</em>.
+      </p>
+      <pre>  US coins {25, 10, 5, 1},  make 41&cent;:
+      41 &rarr; 25 + 10 + 5 + 1  =  4 coins     &#10003; optimal (always)
+
+  coins {1, 3, 4},  make 6:
+      greedy:   4 + 1 + 1  =  3 coins
+      optimal:  3 + 3      =  2 coins        &#10007; greedy loses!</pre>
+      <p>
+        The rule is identical in both runs; only the denominations changed. For
+        US denominations the rule is provably optimal for every amount; for
+        \(\{1,3,4\}\) grabbing the 4 forces two 1s, while the optimum starts with
+        a choice that did <em>not</em> look best. Nothing on the surface
+        distinguishes the two cases &mdash; the only license to be greedy is a
+        <em>per-problem proof</em>.
+      </p>
+      <div class="thm">
+        <span class="tag">The two licensing ingredients</span>
+        A greedy algorithm is optimal when the problem has both the
+        <strong>greedy-choice property</strong> &mdash; some optimal solution
+        contains the locally-best choice, so committing to it is safe &mdash; and
+        <strong>optimal substructure</strong> &mdash; after committing, what
+        remains is a smaller instance of the same problem. Both must be
+        <em>proved</em>, problem by problem. (Chapter 12 develops the general
+        theory and its proof technique, the exchange argument.)
+      </div>
+      <p>
+        This chapter is one complete instance: Dijkstra&rsquo;s greedy choice is
+        <em>settle the nearest unsettled vertex</em>, its commitment is the
+        settled set, and <a href="#correct">&sect;5</a> proves the greedy-choice
+        property for shortest paths &mdash; with nonnegative weights as the
+        license. Negative weights (<a href="#negative">&sect;6</a>) are
+        Dijkstra&rsquo;s \(\{1,3,4\}\).
+      </p>
+      <div class="aside">
+        <span class="tag">When greedy has no license: try everything, remembered</span>
+        The \(\{1,3,4\}\) instance is still solvable exactly &mdash; consider
+        every option, but solve each subproblem once and remember it:
+        \(\texttt{best}[0] = 0\) and
+        \(\texttt{best}[n] = 1 + \min(\texttt{best}[n{-}1],\,
+        \texttt{best}[n{-}3],\, \texttt{best}[n{-}4])\). The table for
+        \(n = 0 \ldots 6\) reads \(0, 1, 2, 1, 1, 2, 2\):
+        \(\texttt{best}[6] = 1 + \texttt{best}[3] = 2\), recovering the
+        \(3+3\) answer greedy missed &mdash; polynomial cost, no special
+        property required beyond optimal substructure. This strategy is
+        <strong>dynamic programming</strong>, Chapter 14&rsquo;s topic; it
+        returns in this very chapter as Bellman&ndash;Ford
+        (<a href="#negative">&sect;6</a>), which is exactly
+        try-everything-remembered for shortest paths.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="weighted">2. Weighted graphs and the shortest-path problem</h2>
       <div class="def">
         <span class="tag">Definition (weighted graph, path cost)</span>
         A <strong>weighted graph</strong> attaches to each edge a number, its
@@ -213,7 +289,7 @@
         the only known way to be sure \(t\)&rsquo;s distance is final is
         essentially to settle every vertex nearer than \(t\) first, which is what
         Dijkstra does anyway. The one saving is that we may stop the moment \(t\)
-        is settled (<a href="#dijkstra">&sect;3</a>).
+        is settled (<a href="#dijkstra">&sect;4</a>).
       </p>
 
       <h3>Why not enumerate? Exponentially many paths &mdash; a proof</h3>
@@ -381,7 +457,7 @@ impl WGraph {
         Dijkstra&rsquo;s algorithm requires every edge weight to be nonnegative.
         Physical costs &mdash; distances, times, prices, capacities &mdash; are
         naturally \(\ge 0\), so it fits most real problems. Negative weights break
-        the greedy argument, and <a href="#negative">&sect;5</a> points at the exact
+        the greedy argument, and <a href="#negative">&sect;6</a> points at the exact
         line of the correctness proof that fails and the algorithm (Bellman&ndash;Ford)
         that replaces it. State this precondition up front: it is the one thing
         Dijkstra cannot be talked out of.
@@ -463,7 +539,7 @@ impl WGraph {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="relax">2. Edge relaxation: the one operation</h2>
+      <h2 id="relax">3. Edge relaxation: the one operation</h2>
       <p>
         Every shortest-path algorithm in this chapter &mdash; and beyond it &mdash;
         is built from a single primitive applied in some order. Learn the primitive
@@ -554,7 +630,7 @@ impl WGraph {
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="dijkstra">3. Dijkstra&rsquo;s algorithm</h2>
+      <h2 id="dijkstra">4. Dijkstra&rsquo;s algorithm</h2>
       <p>
         <strong>Dijkstra&rsquo;s algorithm</strong> chooses the relaxation order
         greedily. Maintain a set of <strong>settled</strong> vertices, whose
@@ -885,7 +961,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="correct">4. Why Dijkstra is correct</h2>
+      <h2 id="correct">5. Why Dijkstra is correct</h2>
       <p>
         The greedy claim is that the nearest unsettled vertex can be settled
         &mdash; its tentative distance is already final. Everything rides on it, and
@@ -901,7 +977,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         that \(\texttt{dist}[x] = \delta(x)\) for every \(x \in S\) (true at the
         start, when \(S = \{s\}\) and \(\texttt{dist}[s] = 0\)). We show no path to
         \(u\) can cost less than \(\texttt{dist}[u]\); since \(\texttt{dist}[u]\) is
-        the cost of a real path (the invariant of <a href="#relax">&sect;2</a>), that
+        the cost of a real path (the invariant of <a href="#relax">&sect;3</a>), that
         forces \(\texttt{dist}[u] = \delta(u)\).
         <br>
         Take any path \(P\) from \(s\) to \(u\). It begins inside \(S\) (at \(s\))
@@ -939,7 +1015,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         the single pass. It also justifies the early exit: if you only need
         \(\delta(t)\), stop the instant \(t\) settles &mdash; its label will never
         change &mdash; often long before the whole graph is explored. That early
-        exit is the doorway to A* (<a href="#frontier">&sect;6</a>).
+        exit is the doorway to A* (<a href="#frontier">&sect;7</a>).
       </p>
       <div class="aside">
         <span class="tag">The relaxation framework behind the proof</span>
@@ -947,7 +1023,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         leans on, worth naming because they are reused for Bellman&ndash;Ford and the
         DAG algorithm too. The <strong>upper-bound property</strong>: once
         \(\texttt{dist}[v]\) reaches \(\delta(v)\) it never changes, and it is always
-        \(\ge \delta(v)\) (our invariant of <a href="#relax">&sect;2</a>). The
+        \(\ge \delta(v)\) (our invariant of <a href="#relax">&sect;3</a>). The
         <strong>convergence property</strong>: if \(s \rightsquigarrow u \to v\) is a
         shortest path and \(\texttt{dist}[u] = \delta(u)\) at the moment
         \(u \to v\) is relaxed, then \(\texttt{dist}[v] = \delta(v)\) forever after.
@@ -961,7 +1037,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="negative">5. Negative weights and the limits of greed</h2>
+      <h2 id="negative">6. Negative weights and the limits of greed</h2>
       <p>
         The proof used nonnegativity in exactly one place: the tail
         \(\operatorname{cost}(y \rightsquigarrow u) \ge 0\). Remove that guarantee
@@ -987,7 +1063,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         edge <code>7 1 -20</code> to the running graph and rebuild, then run from
         \(0\). Dijkstra happily reports \(\texttt{dist}[1] = 4\), but the demo&rsquo;s
         final <em>edge re-check</em> &mdash; a scan for any edge that still relaxes,
-        which by the invariant of <a href="#relax">&sect;2</a> should find none
+        which by the invariant of <a href="#relax">&sect;3</a> should find none
         &mdash; flags \(7 \to 1\) in red, because \(15 + (-20) = -5 &lt; 4\). The
         red edge is the proof&rsquo;s failed line made visible. (Worse: that edge
         closes the cycle \(1 \to 3 \to 4 \to 7 \to 1\) of weight
@@ -1008,7 +1084,11 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         \(i\) every shortest path using at most \(i\) edges is final; so \(V-1\)
         rounds settle everything, at a cost of \(O(VE)\). This is
         <strong>Bellman&ndash;Ford</strong>, and it handles negative edges that
-        Dijkstra cannot.
+        Dijkstra cannot. Notice the strategy: greedy lost its license, so this is
+        <a href="#greedy">&sect;1</a>&rsquo;s try-everything-remembered fallback
+        &mdash; round \(i\) solves the subproblem &ldquo;shortest paths using at
+        most \(i\) edges&rdquo; &mdash; a dynamic program (Chapter 14) in all but
+        name.
       </p>
       <div class="aside">
         <span class="tag">Negative cycles have no shortest path</span>
@@ -1031,7 +1111,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="frontier">6. One frontier, many searches</h2>
+      <h2 id="frontier">7. One frontier, many searches</h2>
       <p>
         Chapter 8 ended on a template: an explore loop whose behavior is set by the
         container holding the frontier. Dijkstra is the next row of that table, and
@@ -1078,7 +1158,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
         board, Manhattan distance plays the same role. This is why A* lives on
         <em>embedded</em> graphs (maps, grids, game worlds): an abstract graph
         offers no side-information to build an \(h\) from. The implementation is
-        one changed line of <a href="#dijkstra">&sect;3</a>&rsquo;s code: push
+        one changed line of <a href="#dijkstra">&sect;4</a>&rsquo;s code: push
         \(\{\texttt{dist}[v] + h(v),\, v\}\) instead of
         \(\{\texttt{dist}[v],\, v\}\).
       </p>
@@ -1111,10 +1191,10 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="ex">7. Exercises (with solutions)</h2>
+      <h2 id="ex">8. Exercises (with solutions)</h2>
       <ol>
         <li>
-          In the diamond chain of <a href="#weighted">&sect;1</a>, keep each
+          In the diamond chain of <a href="#weighted">&sect;2</a>, keep each
           diamond&rsquo;s <em>direct</em> edge \(v_{i-1} \to v_i\) as well (so
           each diamond looks exactly like the running example). How many distinct
           \(v_0 \to v_k\) paths are there now? How many vertices does the graph
@@ -1203,7 +1283,7 @@ fn dijkstra(g: &amp;WGraph, s: usize) -&gt; Vec&lt;i64&gt; {
             the only other path is the single edge \(s\to t\) of cost \(10\). BFS
             minimizes edge count and returns the one-edge path, reporting distance
             \(10\) instead of the true \(3\). This is the fewest-edge-versus-least-weight
-            gap of <a href="#weighted">&sect;1</a>, made as wide as you like.
+            gap of <a href="#weighted">&sect;2</a>, made as wide as you like.
           </details>
         </li>
         <li>

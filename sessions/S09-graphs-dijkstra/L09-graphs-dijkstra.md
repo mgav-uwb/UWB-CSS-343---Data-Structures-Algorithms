@@ -12,9 +12,16 @@
   PROVEN correct for nonnegative weights by the leave-the-settled-set chain, and
   made fast (O(E log V)) by the L06 heap. Dijkstra = BFS + a priority queue.
 
-  Worked examples: Part 1's RUNNING DIAMOND 0→1(2) 0→2(5) 1→3(4) 2→3(8) carries
+  OPENING (P1): greedy DEFINED at first contact — template (commit, never
+  reconsider), change-making 41¢ US {25,10,5,1} ✓ vs {1,3,4} making 6 ✗
+  (greedy 4+1+1=3, optimal 3+3=2 → per-problem proof), the two ingredients
+  stated lightly (L12 recaps + deepens instead of re-introducing), and the
+  DP fallback shown concretely (best[n]=1+min best[n−c]; table 0 1 2 1 1 2 2)
+  and named once — Bellman-Ford is the same idea for paths (L14 formalizes).
+
+  Worked examples: Part 2's RUNNING DIAMOND 0→1(2) 0→2(5) 1→3(4) 2→3(8) carries
   weights→path cost (6 vs 13)→fewest≠cheapest (direct 0→3(9) added: BFS pays 9,
-  detour costs 6) and IS the Part-2 relax demo (settle order 0 1 2 3 shows all
+  detour costs 6) and IS the Part-3 relax demo (settle order 0 1 2 3 shows all
   three outcomes: discover ×3, improve 9→6, fail 13 ≥ 6; final 0 2 5 6).
   The 4-vertex graph 0→1(2) 0→2(5) 1→2(1) 1→3(7) 2→3(3) is the
   main trace (dist 0 2 3 6) — IT IS ICA 09's test T1. The practice graph
@@ -24,7 +31,7 @@
   "0 1 4, 0 3 6, 1 2 1, 1 3 5, 2 3 8, 0 5 20, 3 4 2, 3 7 11, 4 5 3, 5 6 9,
   4 7 7") — mirrored on the "graph for tonight" slide and the your-turn
   (settle order 0 1 2 3 4 5 7 6; final dist 0 4 5 6 8 11 20 15; the detour
-  0→3→4→5 = 11 beats the direct 0→5 = 20). Appending "7 1 -20" is the Part-4
+  0→3→4→5 = 11 beats the direct 0→5 = 20). Appending "7 1 -20" is the Part-5
   beat: dist[7]=15, so the post-run edge re-check flags dist[1]=4 as broken
   (7→1: 15−20 = −5 < 4), and 1→3→4→7→1 = 5+2+7−20 = −6 is a negative cycle.
 
@@ -32,9 +39,9 @@
   pseudocode, undirected note, O(V²) analysis. Sedgewick §4.4 adds the PQ
   implementation (O(E log V)), the relaxation framing, and negative-weight limits.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 weighted+SP 20 0:24 P2 relaxation 18
-  0:42 BREAK 10 0:52 P3 Dijkstra+PQ 32 1:24 P4 correctness+limits 28
-  1:52 P5 wrap 6 1:58 ICA 2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 greedy 12 0:16 P2 weighted+SP 16
+  0:32 P3 relaxation 16 0:48 BREAK 10 0:58 P4 Dijkstra+PQ 30 1:28 P5
+  correctness+limits 26 1:54 P6 wrap 6 2:00 ICA 2:30 end.
 -->
 
 ## CSS 343
@@ -60,9 +67,84 @@ _Secondary:_ ODS Ch 12. Reading quiz due before class.
 
 ---
 
-### Part 1 · Weighted graphs & shortest paths
+### Part 1 · Greedy algorithms
 
-<small>(~20 min)</small>
+<small>(~12 min)</small>
+
+--
+
+## What is a greedy algorithm?
+
+At each step, take the choice that looks **best right now** — commit, and **never reconsider**.
+
+```text
+   greedy(problem):
+       while not solved:
+           x = the locally BEST choice available
+           commit to x               // never undone
+           shrink the problem
+```
+
+No backtracking, no lookahead — **fast**. The catch: locally best ≠ globally best.
+
+--
+
+## Greedy that works: making change
+
+Make **41¢** with **US coins** {25, 10, 5, 1} — **fewest** coins:
+
+```text
+   rule: take the LARGEST coin that fits; repeat
+
+   41¢ → 25 + 10 + 5 + 1  =  4 coins   ✓ optimal
+```
+
+For US denominations, this greedy rule is **provably optimal — always**.
+
+--
+
+## The SAME rule fails: coins {1, 3, 4}
+
+```text
+   make 6:
+   greedy:   4 + 1 + 1  =  3 coins
+   optimal:  3 + 3      =  2 coins    ✗ greedy loses!
+```
+
+Same rule, different denominations → **wrong**. Greedy is a **strategy**, not a guarantee — every greedy algorithm needs a **proof**.
+
+--
+
+## When is greedy safe?
+
+Two ingredients — both needed, both **proved per problem**:
+
+- **greedy-choice property** — some optimal solution **contains** the locally-best choice (committing is safe)
+- **optimal substructure** — after committing, what's left is a **smaller instance** of the same problem
+
+**Tonight:** Dijkstra, greedy choice = *settle the __nearest__ unsettled vertex*. Proof in Part 5. <small>(The general theory, proof technique, and more examples: L12.)</small>
+
+--
+
+## When greedy fails: try everything, remembered
+
+`{1, 3, 4}` making n — solved **exactly**, in three lines:
+
+```text
+   best[0] = 0
+   best[n] = 1 + min( best[n−1], best[n−3], best[n−4] )
+
+   n      0   1   2   3   4   5   6
+   best   0   1   2   1   1   2   2    best[6] = 2: 3+3 ✓
+```
+
+Solve **every subproblem once**, build up: **dynamic programming** (L14). Slower than greedy, needs no license. Tonight's Bellman-Ford is this idea, for paths.
+
+---
+
+### Part 2 · Weighted graphs & shortest paths
+
+<small>(~16 min)</small>
 
 --
 
@@ -135,7 +217,7 @@ Given a **weighted digraph** and a **source** s, find the **minimum-total-weight
 - **single-source** — one s → shortest paths to **all** vertices (what Dijkstra computes)
 - **single-pair** — one s → one t
 
-Surprisingly, single-pair is **no easier**: the best known method is to run Dijkstra and **stop when t settles** (when its distance becomes final — Part 3).
+Surprisingly, single-pair is **no easier**: the best known method is to run Dijkstra and **stop when t settles** (when its distance becomes final — Part 4).
 
 --
 
@@ -239,7 +321,7 @@ Dijkstra requires **all weights ≥ 0**.
    distances, times, costs, capacities → naturally ≥ 0
 ```
 
-Negative weights break the greedy logic — Part 4 shows the **exact line of the proof** that fails.
+Negative weights break the greedy logic — Part 5 shows the **exact line of the proof** that fails.
 
 --
 
@@ -261,9 +343,9 @@ Negative weights break the greedy logic — Part 4 shows the **exact line of the
 
 ---
 
-### Part 2 · Edge relaxation
+### Part 3 · Edge relaxation
 
-<small>(~18 min)</small>
+<small>(~16 min)</small>
 
 --
 
@@ -373,13 +455,13 @@ Relaxation records **`parent[v]`** — the edge that gave v its best distance. T
 </pre>
 </div>
 
-<small>Part 1's digraph, direct edge included. All three outcomes: **discover** (∞ → a value), **improve** (9 → 6 — BFS's wrong path corrected), **fail** (13 ≥ 6: no change). Part 3's demo runs the full algorithm on tonight's graph.</small>
+<small>Part 2's digraph, direct edge included. All three outcomes: **discover** (∞ → a value), **improve** (9 → 6 — BFS's wrong path corrected), **fail** (13 ≥ 6: no change). Part 4's demo runs the full algorithm on tonight's graph.</small>
 
 ---
 
-### Part 3 · Dijkstra's algorithm
+### Part 4 · Dijkstra's algorithm
 
-<small>(~32 min)</small>
+<small>(~30 min)</small>
 
 --
 
@@ -391,6 +473,8 @@ Repeatedly pick the **unsettled vertex with the smallest tentative distance**, d
    settled  = shortest distance is now KNOWN
    frontier = tentative distances, still improving
 ```
+
+<small>Part 1's template, instantiated: **choice rule** = nearest unsettled vertex; **commitment** = the settled set.</small>
 
 --
 
@@ -404,7 +488,7 @@ When you settle the **nearest** unsettled vertex u, no other route to u can be s
    as u — and then edges only ADD weight (≥ 0)
 ```
 
-Part 4 turns this into a real proof. **Nonnegativity is doing the work.**
+Part 5 turns this into a real proof. **Nonnegativity is doing the work.**
 
 --
 
@@ -606,9 +690,9 @@ No need to settle the rest — a real speedup for point-to-point queries (and th
 
 ---
 
-### Part 4 · Correctness & limits
+### Part 5 · Correctness & limits
 
-<small>(~28 min)</small>
+<small>(~26 min)</small>
 
 --
 
@@ -682,6 +766,8 @@ Relax **every edge, V−1 times**:
 ```
 
 Handles negative weights; detects **negative cycles**. Slower: **O(V·E)**.
+
+Part 1's **try-everything-remembered** fallback, for paths: round i finalizes every shortest path of **≤ i edges** — dynamic programming before L14 names it.
 
 --
 
@@ -779,7 +865,7 @@ Every one of them is still the **settle → relax** core.
 
 ---
 
-### Part 5 · Wrap & ICA 09
+### Part 6 · Wrap & ICA 09
 
 <small>(~6 min)</small>
 

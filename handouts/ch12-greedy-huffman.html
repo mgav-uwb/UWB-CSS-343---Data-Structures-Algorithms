@@ -133,9 +133,10 @@
       </div>
 
       <p class="lead">
-        We have already written three greedy algorithms &mdash; Dijkstra, Prim, and
-        Kruskal each make the locally best choice and never look back &mdash; without
-        naming the pattern. This chapter names it. A <strong>greedy algorithm</strong>
+        Chapter 9 named this pattern when Dijkstra introduced it, and Prim and
+        Kruskal (Chapter 11) deepened the habit: make the locally best choice and
+        never look back. This chapter develops the pattern in general. A
+        <strong>greedy algorithm</strong>
         builds a solution one committed choice at a time, and it is the fastest
         strategy there is <em>when it is correct</em>; the whole subtlety is that a
         locally best choice is not always part of a globally best solution. We learn
@@ -161,7 +162,7 @@
       <!-- ============================================================ -->
       <h2 id="method">1. The greedy method</h2>
       <div class="def">
-        <span class="tag">Definition (greedy algorithm)</span>
+        <span class="tag">Recall (greedy algorithm &mdash; Ch.&nbsp;9)</span>
         A <strong>greedy algorithm</strong> builds a solution incrementally: at each
         step it makes the choice that looks best <em>right now</em> &mdash; by some
         fixed rule &mdash; commits to it irrevocably, and reduces the problem by that
@@ -194,7 +195,7 @@
         differ only in their numbers.
       </p>
       <div class="ex">
-        <span class="tag">Example (making change)</span>
+        <span class="tag">Example (making change &mdash; recalled from Ch.&nbsp;9)</span>
         &ldquo;Take the largest coin that fits, repeat.&rdquo; With US denominations
         \(\{25, 10, 5, 1\}\), making \(41\)&cent; gives \(25 + 10 + 5 + 1\) &mdash;
         four coins, and provably the fewest. With the denominations
