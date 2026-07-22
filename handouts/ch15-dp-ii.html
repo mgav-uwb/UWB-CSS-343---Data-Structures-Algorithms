@@ -137,12 +137,14 @@
       </div>
 
       <p class="lead">
-        <a href="ch14-dp-i.html">Chapter 14</a> built the dynamic-programming (DP)
-        recipe &mdash; define the subproblem, write the recurrence off the last
+        <a href="ch14-dp-i.html">Chapter 14</a> and the
+        <a href="dynamic-programming.html">Dynamic Programming</a> handout built
+        the DP recipe &mdash; define the subproblem, write the recurrence off the last
         decision, pin the base cases, fill in dependency order, read the answer cell
         &mdash; and ran it on Fibonacci, rod cutting, and the longest common
-        subsequence (LCS). This chapter applies the recipe to the two problems where
-        greedy visibly failed in <a href="ch12-greedy-huffman.html">Chapter 12</a>:
+        subsequence (LCS). This chapter applies the recipe to two problems where
+        greedy visibly fails (the
+        <a href="greedy-algorithms.html">Greedy Algorithms</a> handout):
         the <strong>0/1 knapsack</strong>, whose take-or-skip table also exposes the
         subtle notion of <em>pseudo-polynomial</em> time, and <strong>edit
         distance</strong>, the min-of-three string table behind every spell-checker.
@@ -162,7 +164,6 @@
           <li><a href="#grid">Grid DP and interval DP</a></li>
           <li><a href="#oned">Two more one-dimensional DPs: coin change and LIS</a></li>
           <li><a href="#trace">Traceback and space-saving</a></li>
-          <li><a href="#capstone">The design-paradigm capstone</a></li>
           <li><a href="#ex">Exercises (with solutions)</a></li>
         </ol>
       </div>
@@ -1366,61 +1367,7 @@ fn edit_distance_value(a: &amp;[u8], b: &amp;[u8]) -&gt; usize {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="capstone">7. The design-paradigm capstone</h2>
-      <p>
-        Two chapters of DP, condensed into one reference table &mdash; every problem
-        of the unit, with its state and transition. Read the columns and the shapes
-        repeat: the whole skill is matching a new problem to its row.
-      </p>
-      <table>
-        <tr><th>problem</th><th>state</th><th>transition</th><th>cost</th></tr>
-        <tr><td>Fibonacci</td><td>\(dp[i]\)</td><td>sum of 2 previous</td><td>\(\Theta(n)\)</td></tr>
-        <tr><td>rod cutting</td><td>\(dp[\mathit{len}]\)</td><td>max over first cut</td><td>\(\Theta(n^2)\)</td></tr>
-        <tr><td>LCS</td><td>\(dp[i][j]\)</td><td>match: diag\(+1\); else max(up, left)</td><td>\(\Theta(mn)\)</td></tr>
-        <tr><td>0/1 knapsack</td><td>\(dp[i][w]\)</td><td>max(skip, take)</td><td>\(\Theta(nW)\) <em>(pseudo-poly)</em></td></tr>
-        <tr><td>edit distance</td><td>\(dp[i][j]\)</td><td>match: diag; else \(1+\)min of 3</td><td>\(\Theta(mn)\)</td></tr>
-        <tr><td>grid path (min / count)</td><td>\(dp[i][j]\)</td><td>min / sum of up, left</td><td>\(\Theta(mn)\)</td></tr>
-        <tr><td>coin change</td><td>\(dp[a]\)</td><td>min over last coin</td><td>\(\Theta(a k)\)</td></tr>
-        <tr><td>LIS</td><td>\(dp[i]\) (ending at \(i\))</td><td>max over smaller predecessors</td><td>\(\Theta(n^2)\)</td></tr>
-        <tr><td>matrix chain / optimal BST</td><td>\(dp[i][j]\) (range)</td><td>min over splits \(k\)</td><td>\(\Theta(n^3)\)</td></tr>
-      </table>
-      <p>
-        When a DP will not come together, the fault is almost always the state, and
-        the fixes are mechanical:
-      </p>
-      <ul>
-        <li><strong>cannot write the recurrence?</strong> The subproblem is wrong
-          &mdash; redefine the state (LIS&rsquo;s &ldquo;ending at \(i\)&rdquo; was
-          exactly such a redefinition);</li>
-        <li><strong>the recurrence needs a value the state does not carry?</strong>
-          Add a dimension (knapsack added remaining capacity);</li>
-        <li><strong>still exponential?</strong> The subproblems are not overlapping
-          &mdash; it may not be a DP problem at all (reconsider divide-and-conquer
-          or greedy);</li>
-        <li><strong>correct but too slow or too big?</strong> Tighten the state, or
-          apply the rolling array.</li>
-      </ul>
-      <p>
-        And the back half of the course now assembles into one decision procedure
-        for optimization problems. Try, in order:
-        <strong>greedy</strong> (<a href="ch12-greedy-huffman.html">Chapter 12</a>)
-        &mdash; one locally-best choice, fastest, but only with a proof (exchange
-        argument) that the choice is safe; <strong>divide-and-conquer</strong>
-        (<a href="ch13-sorting-dc.html">Chapter 13</a>) &mdash; when the subproblems
-        are <em>independent</em>, so there is nothing to cache;
-        <strong>dynamic programming</strong> (<a href="ch14-dp-i.html">Chapter
-        14</a> and this chapter) &mdash; when the subproblems <em>overlap</em> and
-        greedy has a counterexample; and <strong>brute force</strong> last. The
-        recognition test is the recursion tree: repeated nodes mean DP, all-distinct
-        nodes mean divide-and-conquer, and a provably safe single branch means
-        greedy. DP&rsquo;s difficulty concentrates in one step &mdash; defining the
-        state &mdash; and everything after it is mechanical; the payoff runs from
-        <code>git diff</code> and spell-checkers through resource allocation to
-        genome alignment.
-      </p>
-
-      <!-- ============================================================ -->
-      <h2 id="ex">8. Exercises (with solutions)</h2>
+      <h2 id="ex">7. Exercises (with solutions)</h2>
       <ol>
         <li>
           Items X (value \(4\), weight \(3\)), Y (value \(5\), weight \(4\)), Z

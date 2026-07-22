@@ -165,76 +165,28 @@
       <!-- ============================================================ -->
       <h2 id="greedy">1. Greedy algorithms</h2>
       <p>
-        Dijkstra&rsquo;s algorithm belongs to a named family, so we name the
-        family first.
+        Dijkstra&rsquo;s algorithm is a <strong>greedy algorithm</strong>: it
+        builds its answer one committed choice at a time, always taking what
+        looks best right now and never reconsidering. The method in general
+        &mdash; the template, the change-making pair (US coins succeed, the
+        \(\{1,3,4\}\) system fails, so every greedy owes a per-problem
+        proof), and the two properties that license greed (the greedy-choice
+        property and optimal substructure) &mdash; is the
+        <a href="greedy-algorithms.html">Greedy Algorithms</a> handout, this
+        chapter&rsquo;s companion reading.
       </p>
-      <div class="def">
-        <span class="tag">Definition (greedy algorithm)</span>
-        A <strong>greedy algorithm</strong> builds a solution one step at a time
-        by always taking the choice that looks <em>best right now</em>, committing
-        to it, and <em>never reconsidering</em> a committed choice.
-      </div>
-      <pre>  greedy(problem):
-      while not solved:
-          x = the locally BEST choice available
-          commit to x               <span class="cm">// never undone</span>
-          shrink the problem</pre>
       <p>
-        No backtracking and no lookahead is what makes greedy fast &mdash; one
-        pass, no search tree &mdash; and also what makes it risky: a choice that
-        looks best now can foreclose the best overall solution. Whether it does
-        depends on the <em>problem</em>, not the strategy. The classic
-        demonstration is <strong>making change</strong> with the fewest coins,
-        rule: <em>take the largest coin that fits, repeat</em>.
-      </p>
-      <pre>  US coins {25, 10, 5, 1},  make 41&cent;:
-      41 &rarr; 25 + 10 + 5 + 1  =  4 coins     &#10003; optimal (always)
-
-  coins {1, 3, 4},  make 6:
-      greedy:   4 + 1 + 1  =  3 coins
-      optimal:  3 + 3      =  2 coins        &#10007; greedy loses!</pre>
-      <p>
-        The rule is identical in both runs; only the denominations changed. For
-        US denominations the rule is provably optimal for every amount; for
-        \(\{1,3,4\}\) grabbing the 4 forces two 1s, while the optimum starts with
-        a choice that did <em>not</em> look best. Nothing on the surface
-        distinguishes the two cases &mdash; the only license to be greedy is a
-        <em>per-problem proof</em>.
-      </p>
-      <div class="thm">
-        <span class="tag">The two licensing ingredients</span>
-        A greedy algorithm is optimal when the problem has both the
-        <strong>greedy-choice property</strong> &mdash; some optimal solution
-        contains the locally-best choice, so committing to it is safe &mdash; and
-        <strong>optimal substructure</strong> &mdash; after committing, what
-        remains is a smaller instance of the same problem. Both must be
-        <em>proved</em>, problem by problem. (Chapter 12 develops the general
-        theory and its proof technique, the exchange argument.)
-      </div>
-      <p>
-        This chapter is one complete instance: Dijkstra&rsquo;s greedy choice is
+        This chapter is one complete instance. Dijkstra&rsquo;s greedy choice is
         <em>settle the nearest unsettled vertex</em>, its commitment is the
         settled set, and <a href="#correct">&sect;5</a> proves the greedy-choice
         property for shortest paths &mdash; with nonnegative weights as the
         license. Negative weights (<a href="#negative">&sect;6</a>) are
-        Dijkstra&rsquo;s \(\{1,3,4\}\).
+        Dijkstra&rsquo;s \(\{1,3,4\}\); and when the license fails,
+        &sect;6&rsquo;s Bellman&ndash;Ford falls back to
+        <em>try-everything-remembered</em> &mdash; dynamic programming (the
+        <a href="dynamic-programming.html">Dynamic Programming</a> handout,
+        Chapter&nbsp;14) in all but name.
       </p>
-      <div class="aside">
-        <span class="tag">When greedy has no license: try everything, remembered</span>
-        The \(\{1,3,4\}\) instance is still solvable exactly &mdash; consider
-        every option, but solve each subproblem once and remember it:
-        \(\texttt{best}[0] = 0\) and
-        \(\texttt{best}[n] = 1 + \min(\texttt{best}[n{-}1],\,
-        \texttt{best}[n{-}3],\, \texttt{best}[n{-}4])\). The table for
-        \(n = 0 \ldots 6\) reads \(0, 1, 2, 1, 1, 2, 2\):
-        \(\texttt{best}[6] = 1 + \texttt{best}[3] = 2\), recovering the
-        \(3+3\) answer greedy missed &mdash; polynomial cost, no special
-        property required beyond optimal substructure. This strategy is
-        <strong>dynamic programming</strong>, Chapter 14&rsquo;s topic; it
-        returns in this very chapter as Bellman&ndash;Ford
-        (<a href="#negative">&sect;6</a>), which is exactly
-        try-everything-remembered for shortest paths.
-      </div>
 
       <!-- ============================================================ -->
       <h2 id="weighted">2. Weighted graphs and the shortest-path problem</h2>

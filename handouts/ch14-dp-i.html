@@ -131,13 +131,16 @@
         bottom-up. Fibonacci makes the payoff exact (\(177\) calls become \(19\),
         then \(10\) additions), rod cutting adds a maximization over choices and a
         traceback, and the longest common subsequence brings the two-dimensional
-        table behind <code>diff</code> and sequence alignment. A five-question
-        recipe generalizes all three. With worked tables, the call-count theorem,
-        links to the demos, and exercises.
+        table behind <code>diff</code> and sequence alignment. The method in
+        general &mdash; the hallmarks, memoization vs tabulation, and the
+        five-question design recipe &mdash; is the companion
+        <a href="dynamic-programming.html">Dynamic Programming</a> handout.
+        With worked tables, the call-count theorem, links to the demos, and
+        exercises.
       </div>
 
       <p class="lead">
-        <a href="ch12-greedy-huffman.html">Chapter 12</a>&rsquo;s greedy method
+        The <a href="greedy-algorithms.html">greedy</a> method
         commits to one locally-best choice and hopes it is safe;
         <a href="ch13-sorting-dc.html">Chapter 13</a>&rsquo;s divide-and-conquer
         splits a problem into <em>independent</em> subproblems. This chapter fills
@@ -155,179 +158,46 @@
       <div class="toc">
         <strong>Contents</strong>
         <ol>
-          <li><a href="#idea">Recursion + remembering: what dynamic programming is</a></li>
-          <li><a href="#styles">Memoization and tabulation</a></li>
+          <li><a href="#idea">Dynamic programming, recalled</a></li>
           <li><a href="#fib">Fibonacci: the whole arc</a></li>
           <li><a href="#rod">Rod cutting: optimizing over choices</a></li>
           <li><a href="#lcs">Longest common subsequence</a></li>
-          <li><a href="#recipe">The DP recipe</a></li>
           <li><a href="#ex">Exercises (with solutions)</a></li>
         </ol>
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="idea">1. Recursion + remembering: what dynamic programming is</h2>
-      <div class="def">
-        <span class="tag">Definition (dynamic programming)</span>
-        <strong>Dynamic programming (DP)</strong> solves a problem by combining the
-        answers to <em>overlapping</em> subproblems, storing each subproblem&rsquo;s
-        answer so that it is computed <strong>once</strong> and reused everywhere it
-        is needed. In one line: <em>DP = recursion + remembering</em>.
-      </div>
+      <h2 id="idea">1. Dynamic programming, recalled</h2>
       <p>
-        A plain recursion often re-solves the same subproblem an exponential number
-        of times &mdash; the entire blow-up is <em>recomputation</em>. DP eliminates
-        it: compute each distinct subproblem once, cache the answer, and every later
-        request is a constant-time lookup. Two conditions license the method, and
-        both must hold.
-      </p>
-      <div class="def">
-        <span class="tag">Definition (the two hallmarks)</span>
-        A problem is a DP problem when it has both
-        <ol>
-          <li><strong>overlapping subproblems</strong> &mdash; the recursion needs
-            the <em>same</em> subproblem many times, so caching pays off; and</li>
-          <li><strong>optimal substructure</strong> &mdash; an optimal solution is
-            built from optimal solutions to its subproblems, so a recurrence over
-            cached sub-answers is <em>correct</em>.</li>
-        </ol>
-      </div>
-      <p>
-        Overlap is what makes the cache worth having: in the Fibonacci recursion,
-        \(\mathrm{fib}(3)\) is needed by <em>both</em> \(\mathrm{fib}(4)\) and
-        \(\mathrm{fib}(5)\); in rod cutting (<a href="#rod">&sect;4</a>), the best
-        way to cut a length-\(3\) remainder is asked for after a \(1\)-cut
-        <em>and</em> after a \(2\)-cut. The same subproblem has many
-        &ldquo;parents,&rdquo; so computing it once and sharing the result saves all
-        the repeats. If instead every subproblem had a single parent &mdash; a tree
-        of all-distinct nodes rather than a directed acyclic graph &mdash; a cache
-        would store answers nobody ever asks for again. That is exactly
-        divide-and-conquer&rsquo;s territory: mergesort&rsquo;s two halves share no
-        work, and memoizing it buys nothing. Optimal substructure you have met
-        before &mdash; it is the property behind greedy proofs and shortest paths
-        &mdash; and it is what lets the recurrence build the optimum out of cached
-        sub-optima. Overlap is the new ingredient.
-      </p>
-      <div class="aside">
-        <span class="tag">Why &ldquo;dynamic programming&rdquo;?</span>
-        Richard Bellman coined the name in the 1950s, and neither word means what it
-        seems to. &ldquo;Programming&rdquo; is the operations-research sense of
-        tabular <em>planning</em> (as in &ldquo;linear programming&rdquo;), not
-        writing code; &ldquo;dynamic&rdquo; refers to multistage decisions over time
-        &mdash; and, by Bellman&rsquo;s own account, was chosen partly because it
-        sounded impressive to research sponsors. The name is opaque; the idea
-        &mdash; remember your subproblems &mdash; is simple. Our primary source for
-        this material is Jeff Erickson&rsquo;s <em>Algorithms</em>, chapter 3, with
-        Cormen, Leiserson, Rivest &amp; Stein (CLRS) chapter 14 as an optional
-        reference; DP is not in Sedgewick at all.
-      </div>
-      <p>
-        The three great design paradigms of this course now sit side by side, and
-        recognizing which one a problem wants is half of algorithm design:
-      </p>
-      <table>
-        <tr><th>paradigm</th><th>idea</th><th>when it applies</th></tr>
-        <tr><td><strong>divide-and-conquer</strong> (<a href="ch13-sorting-dc.html">Ch.&nbsp;13</a>)</td>
-          <td>split into <em>independent</em> subproblems, recurse, combine</td>
-          <td>subproblems do not overlap</td></tr>
-        <tr><td><strong>greedy</strong> (<a href="ch12-greedy-huffman.html">Ch.&nbsp;12</a>)</td>
-          <td>commit to one <em>locally-best</em> choice, never reconsider</td>
-          <td>the choice is provably safe (exchange argument)</td></tr>
-        <tr><td><strong>dynamic programming</strong></td>
-          <td>try <em>all</em> choices, cache the overlapping subproblems</td>
-          <td>overlap + optimal substructure</td></tr>
-      </table>
-      <p>
-        DP is greedy without the leap of faith: where greedy gambles that one
-        locally-best choice is always safe, DP tries every choice at each step and
-        lets the cached subproblem answers sort out the winner. That is why DP
-        solves the problems where greedy has a counterexample &mdash; the
-        \(\{1,3,4\}\) coin system, the 0/1 knapsack &mdash; at the price of
-        computing more subproblems, a price overlap and caching keep polynomial.
-        The practical test is to draw the recursion tree: <em>repeated</em> nodes
-        mean DP; all-distinct nodes mean divide-and-conquer; and if one branch
-        provably suffices, greedy. Often you try greedy first and fall back to DP
-        the moment you find a counterexample.
-      </p>
-
-      <!-- ============================================================ -->
-      <h2 id="styles">2. Memoization and tabulation</h2>
-      <p>
-        There are two ways to implement the &ldquo;remember&rdquo; in
-        recursion-plus-remembering, and every DP you will ever write is one of them.
-      </p>
-      <div class="def">
-        <span class="tag">Definition (memoization, top-down)</span>
-        <strong>Memoization</strong> keeps the natural recursion and adds a
-        <strong>cache</strong>: before computing, check whether the answer is
-        already stored; after computing, store it.
-        <pre>  solve(x):
-      if x in memo: return memo[x]      <span class="cm">// remember</span>
-      result = ... solve(smaller) ...   <span class="cm">// the natural recursion</span>
-      memo[x] = result
-      return result</pre>
-        The recursion tree is unchanged, but each distinct node is computed once;
-        every repeat is an \(O(1)\) cache hit that cuts off a whole subtree.
-      </div>
-      <div class="def">
-        <span class="tag">Definition (tabulation, bottom-up)</span>
-        <strong>Tabulation</strong> replaces the recursion with a loop that fills a
-        <strong>table</strong> of subproblem answers in <strong>dependency
-        order</strong>, smallest subproblems first:
-        <pre>  for subproblems from SMALLEST to largest:
-      table[x] = ... table[smaller] ...   <span class="cm">// already computed</span>
-  return table[goal]</pre>
-        No recursion, no call stack &mdash; but <em>you</em> must work out an
-        evaluation order in which every cell&rsquo;s dependencies are filled before
-        the cell itself, whereas memoization discovers that order automatically.
-      </div>
-      <p>
-        Either way, the cost analysis is the same one-line product, and it is the
-        single most useful fact in this chapter:
+        The general treatment of dynamic programming &mdash; recursion +
+        remembering, the two hallmarks (overlapping subproblems and optimal
+        substructure), memoization versus tabulation, and the five-step design
+        recipe &mdash; lives in the
+        <a href="dynamic-programming.html">Dynamic Programming</a> handout, this
+        chapter&rsquo;s companion reading. Recall its two working tools, used on
+        every page that follows. First, <em>DP = recursion + remembering</em>:
+        compute each distinct subproblem once, cache it, and every repeat is an
+        \(O(1)\) lookup. Second, the cost formula:
       </p>
       <div class="thm">
-        <span class="tag">Proposition (the DP cost formula)</span>
+        <span class="tag">Recall (the DP cost formula)</span>
         Once every subproblem is computed at most once,
         \[
           \text{time} \;=\; (\#\text{ distinct subproblems}) \times
           (\text{work to combine one from its sub-answers}),
         \]
-        and space is the number of stored subproblems (often reducible, &sect;3
-        and &sect;5).
+        and space is the number of stored subproblems.
       </div>
       <p>
-        Fibonacci has \(n\) subproblems at \(O(1)\) each: \(\Theta(n)\), down from
-        \(\Theta(\varphi^n)\). Rod cutting has \(n\) subproblems, each a max over
-        \(O(n)\) choices: \(\Theta(n^2)\), down from exponential. The longest
-        common subsequence has \(m \cdot n\) subproblems at \(O(1)\) each:
-        \(\Theta(mn)\). The speedup is exactly the recomputation you avoid &mdash;
-        more overlap means more avoided repeats and a bigger win, while zero
-        overlap (divide-and-conquer) means caching does nothing but waste memory.
+        This chapter runs the method on three problems of increasing richness
+        &mdash; Fibonacci (the purest possible overlap), rod cutting (the first
+        <em>optimization</em> over choices), and the longest common subsequence
+        (the first two-dimensional table) &mdash; each taken from exponential
+        recursion to polynomial table, with code in all four languages.
       </p>
-      <table>
-        <tr><th></th><th>memoization</th><th>tabulation</th></tr>
-        <tr><td>direction</td><td><strong>top-down</strong></td><td><strong>bottom-up</strong></td></tr>
-        <tr><td>structure</td><td>recursion + cache</td><td>loop + table</td></tr>
-        <tr><td>computes</td><td>only the subproblems actually reached</td><td>usually all of them</td></tr>
-        <tr><td>evaluation order</td><td>automatic (the recursion finds it)</td><td>you choose it</td></tr>
-        <tr><td>overheads</td><td>call stack (can overflow when deep)</td><td>none; predictable memory access</td></tr>
-        <tr><td>space tricks</td><td>awkward</td><td>natural (keep only live rows)</td></tr>
-      </table>
-      <div class="aside">
-        <span class="tag">Which to use</span>
-        Same answers, same asymptotic cost &mdash; pick by convenience.
-        <strong>Memoize first</strong>: keeping the natural recursion and adding a
-        cache is the least error-prone way to get a <em>correct</em> DP, and it
-        computes only the subproblems that are actually needed. <strong>Switch to
-        tabulation</strong> when the recursion overhead matters, when the recursion
-        depth would overflow the stack, or when you want the
-        &ldquo;keep only the last two rows&rdquo; space optimization that only the
-        bottom-up form makes natural. Neither is &ldquo;the&rdquo; dynamic
-        programming; they are two implementations of the same table.
-      </div>
 
       <!-- ============================================================ -->
-      <h2 id="fib">3. Fibonacci: the whole arc</h2>
+      <h2 id="fib">2. Fibonacci: the whole arc</h2>
       <p>
         The Fibonacci numbers \(0, 1, 1, 2, 3, 5, 8, 13, \dots\) &mdash; each the
         sum of the previous two &mdash; are the cleanest possible stage for the DP
@@ -670,7 +540,7 @@ fn fib_two_var(n: usize) -&gt; u64 {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="rod">4. Rod cutting: optimizing over choices</h2>
+      <h2 id="rod">3. Rod cutting: optimizing over choices</h2>
       <p>
         Fibonacci has overlap but nothing to optimize. <strong>Rod cutting</strong>
         adds the missing ingredient &mdash; a <em>choice</em> at every step &mdash;
@@ -876,7 +746,7 @@ fn pieces(cut: &amp;[usize], mut n: usize) -&gt; Vec&lt;usize&gt; {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="lcs">5. Longest common subsequence</h2>
+      <h2 id="lcs">4. Longest common subsequence</h2>
       <p>
         The third example moves to two dimensions, and it is the most deployed DP
         you will meet this term.
@@ -1122,13 +992,13 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
         before trusting any LCS code (exercise 6 practices exactly this).
       </div>
       <p>
-        Cost, by the formula of <a href="#styles">&sect;2</a>: \((m+1)(n+1)\)
+        Cost, by the formula of <a href="#idea">&sect;1</a>: \((m+1)(n+1)\)
         cells at \(O(1)\) each, \(\Theta(mn)\) time and space. Since each row
         depends only on the row above and the current row&rsquo;s left neighbor,
         the space can drop to two rows &mdash; \(\Theta(\min(m,n))\) with the
         shorter string as columns &mdash; but the two-row version can report only
         the <em>length</em>: the traceback needs the whole table. Decide up front
-        which your application needs (<a href="#recipe">&sect;6</a>, step 5).
+        which your application needs (the <a href="dynamic-programming.html#recipe">DP recipe</a>, step 5).
       </p>
       <div class="aside">
         <span class="tag">LCS in the wild</span>
@@ -1157,115 +1027,7 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="recipe">6. The DP recipe</h2>
-      <p>
-        Three examples, one process. Every DP you will design this term &mdash; and
-        most you will ever design &mdash; answers the same five questions, in
-        order. This recipe, not any particular example, is the transferable skill.
-      </p>
-      <div class="def">
-        <span class="tag">Definition (the DP recipe)</span>
-        <ol>
-          <li><strong>Subproblem.</strong> State <em>exactly</em> what
-            \(dp[i]\) (or \(dp[i][j]\)) means.</li>
-          <li><strong>Recurrence.</strong> Express each subproblem in terms of
-            strictly smaller ones &mdash; usually by casing on the <em>last</em>
-            decision.</li>
-          <li><strong>Base cases.</strong> The subproblems small enough to answer
-            directly.</li>
-          <li><strong>Order.</strong> Evaluate so every dependency is computed
-            first (automatic if memoizing; your job if tabulating).</li>
-          <li><strong>Answer.</strong> Which cell holds it &mdash; plus a
-            traceback, if the solution and not just its value is wanted.</li>
-        </ol>
-      </div>
-      <p>
-        Applied to this chapter&rsquo;s three problems:
-      </p>
-      <table>
-        <tr><th>step</th><th>Fibonacci</th><th>rod cutting</th><th>LCS</th></tr>
-        <tr><td>subproblem</td><td>\(\mathrm{fib}(i)\)</td>
-          <td>\(\mathrm{best}[\ell]\): max revenue, length \(\ell\)</td>
-          <td>\(L[i][j]\): LCS length of the two prefixes</td></tr>
-        <tr><td>recurrence</td><td>\(\mathrm{fib}(i{-}1) + \mathrm{fib}(i{-}2)\)</td>
-          <td>max over first cuts \(i\)</td>
-          <td>match? diagonal \(+\,1\) : \(\max\)(up, left)</td></tr>
-        <tr><td>base cases</td><td>\(\mathrm{fib}(0){=}0\), \(\mathrm{fib}(1){=}1\)</td>
-          <td>\(\mathrm{best}[0] = 0\)</td>
-          <td>empty prefix \(\to 0\)</td></tr>
-        <tr><td>order</td><td>\(i\) ascending</td><td>\(\ell\) ascending</td>
-          <td>row by row, left to right</td></tr>
-        <tr><td>answer</td><td>\(\mathrm{fib}(n)\)</td>
-          <td>\(\mathrm{best}[n]\) (+ cuts via \(\mathrm{cut}[]\))</td>
-          <td>\(L[m][n]\) (+ traceback)</td></tr>
-        <tr><td>cost</td><td>\(n \times O(1) = \Theta(n)\)</td>
-          <td>\(n \times O(n) = \Theta(n^2)\)</td>
-          <td>\(mn \times O(1) = \Theta(mn)\)</td></tr>
-      </table>
-      <h3>Step 1 is the hard one</h3>
-      <p>
-        Defining the subproblem is where DP problems are won or lost. A precise
-        definition &mdash; &ldquo;\(\mathrm{best}[\ell]\) is the maximum revenue
-        obtainable from a rod of length exactly \(\ell\)&rdquo; &mdash; makes the
-        recurrence nearly write itself; a vague one (&ldquo;\(dp[i]\) is something
-        about the first \(i\) items&rdquo;) leads nowhere, because the recurrence
-        cannot <em>close</em>: it needs information the state does not carry. The
-        professional vocabulary for this is <strong>state</strong> (one
-        subproblem, one table cell) and <strong>transition</strong> (the
-        recurrence linking states), and the whole of DP design is: choose the
-        state, then the transition. The complexity then reads off as
-        \((\#\text{states}) \times (\text{transition cost})\) &mdash; the
-        cost formula of <a href="#styles">&sect;2</a> restated.
-      </p>
-      <p>
-        For step 2, the reliable trigger is the <strong>last decision</strong>:
-        the last first-cut in rod cutting, whether the last two characters pair in
-        LCS, whether the last item goes in the knapsack. Each possible last
-        decision leaves a smaller subproblem; combine over the choices with
-        \(\max\), \(\min\), or \(+\) as the goal demands. And a small pattern
-        library speeds up step 1 itself &mdash; most DP tables have one of a few
-        shapes:
-      </p>
-      <table>
-        <tr><th>shape</th><th>subproblem</th><th>examples</th></tr>
-        <tr><td><strong>1-D</strong></td><td>\(dp[i]\) over a prefix or length</td>
-          <td>Fibonacci, rod cutting, coin change</td></tr>
-        <tr><td><strong>2-D grid</strong></td><td>\(dp[i][j]\) over two indices</td>
-          <td>LCS; edit distance and 0/1 knapsack (Chapter 15)</td></tr>
-        <tr><td><strong>interval</strong></td><td>\(dp[i][j]\) over a range \(i..j\)</td>
-          <td>matrix-chain ordering, optimal binary search trees</td></tr>
-      </table>
-      <div class="aside">
-        <span class="tag">Common DP mistakes</span>
-        <ul>
-          <li><strong>A vague subproblem</strong> &mdash; the recurrence
-            won&rsquo;t close because the state is missing information. Fix the
-            definition, not the code.</li>
-          <li><strong>Wrong fill order</strong> (tabulation only) &mdash; reading a
-            cell before it is written. Memoization is immune, which is one reason
-            to prototype top-down.</li>
-          <li><strong>Missing or misplaced base cases</strong> &mdash; off-by-one
-            at row \(0\) / column \(0\) is the classic LCS bug; the sanity
-            invariants of <a href="#lcs">&sect;5</a> catch it.</li>
-          <li><strong>Memoizing a non-DP</strong> &mdash; if the subproblems never
-            repeat (mergesort&rsquo;s halves), the cache is pure overhead. Check
-            for overlap before reaching for DP.</li>
-        </ul>
-      </div>
-      <p>
-        When to reach for DP, in one breath: an <em>optimum over exponentially
-        many choices</em>, whose choices generate <em>overlapping
-        subproblems</em>, where <em>greedy is not provably safe</em>. Then:
-        subproblem, recurrence, cache &mdash; and the exponential collapses to a
-        polynomial. Chapter&nbsp;15 (<a href="ch15-dp-ii.html">ch15-dp-ii.html</a>)
-        runs this recipe on the two problems where
-        <a href="ch12-greedy-huffman.html">Chapter 12</a> showed greedy failing
-        outright &mdash; the 0/1 knapsack and edit distance &mdash; and closes the
-        arc: the problems that defeated greedy fall to DP.
-      </p>
-
-      <!-- ============================================================ -->
-      <h2 id="ex">7. Exercises (with solutions)</h2>
+      <h2 id="ex">5. Exercises (with solutions)</h2>
       <ol>
         <li>
           For each, say whether memoization would help, and why: (a) mergesort;
@@ -1364,7 +1126,7 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
         <li>
           A student fills the LCS table for \(A = \texttt{CAB}\),
           \(B = \texttt{ACB}\) and gets the table below. Using only the sanity
-          invariants of <a href="#lcs">&sect;5</a> (no re-derivation), point out
+          invariants of <a href="#lcs">&sect;4</a> (no re-derivation), point out
           two cells that <em>cannot</em> be right, then give the correct table.
           <pre>        ""  A  C  B
     ""   0  0  0  0

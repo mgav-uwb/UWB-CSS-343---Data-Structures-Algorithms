@@ -1,0 +1,511 @@
+<!doctype html>
+<!-- CSS 343 course text - Dynamic Programming (the method handout).
+     General discussion of the DP class: recursion + remembering, the two
+     hallmarks, memoization vs tabulation, the cost formula, the five-step
+     recipe, and the design-paradigm capstone. Specific DP algorithms are
+     treated in their chapters (Fibonacci/rod-cutting/LCS ch14; knapsack,
+     edit distance, grid/interval, coin change, LIS ch15; Bellman-Ford ch09).
+     Companion reading for Lectures 14 and 15; first sighted in Lecture 9.
+     MathJax (CDN). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dynamic Programming - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 { font-size: 20px; margin: 34px 0 10px; padding-top: 6px; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      pre .cm { color: #7a8296; }
+      .code-tabs { margin: 14px 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+      .ct-tabs { display: flex; flex-wrap: wrap; background: #eef1f6; border-bottom: 1px solid var(--line); }
+      .ct-tab { font-family: system-ui, sans-serif; font-size: 12.5px; padding: 6px 13px; border: none; background: transparent; color: var(--dim); cursor: pointer; border-bottom: 2px solid transparent; }
+      .ct-tab.on { color: var(--ink); background: #fff; border-bottom-color: var(--demo); font-weight: 600; }
+      .code-tabs pre { margin: 0; border: none; border-radius: 0; border-left: none; }
+      .code-tabs pre[hidden] { display: none; }
+      .ct-src { font-family: system-ui, sans-serif; font-size: 11.5px; color: var(--dim); margin: 0; padding: 5px 13px; border-top: 1px solid var(--line); background: #fafbfc; }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .proof { margin: 10px 0 4px; padding-left: 14px; border-left: 2px solid var(--line); color: #2c2f37; }
+      .proof .qed { float: right; }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      figure { margin: 18px 0 6px; text-align: center; }
+      figure svg { max-width: 100%; height: auto; }
+      figcaption { font-family: system-ui, sans-serif; font-size: 13px; color: var(--dim); margin: 7px auto 0; max-width: 92%; }
+      details { margin: 8px 0 8px 2px; font-size: 15px; }
+      summary { cursor: pointer; color: var(--accent); font-family: system-ui, sans-serif; font-size: 14px; }
+      details[open] summary { margin-bottom: 6px; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      table.trace { font-size: 13.5px; }
+      table.trace td, table.trace th { padding: 5px 9px; }
+      table.trace td.num { text-align: center; }
+      table.trace td.pq { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 12px; }
+      table.trace .two { background: var(--warnbg); color: var(--warn); font-weight: 700; border-radius: 3px; padding: 0 3px; }
+      table.trace td.new { text-align: center; color: var(--accent); font-weight: 700; }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        details { display: block; } details summary { display: none; }
+        .demo { break-inside: avoid; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This chapter uses MathJax for its mathematics and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Dynamic Programming</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Course text &mdash; companion reading for Lectures 14 and 15 (first
+        sighted in Lecture 9).
+      </div>
+      <div class="src">
+        Dynamic programming in general: what it is (recursion + remembering),
+        the two hallmarks that license it (overlapping subproblems and optimal
+        substructure), the two implementations (memoization and tabulation) and
+        the one-line cost formula, the five-step design recipe, and the
+        design-paradigm capstone that places DP beside greedy and
+        divide-and-conquer. The course&rsquo;s specific dynamic programs live in
+        their own chapters: Fibonacci, rod cutting, and LCS
+        (<a href="ch14-dp-i.html">Ch.&nbsp;14</a>); knapsack, edit distance,
+        grid and interval DP, coin change, and LIS
+        (<a href="ch15-dp-ii.html">Ch.&nbsp;15</a>); Bellman&ndash;Ford
+        (<a href="ch09-dijkstra.html">Ch.&nbsp;9</a>).
+      </div>
+
+      <p class="lead">
+        Greedy algorithms commit to one locally-best choice and hope; when that
+        hope has no proof, the honest strategy is to try <em>every</em> choice
+        &mdash; and the reason that isn&rsquo;t hopeless is that the resulting
+        subproblems repeat. Solve each one once, remember it, and exponential
+        recursions collapse to polynomial tables. That is dynamic programming.
+        This handout is the method in general; its mirror image is the
+        <a href="greedy-algorithms.html">Greedy Algorithms</a> handout, and the
+        two together are a decision procedure for optimization problems.
+      </p>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#idea">Recursion + remembering: what dynamic programming is</a></li>
+          <li><a href="#styles">Memoization and tabulation</a></li>
+          <li><a href="#recipe">The DP recipe</a></li>
+          <li><a href="#capstone">The unit in one table &mdash; and the design-paradigm capstone</a></li>
+        </ol>
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="idea">1. Recursion + remembering: what dynamic programming is</h2>
+      <div class="def">
+        <span class="tag">Definition (dynamic programming)</span>
+        <strong>Dynamic programming (DP)</strong> solves a problem by combining the
+        answers to <em>overlapping</em> subproblems, storing each subproblem&rsquo;s
+        answer so that it is computed <strong>once</strong> and reused everywhere it
+        is needed. In one line: <em>DP = recursion + remembering</em>.
+      </div>
+      <p>
+        A plain recursion often re-solves the same subproblem an exponential number
+        of times &mdash; the entire blow-up is <em>recomputation</em>. DP eliminates
+        it: compute each distinct subproblem once, cache the answer, and every later
+        request is a constant-time lookup. Two conditions license the method, and
+        both must hold.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (the two hallmarks)</span>
+        A problem is a DP problem when it has both
+        <ol>
+          <li><strong>overlapping subproblems</strong> &mdash; the recursion needs
+            the <em>same</em> subproblem many times, so caching pays off; and</li>
+          <li><strong>optimal substructure</strong> &mdash; an optimal solution is
+            built from optimal solutions to its subproblems, so a recurrence over
+            cached sub-answers is <em>correct</em>.</li>
+        </ol>
+      </div>
+      <p>
+        Overlap is what makes the cache worth having: in the Fibonacci recursion,
+        \(\mathrm{fib}(3)\) is needed by <em>both</em> \(\mathrm{fib}(4)\) and
+        \(\mathrm{fib}(5)\); in rod cutting (<a href="ch14-dp-i.html#rod">Ch.&nbsp;14</a>), the best
+        way to cut a length-\(3\) remainder is asked for after a \(1\)-cut
+        <em>and</em> after a \(2\)-cut. The same subproblem has many
+        &ldquo;parents,&rdquo; so computing it once and sharing the result saves all
+        the repeats. If instead every subproblem had a single parent &mdash; a tree
+        of all-distinct nodes rather than a directed acyclic graph &mdash; a cache
+        would store answers nobody ever asks for again. That is exactly
+        divide-and-conquer&rsquo;s territory: mergesort&rsquo;s two halves share no
+        work, and memoizing it buys nothing. Optimal substructure you have met
+        before &mdash; it is the property behind greedy proofs and shortest paths
+        &mdash; and it is what lets the recurrence build the optimum out of cached
+        sub-optima. Overlap is the new ingredient.
+      </p>
+      <div class="aside">
+        <span class="tag">Why &ldquo;dynamic programming&rdquo;?</span>
+        Richard Bellman coined the name in the 1950s, and neither word means what it
+        seems to. &ldquo;Programming&rdquo; is the operations-research sense of
+        tabular <em>planning</em> (as in &ldquo;linear programming&rdquo;), not
+        writing code; &ldquo;dynamic&rdquo; refers to multistage decisions over time
+        &mdash; and, by Bellman&rsquo;s own account, was chosen partly because it
+        sounded impressive to research sponsors. The name is opaque; the idea
+        &mdash; remember your subproblems &mdash; is simple. Our primary source for
+        this material is Jeff Erickson&rsquo;s <em>Algorithms</em>, chapter 3, with
+        Cormen, Leiserson, Rivest &amp; Stein (CLRS) chapter 14 as an optional
+        reference; DP is not in Sedgewick at all.
+      </div>
+      <p>
+        The three great design paradigms of this course now sit side by side, and
+        recognizing which one a problem wants is half of algorithm design:
+      </p>
+      <table>
+        <tr><th>paradigm</th><th>idea</th><th>when it applies</th></tr>
+        <tr><td><strong>divide-and-conquer</strong> (<a href="ch13-sorting-dc.html">Ch.&nbsp;13</a>)</td>
+          <td>split into <em>independent</em> subproblems, recurse, combine</td>
+          <td>subproblems do not overlap</td></tr>
+        <tr><td><strong>greedy</strong> (the <a href="greedy-algorithms.html">Greedy Algorithms</a> handout)</td>
+          <td>commit to one <em>locally-best</em> choice, never reconsider</td>
+          <td>the choice is provably safe (exchange argument)</td></tr>
+        <tr><td><strong>dynamic programming</strong></td>
+          <td>try <em>all</em> choices, cache the overlapping subproblems</td>
+          <td>overlap + optimal substructure</td></tr>
+      </table>
+      <p>
+        DP is greedy without the leap of faith: where greedy gambles that one
+        locally-best choice is always safe, DP tries every choice at each step and
+        lets the cached subproblem answers sort out the winner. That is why DP
+        solves the problems where greedy has a counterexample &mdash; the
+        \(\{1,3,4\}\) coin system, the 0/1 knapsack &mdash; at the price of
+        computing more subproblems, a price overlap and caching keep polynomial.
+        The practical test is to draw the recursion tree: <em>repeated</em> nodes
+        mean DP; all-distinct nodes mean divide-and-conquer; and if one branch
+        provably suffices, greedy. Often you try greedy first and fall back to DP
+        the moment you find a counterexample.
+      </p>
+
+      <div class="aside">
+        <span class="tag">First sighting: coin change and Bellman&ndash;Ford</span>
+        You met DP before it had a name. Lecture 9 opened with change-making:
+        greedy fails on denominations \(\{1,3,4\}\), but
+        \(\texttt{best}[0]=0\), \(\texttt{best}[n] = 1 +
+        \min(\texttt{best}[n{-}1], \texttt{best}[n{-}3],
+        \texttt{best}[n{-}4])\) solves every amount exactly &mdash; a
+        one-dimensional table, each subproblem computed once. And
+        Bellman&ndash;Ford (<a href="ch09-dijkstra.html">Ch.&nbsp;9</a>) is a
+        dynamic program in all but name: round \(i\) solves the subproblem
+        &ldquo;shortest paths using at most \(i\) edges&rdquo; from the
+        round-\((i{-}1)\) answers. Both are the same move: when greedy has no
+        license, try every option and remember the subproblems.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="styles">2. Memoization and tabulation</h2>
+      <p>
+        There are two ways to implement the &ldquo;remember&rdquo; in
+        recursion-plus-remembering, and every DP you will ever write is one of them.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (memoization, top-down)</span>
+        <strong>Memoization</strong> keeps the natural recursion and adds a
+        <strong>cache</strong>: before computing, check whether the answer is
+        already stored; after computing, store it.
+        <pre>  solve(x):
+      if x in memo: return memo[x]      <span class="cm">// remember</span>
+      result = ... solve(smaller) ...   <span class="cm">// the natural recursion</span>
+      memo[x] = result
+      return result</pre>
+        The recursion tree is unchanged, but each distinct node is computed once;
+        every repeat is an \(O(1)\) cache hit that cuts off a whole subtree.
+      </div>
+      <div class="def">
+        <span class="tag">Definition (tabulation, bottom-up)</span>
+        <strong>Tabulation</strong> replaces the recursion with a loop that fills a
+        <strong>table</strong> of subproblem answers in <strong>dependency
+        order</strong>, smallest subproblems first:
+        <pre>  for subproblems from SMALLEST to largest:
+      table[x] = ... table[smaller] ...   <span class="cm">// already computed</span>
+  return table[goal]</pre>
+        No recursion, no call stack &mdash; but <em>you</em> must work out an
+        evaluation order in which every cell&rsquo;s dependencies are filled before
+        the cell itself, whereas memoization discovers that order automatically.
+      </div>
+      <p>
+        Either way, the cost analysis is the same one-line product, and it is the
+        single most useful fact in this chapter:
+      </p>
+      <div class="thm">
+        <span class="tag">Proposition (the DP cost formula)</span>
+        Once every subproblem is computed at most once,
+        \[
+          \text{time} \;=\; (\#\text{ distinct subproblems}) \times
+          (\text{work to combine one from its sub-answers}),
+        \]
+        and space is the number of stored subproblems (often reducible &mdash; Chapter&nbsp;14&rsquo;s <a href="ch14-dp-i.html#fib">Fibonacci</a> arc
+        and Chapter&nbsp;15&rsquo;s <a href="ch15-dp-ii.html#trace">rolling array</a>).
+      </div>
+      <p>
+        Fibonacci has \(n\) subproblems at \(O(1)\) each: \(\Theta(n)\), down from
+        \(\Theta(\varphi^n)\). Rod cutting has \(n\) subproblems, each a max over
+        \(O(n)\) choices: \(\Theta(n^2)\), down from exponential. The longest
+        common subsequence has \(m \cdot n\) subproblems at \(O(1)\) each:
+        \(\Theta(mn)\). The speedup is exactly the recomputation you avoid &mdash;
+        more overlap means more avoided repeats and a bigger win, while zero
+        overlap (divide-and-conquer) means caching does nothing but waste memory.
+      </p>
+      <table>
+        <tr><th></th><th>memoization</th><th>tabulation</th></tr>
+        <tr><td>direction</td><td><strong>top-down</strong></td><td><strong>bottom-up</strong></td></tr>
+        <tr><td>structure</td><td>recursion + cache</td><td>loop + table</td></tr>
+        <tr><td>computes</td><td>only the subproblems actually reached</td><td>usually all of them</td></tr>
+        <tr><td>evaluation order</td><td>automatic (the recursion finds it)</td><td>you choose it</td></tr>
+        <tr><td>overheads</td><td>call stack (can overflow when deep)</td><td>none; predictable memory access</td></tr>
+        <tr><td>space tricks</td><td>awkward</td><td>natural (keep only live rows)</td></tr>
+      </table>
+      <div class="aside">
+        <span class="tag">Which to use</span>
+        Same answers, same asymptotic cost &mdash; pick by convenience.
+        <strong>Memoize first</strong>: keeping the natural recursion and adding a
+        cache is the least error-prone way to get a <em>correct</em> DP, and it
+        computes only the subproblems that are actually needed. <strong>Switch to
+        tabulation</strong> when the recursion overhead matters, when the recursion
+        depth would overflow the stack, or when you want the
+        &ldquo;keep only the last two rows&rdquo; space optimization that only the
+        bottom-up form makes natural. Neither is &ldquo;the&rdquo; dynamic
+        programming; they are two implementations of the same table.
+      </div>
+
+      <!-- ============================================================ -->
+      <h2 id="recipe">3. The DP recipe</h2>
+      <p>
+        Three examples, one process. Every DP you will design this term &mdash; and
+        most you will ever design &mdash; answers the same five questions, in
+        order. This recipe, not any particular example, is the transferable skill.
+      </p>
+      <div class="def">
+        <span class="tag">Definition (the DP recipe)</span>
+        <ol>
+          <li><strong>Subproblem.</strong> State <em>exactly</em> what
+            \(dp[i]\) (or \(dp[i][j]\)) means.</li>
+          <li><strong>Recurrence.</strong> Express each subproblem in terms of
+            strictly smaller ones &mdash; usually by casing on the <em>last</em>
+            decision.</li>
+          <li><strong>Base cases.</strong> The subproblems small enough to answer
+            directly.</li>
+          <li><strong>Order.</strong> Evaluate so every dependency is computed
+            first (automatic if memoizing; your job if tabulating).</li>
+          <li><strong>Answer.</strong> Which cell holds it &mdash; plus a
+            traceback, if the solution and not just its value is wanted.</li>
+        </ol>
+      </div>
+      <p>
+        Applied to Chapter&nbsp;14&rsquo;s three problems:
+      </p>
+      <table>
+        <tr><th>step</th><th>Fibonacci</th><th>rod cutting</th><th>LCS</th></tr>
+        <tr><td>subproblem</td><td>\(\mathrm{fib}(i)\)</td>
+          <td>\(\mathrm{best}[\ell]\): max revenue, length \(\ell\)</td>
+          <td>\(L[i][j]\): LCS length of the two prefixes</td></tr>
+        <tr><td>recurrence</td><td>\(\mathrm{fib}(i{-}1) + \mathrm{fib}(i{-}2)\)</td>
+          <td>max over first cuts \(i\)</td>
+          <td>match? diagonal \(+\,1\) : \(\max\)(up, left)</td></tr>
+        <tr><td>base cases</td><td>\(\mathrm{fib}(0){=}0\), \(\mathrm{fib}(1){=}1\)</td>
+          <td>\(\mathrm{best}[0] = 0\)</td>
+          <td>empty prefix \(\to 0\)</td></tr>
+        <tr><td>order</td><td>\(i\) ascending</td><td>\(\ell\) ascending</td>
+          <td>row by row, left to right</td></tr>
+        <tr><td>answer</td><td>\(\mathrm{fib}(n)\)</td>
+          <td>\(\mathrm{best}[n]\) (+ cuts via \(\mathrm{cut}[]\))</td>
+          <td>\(L[m][n]\) (+ traceback)</td></tr>
+        <tr><td>cost</td><td>\(n \times O(1) = \Theta(n)\)</td>
+          <td>\(n \times O(n) = \Theta(n^2)\)</td>
+          <td>\(mn \times O(1) = \Theta(mn)\)</td></tr>
+      </table>
+      <h3>Step 1 is the hard one</h3>
+      <p>
+        Defining the subproblem is where DP problems are won or lost. A precise
+        definition &mdash; &ldquo;\(\mathrm{best}[\ell]\) is the maximum revenue
+        obtainable from a rod of length exactly \(\ell\)&rdquo; &mdash; makes the
+        recurrence nearly write itself; a vague one (&ldquo;\(dp[i]\) is something
+        about the first \(i\) items&rdquo;) leads nowhere, because the recurrence
+        cannot <em>close</em>: it needs information the state does not carry. The
+        professional vocabulary for this is <strong>state</strong> (one
+        subproblem, one table cell) and <strong>transition</strong> (the
+        recurrence linking states), and the whole of DP design is: choose the
+        state, then the transition. The complexity then reads off as
+        \((\#\text{states}) \times (\text{transition cost})\) &mdash; the
+        cost formula of <a href="#styles">&sect;2</a> restated.
+      </p>
+      <p>
+        For step 2, the reliable trigger is the <strong>last decision</strong>:
+        the last first-cut in rod cutting, whether the last two characters pair in
+        LCS, whether the last item goes in the knapsack. Each possible last
+        decision leaves a smaller subproblem; combine over the choices with
+        \(\max\), \(\min\), or \(+\) as the goal demands. And a small pattern
+        library speeds up step 1 itself &mdash; most DP tables have one of a few
+        shapes:
+      </p>
+      <table>
+        <tr><th>shape</th><th>subproblem</th><th>examples</th></tr>
+        <tr><td><strong>1-D</strong></td><td>\(dp[i]\) over a prefix or length</td>
+          <td>Fibonacci, rod cutting, coin change</td></tr>
+        <tr><td><strong>2-D grid</strong></td><td>\(dp[i][j]\) over two indices</td>
+          <td>LCS; edit distance and 0/1 knapsack (Chapter 15)</td></tr>
+        <tr><td><strong>interval</strong></td><td>\(dp[i][j]\) over a range \(i..j\)</td>
+          <td>matrix-chain ordering, optimal binary search trees</td></tr>
+      </table>
+      <div class="aside">
+        <span class="tag">Common DP mistakes</span>
+        <ul>
+          <li><strong>A vague subproblem</strong> &mdash; the recurrence
+            won&rsquo;t close because the state is missing information. Fix the
+            definition, not the code.</li>
+          <li><strong>Wrong fill order</strong> (tabulation only) &mdash; reading a
+            cell before it is written. Memoization is immune, which is one reason
+            to prototype top-down.</li>
+          <li><strong>Missing or misplaced base cases</strong> &mdash; off-by-one
+            at row \(0\) / column \(0\) is the classic LCS bug; the sanity
+            invariants in <a href="ch14-dp-i.html#lcs">Chapter&nbsp;14&rsquo;s LCS section</a> catch it.</li>
+          <li><strong>Memoizing a non-DP</strong> &mdash; if the subproblems never
+            repeat (mergesort&rsquo;s halves), the cache is pure overhead. Check
+            for overlap before reaching for DP.</li>
+        </ul>
+      </div>
+      <p>
+        When to reach for DP, in one breath: an <em>optimum over exponentially
+        many choices</em>, whose choices generate <em>overlapping
+        subproblems</em>, where <em>greedy is not provably safe</em>. Then:
+        subproblem, recurrence, cache &mdash; and the exponential collapses to a
+        polynomial. Chapter&nbsp;15 (<a href="ch15-dp-ii.html">ch15-dp-ii.html</a>)
+        runs this recipe on two problems where greedy fails
+        outright (see the <a href="greedy-algorithms.html">Greedy Algorithms</a>
+        handout) &mdash; the 0/1 knapsack and edit distance &mdash; and closes the
+        arc: the problems that defeated greedy fall to DP.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="capstone">4. The unit in one table &mdash; and the design-paradigm capstone</h2>
+      <p>
+        The DP unit (Chapters 14&ndash;15), condensed into one reference table &mdash; every problem
+        of the unit, with its state and transition. Read the columns and the shapes
+        repeat: the whole skill is matching a new problem to its row. Each problem&rsquo;s full treatment is in its chapter: Fibonacci, rod cutting, and LCS in <a href="ch14-dp-i.html">Chapter&nbsp;14</a>; the rest in <a href="ch15-dp-ii.html">Chapter&nbsp;15</a>.
+      </p>
+      <table>
+        <tr><th>problem</th><th>state</th><th>transition</th><th>cost</th></tr>
+        <tr><td>Fibonacci</td><td>\(dp[i]\)</td><td>sum of 2 previous</td><td>\(\Theta(n)\)</td></tr>
+        <tr><td>rod cutting</td><td>\(dp[\mathit{len}]\)</td><td>max over first cut</td><td>\(\Theta(n^2)\)</td></tr>
+        <tr><td>LCS</td><td>\(dp[i][j]\)</td><td>match: diag\(+1\); else max(up, left)</td><td>\(\Theta(mn)\)</td></tr>
+        <tr><td>0/1 knapsack</td><td>\(dp[i][w]\)</td><td>max(skip, take)</td><td>\(\Theta(nW)\) <em>(pseudo-poly)</em></td></tr>
+        <tr><td>edit distance</td><td>\(dp[i][j]\)</td><td>match: diag; else \(1+\)min of 3</td><td>\(\Theta(mn)\)</td></tr>
+        <tr><td>grid path (min / count)</td><td>\(dp[i][j]\)</td><td>min / sum of up, left</td><td>\(\Theta(mn)\)</td></tr>
+        <tr><td>coin change</td><td>\(dp[a]\)</td><td>min over last coin</td><td>\(\Theta(a k)\)</td></tr>
+        <tr><td>LIS</td><td>\(dp[i]\) (ending at \(i\))</td><td>max over smaller predecessors</td><td>\(\Theta(n^2)\)</td></tr>
+        <tr><td>matrix chain / optimal BST</td><td>\(dp[i][j]\) (range)</td><td>min over splits \(k\)</td><td>\(\Theta(n^3)\)</td></tr>
+      </table>
+      <p>
+        When a DP will not come together, the fault is almost always the state, and
+        the fixes are mechanical:
+      </p>
+      <ul>
+        <li><strong>cannot write the recurrence?</strong> The subproblem is wrong
+          &mdash; redefine the state (LIS&rsquo;s &ldquo;ending at \(i\)&rdquo; was
+          exactly such a redefinition);</li>
+        <li><strong>the recurrence needs a value the state does not carry?</strong>
+          Add a dimension (knapsack added remaining capacity);</li>
+        <li><strong>still exponential?</strong> The subproblems are not overlapping
+          &mdash; it may not be a DP problem at all (reconsider divide-and-conquer
+          or greedy);</li>
+        <li><strong>correct but too slow or too big?</strong> Tighten the state, or
+          apply the rolling array.</li>
+      </ul>
+      <p>
+        And the back half of the course now assembles into one decision procedure
+        for optimization problems. Try, in order:
+        <strong>greedy</strong> (the <a href="greedy-algorithms.html">Greedy Algorithms</a> handout)
+        &mdash; one locally-best choice, fastest, but only with a proof (exchange
+        argument) that the choice is safe; <strong>divide-and-conquer</strong>
+        (<a href="ch13-sorting-dc.html">Chapter 13</a>) &mdash; when the subproblems
+        are <em>independent</em>, so there is nothing to cache;
+        <strong>dynamic programming</strong> (<a href="ch14-dp-i.html">Chapters&nbsp;14</a>&ndash;<a href="ch15-dp-ii.html">15</a>) &mdash; when the subproblems <em>overlap</em> and
+        greedy has a counterexample; and <strong>brute force</strong> last. The
+        recognition test is the recursion tree: repeated nodes mean DP, all-distinct
+        nodes mean divide-and-conquer, and a provably safe single branch means
+        greedy. DP&rsquo;s difficulty concentrates in one step &mdash; defining the
+        state &mdash; and everything after it is mechanical; the payoff runs from
+        <code>git diff</code> and spell-checkers through resource allocation to
+        genome alignment.
+      </p>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; course text, Dynamic Programming v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library.
+      </footer>
+    </div>
+  </body>
+</html>
