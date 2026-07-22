@@ -158,7 +158,6 @@
       <div class="toc">
         <strong>Contents</strong>
         <ol>
-          <li><a href="#idea">Dynamic programming, recalled</a></li>
           <li><a href="#fib">Fibonacci: the whole arc</a></li>
           <li><a href="#rod">Rod cutting: optimizing over choices</a></li>
           <li><a href="#lcs">Longest common subsequence</a></li>
@@ -167,37 +166,7 @@
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="idea">1. Dynamic programming, recalled</h2>
-      <p>
-        The general treatment of dynamic programming &mdash; recursion +
-        remembering, the two hallmarks (overlapping subproblems and optimal
-        substructure), memoization versus tabulation, and the five-step design
-        recipe &mdash; lives in the
-        <a href="dynamic-programming.html">Dynamic Programming</a> handout, this
-        chapter&rsquo;s companion reading. Recall its two working tools, used on
-        every page that follows. First, <em>DP = recursion + remembering</em>:
-        compute each distinct subproblem once, cache it, and every repeat is an
-        \(O(1)\) lookup. Second, the cost formula:
-      </p>
-      <div class="thm">
-        <span class="tag">Recall (the DP cost formula)</span>
-        Once every subproblem is computed at most once,
-        \[
-          \text{time} \;=\; (\#\text{ distinct subproblems}) \times
-          (\text{work to combine one from its sub-answers}),
-        \]
-        and space is the number of stored subproblems.
-      </div>
-      <p>
-        This chapter runs the method on three problems of increasing richness
-        &mdash; Fibonacci (the purest possible overlap), rod cutting (the first
-        <em>optimization</em> over choices), and the longest common subsequence
-        (the first two-dimensional table) &mdash; each taken from exponential
-        recursion to polynomial table, with code in all four languages.
-      </p>
-
-      <!-- ============================================================ -->
-      <h2 id="fib">2. Fibonacci: the whole arc</h2>
+      <h2 id="fib">1. Fibonacci: the whole arc</h2>
       <p>
         The Fibonacci numbers \(0, 1, 1, 2, 3, 5, 8, 13, \dots\) &mdash; each the
         sum of the previous two &mdash; are the cleanest possible stage for the DP
@@ -540,7 +509,7 @@ fn fib_two_var(n: usize) -&gt; u64 {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="rod">3. Rod cutting: optimizing over choices</h2>
+      <h2 id="rod">2. Rod cutting: optimizing over choices</h2>
       <p>
         Fibonacci has overlap but nothing to optimize. <strong>Rod cutting</strong>
         adds the missing ingredient &mdash; a <em>choice</em> at every step &mdash;
@@ -746,7 +715,7 @@ fn pieces(cut: &amp;[usize], mut n: usize) -&gt; Vec&lt;usize&gt; {
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="lcs">4. Longest common subsequence</h2>
+      <h2 id="lcs">3. Longest common subsequence</h2>
       <p>
         The third example moves to two dimensions, and it is the most deployed DP
         you will meet this term.
@@ -992,7 +961,7 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
         before trusting any LCS code (exercise 6 practices exactly this).
       </div>
       <p>
-        Cost, by the formula of <a href="#idea">&sect;1</a>: \((m+1)(n+1)\)
+        Cost, by the <a href="dynamic-programming.html#styles">DP cost formula</a>: \((m+1)(n+1)\)
         cells at \(O(1)\) each, \(\Theta(mn)\) time and space. Since each row
         depends only on the row above and the current row&rsquo;s left neighbor,
         the space can drop to two rows &mdash; \(\Theta(\min(m,n))\) with the
@@ -1027,7 +996,7 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="ex">5. Exercises (with solutions)</h2>
+      <h2 id="ex">4. Exercises (with solutions)</h2>
       <ol>
         <li>
           For each, say whether memoization would help, and why: (a) mergesort;
@@ -1126,7 +1095,7 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
         <li>
           A student fills the LCS table for \(A = \texttt{CAB}\),
           \(B = \texttt{ACB}\) and gets the table below. Using only the sanity
-          invariants of <a href="#lcs">&sect;4</a> (no re-derivation), point out
+          invariants of <a href="#lcs">&sect;3</a> (no re-derivation), point out
           two cells that <em>cannot</em> be right, then give the correct table.
           <pre>        ""  A  C  B
     ""   0  0  0  0

@@ -147,7 +147,6 @@
       <div class="toc">
         <strong>Contents</strong>
         <ol>
-          <li><a href="#method">The greedy method, recalled</a></li>
           <li><a href="#huffman">Huffman coding: an optimal prefix-free code</a></li>
           <li><a href="#proof">Why Huffman is optimal</a></li>
           <li><a href="#compress">Encoding, decoding, and the limits of compression</a></li>
@@ -156,34 +155,7 @@
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="method">1. The greedy method, recalled</h2>
-      <p>
-        The general treatment of the greedy method &mdash; the definition and
-        template, the change-making pair, the two licensing properties
-        (greedy-choice and optimal substructure), the exchange-argument proof
-        template with activity selection worked, the 0/1-knapsack failure case,
-        and the matroid characterization &mdash; lives in the
-        <a href="greedy-algorithms.html">Greedy Algorithms</a> handout, this
-        chapter&rsquo;s companion reading. Recall its core: a greedy algorithm
-        commits to the locally best choice and never reconsiders, and it is
-        correct exactly when an exchange argument proves the greedy choice safe.
-        We have already relied on the pattern three times &mdash; Dijkstra
-        (<a href="ch09-dijkstra.html">Ch.&nbsp;9</a>: settle the nearest
-        vertex), Prim and Kruskal
-        (<a href="ch11-mst-union-find.html">Ch.&nbsp;11</a>: lightest crossing
-        edge / cheapest safe edge).
-      </p>
-      <p>
-        This chapter is the method&rsquo;s cleanest success story:
-        <strong>Huffman coding</strong>, whose greedy choice &mdash; merge the
-        two least-frequent symbols &mdash; builds a provably optimal
-        prefix-free code. Huffman lies outside the matroid frame, so its proof
-        (<a href="#proof">&sect;3</a>) is a problem-specific exchange argument
-        &mdash; the handout&rsquo;s template, instantiated.
-      </p>
-
-      <!-- ============================================================ -->
-      <h2 id="huffman">2. Huffman coding: an optimal prefix-free code</h2>
+      <h2 id="huffman">1. Huffman coding: an optimal prefix-free code</h2>
       <p>
         The problem is data compression: store text in fewer bits. A
         <strong>fixed-length</strong> code &mdash; \(3\) bits for each of \(6\)
@@ -538,7 +510,7 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="proof">3. Why Huffman is optimal</h2>
+      <h2 id="proof">2. Why Huffman is optimal</h2>
       <p>
         Two lemmas, in the standard greedy shape: the first shows the greedy merge is
         safe (greedy-choice property), the second shows the rest is the same problem
@@ -596,7 +568,7 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="compress">4. Encoding, decoding, and the limits of compression</h2>
+      <h2 id="compress">3. Encoding, decoding, and the limits of compression</h2>
       <p>
         With the trie in hand, <strong>encoding</strong> replaces each symbol with its
         code and concatenates the bits &mdash; no separators, because the code is
@@ -672,7 +644,7 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="ex">5. Exercises (with solutions)</h2>
+      <h2 id="ex">4. Exercises (with solutions)</h2>
       <ol>
         <li>
           Build the Huffman tree for frequencies \(x{:}1,\ y{:}1,\ z{:}2,\ w{:}4\).
