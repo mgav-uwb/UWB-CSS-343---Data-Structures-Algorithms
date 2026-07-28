@@ -288,7 +288,16 @@ Same three unions, both schemes: `unite(4,3)`, `unite(3,8)`, `unite(9,4)`
    what does each forest look like — and how tall?
 ```
 
-<small>**Plain:** 4→3, 3→8, then find(9)=9 under find(4)=8 → the tree `8{3{4}, 9}` — **height 2**. **Weighted:** 3 under 4 (tie), then 8 under 4 (size 2 vs 1), then 9 under 4 → the star `4{3, 8, 9}` — **height 1**. Weighting flattens as you build.</small> <!-- .element: class="fragment" -->
+<pre class="fragment"><code>   PLAIN  — a chain          WEIGHTED — a star
+
+        8                          4
+       / \                       / | \
+      3   9                     3  8  9
+      |
+      4
+
+   find(4): 2 hops            every find: 1 hop
+</code></pre>
 
 --
 
@@ -302,7 +311,25 @@ Same three unions, both schemes: `unite(4,3)`, `unite(3,8)`, `unite(9,4)`
 | quick-union — compression only | O(log N) | O(log N) |
 | **weighted + path compression** | **~O(1)** | **~O(1)** |
 
-<small>The bottom two rows are **amortized**. **Either** optimization alone gives log N; **both** give O(M·α(N)) for M operations — α is inverse Ackermann, and α(N) < 5 for any N that fits in a computer.</small>
+<small>**Either** optimization alone gives log N; **both** give **α(N)** — next slide. The bottom two rows are **amortized**: averaged over the whole sequence of operations, like the doubling arguments in S03 and S07 — not a promise about any single call.</small>
+
+--
+
+## Inverse Ackermann
+
+Ackermann's function grows **absurdly** fast. **α** is its inverse, so α grows absurdly *slowly*:
+
+```text
+   N                      α(N)
+   ────────────────────   ────
+   up to 2                  0
+   3                        1
+   4 … 7                    2
+   8 … 2047                 3
+   2048 … 2^2048 and up     4
+```
+
+2²⁰⁴⁸ ≈ 10⁶¹⁶ already dwarfs the ~10⁸⁰ atoms in the observable universe. **Treat α(N) as ≤ 4.**
 
 --
 
@@ -359,7 +386,7 @@ Sets only ever **merge**. There is no efficient split.
                           sets, not edges)
 ```
 
-If your input **deletes** connections, run it **backwards**: in reverse, every deletion is an insertion.
+Connectivity can only **grow**. That is the price of the α(N) bound.
 
 ---
 
