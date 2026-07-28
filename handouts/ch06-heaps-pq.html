@@ -939,10 +939,13 @@ impl MaxHeap {
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
-        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Load a raw array and
-        press Heapify to sink \(n/2, n/2{-}1, \dots, 1\) bottom-up. Run it on a few
-        random arrays and watch the swaps cluster near the bottom and the swap
-        counter stay below \(n\) &mdash; the \(\Theta(n)\) bound made visible.
+        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Set <em>build by</em>
+        to <em>heapify</em> and press Build: it loads the raw array, then sinks
+        \(n/2, n/2{-}1, \dots, 1\) bottom-up. Run it on a few random arrays and watch
+        the swaps cluster near the bottom and the swap counter stay below \(n\)
+        &mdash; the \(\Theta(n)\) bound made visible. Build the same keys by repeated
+        insert to compare: on ascending input (every key swims to the root) \(1..31\)
+        costs \(98\) swaps that way against \(26\) by heapify.
       </div>
 
       <!-- ============================================================ -->
@@ -1096,9 +1099,10 @@ fn heapsort(a: &amp;mut [i32], n: usize) {
       </p>
       <div class="demo">
         <span class="tag">Interactive</span>
-        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Build a raw array,
-        press Heapify (watch the swaps cluster low &mdash; the \(\Theta(n)\) build),
-        then Sort Down (\(n\) sinks of a shrinking heap &mdash; the
+        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Build with
+        <em>build by</em> set to <em>heapify</em> (watch the swaps cluster low &mdash;
+        the \(\Theta(n)\) build), then run <em>Sort down</em> (\(n\) sinks of a
+        shrinking heap &mdash; the
         \(\Theta(n\log n)\) part), and see the sorted tail grow rightward in one
         array. The second phase does the majority of the swaps; the counters make it
         plain.
