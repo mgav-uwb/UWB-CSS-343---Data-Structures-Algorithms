@@ -164,25 +164,36 @@ Every union rescans the array — N unions ⇒ **O(N²)**. Unusable at scale.
    unite(p,q): make root(p)'s parent = root(q)   // O(1) link!
 ```
 
-union is cheap (one link) — but **find can be O(N)** (a tall tree).
+The link is cheap (one write) — but **find can be O(N)** (a tall tree).
 
 --
 
 ## Quick-union — worked
 
 ```text
-   parent: 0 1 2 3 4 5 6 7 8 9   (all roots)
-   unite(4,3): parent[4]=3
-   unite(3,8): parent[3]=8
-   unite(6,5): parent[6]=5
-   unite(9,4): find(9)=9, find(4)=8 → parent[9]=8
+   parent:      0 1 2 3 4 5 6 7 8 9   all roots
 
-     8            5        forest of trees; one per set,
-    / \           |        root = the representative
-   3   9          6
-   |
-   4
+   unite(4,3)   0 1 2 3 3 5 6 7 8 9   parent[4] = 3
+   unite(3,8)   0 1 2 8 3 5 6 7 8 9   parent[3] = 8
+   unite(6,5)   0 1 2 8 3 5 5 7 8 9   parent[6] = 5
+   unite(9,4)   0 1 2 8 3 5 5 7 8 8   parent[9] = 8
 ```
+
+**Why the last one differs:** the first three united two **roots** — nothing to walk. Here 4 is *not* a root, so `find(4)` walks 4 → 3 → 8, and 9 links under **8**.
+
+--
+
+## The same array, as a forest
+
+```text
+     8            5          0   1   2   7
+    / \           |
+   3   9          6          four sets of one
+   |
+   4                         a root points at itself
+```
+
+Read straight off `parent[]`: 4→3→8 and 9→8 (one set), 6→5 (another), the rest alone. **Six sets, six roots** — `unite` always links root to root, so every set keeps exactly one.
 
 --
 
