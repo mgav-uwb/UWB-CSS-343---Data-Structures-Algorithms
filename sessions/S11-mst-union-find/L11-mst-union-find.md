@@ -54,22 +54,40 @@ _Secondary:_ ODS §1.4 / booksite. Reading quiz due before class.
 
 ---
 
-### Part 1 · Union-Find (dynamic connectivity)
+### Part 1 · Union-Find (disjoint sets)
 
-<small>(~26 min)</small>
+<small>(~27 min)</small>
 
 --
 
-## The dynamic connectivity problem
+## Disjoint sets
 
-Given `N` objects and a stream of **connections**, answer **"are p and q connected?"** at any point.
+**Union-find** maintains a **partition** of `N` elements — every element in exactly **one** set — under two operations:
 
 ```text
-   union(4, 3)   union(3, 8)   union(6, 5)  …
-   connected(0, 7)?   connected(8, 4)?
+   find(x)      →  a representative of x's set
+   unite(x, y)  →  merge x's set with y's set
 ```
 
-Connections are transitive: connected things form **groups** (components).
+Same set **iff** same representative. Start: `N` singleton sets. Sets only ever **merge**.
+
+<small>Also called **disjoint set union (DSU)**.</small>
+
+--
+
+## Sedgewick's framing
+
+The reading (§1.5) calls it **dynamic connectivity**: a stream of connections, plus "are p and q connected?" at any time.
+
+```text
+   union(4, 3)   union(3, 8)   union(6, 5)  …   connected(0, 7)?
+
+   a connected group  =  a set
+   add a connection   =  unite(p, q)
+   connected(p, q)?   =  find(p) == find(q)
+```
+
+Connectivity is **transitive**, so it partitions the objects — the connected groups **are** the sets.
 
 --
 
@@ -77,15 +95,13 @@ Connections are transitive: connected things form **groups** (components).
 
 ```text
 struct UF {
-    // are p and q in the same component?
-    bool connected(int p, int q);
-    // merge the components of p and q
-    void  unite(int p, int q);
-    int   find(int p);        // component id of p
+    int   find(int p);              // representative of p's set
+    void  unite(int p, int q);      // merge p's set with q's set
+    bool  connected(int p, int q);  // same set?
 };
 ```
 
-`connected(p,q)` is just `find(p) == find(q)`. Everything hinges on **find**. <small>(The operation is *union*; the method is `unite` because `union` is a C++ keyword.)</small>
+Everything hinges on **find**: `connected(p,q)` is just `find(p) == find(q)`, and `unite` starts by finding both representatives. <small>(The operation is *union*; the method is `unite` because `union` is a C++ keyword.)</small>
 
 --
 
@@ -97,7 +113,7 @@ The whole (final) structure is two arrays:
 struct UF {
     vector<int> parent, size;
     UF(int n) : parent(n), size(n, 1) {
-        for (int i = 0; i < n; i++) parent[i] = i;   // each its own root
+        for (int i = 0; i < n; i++) parent[i] = i;   // n singleton sets
     }
     int  find(int x);              // walk up + compress
     void unite(int a, int b);      // link smaller under larger
@@ -109,7 +125,7 @@ struct UF {
 
 ## Quick-find (eager)
 
-`id[i]` = the component label of `i`. Connected ⟺ **same label**.
+`id[i]` = the **set label** of `i` — that's the representative. Same set ⟺ **same label**.
 
 ```text
    connected(p,q):  id[p] == id[q]          // O(1) — fast!
@@ -139,7 +155,7 @@ Every union rescans the array — N unions ⇒ **O(N²)**. Unusable at scale.
 
 ## Quick-union (lazy)
 
-`parent[i]` = i's parent → each component is a **tree**; the **root** is its id.
+`parent[i]` = i's parent → each **set** is a **tree**; its **root** is the representative.
 
 ```text
    find(p):    follow parent[] to the root
@@ -159,8 +175,8 @@ union is cheap (one link) — but **find can be O(N)** (a tall tree).
    union(6,5): parent[6]=5
    union(9,4): find(9)=9, find(4)=8 → parent[9]=8
 
-     8            5        forest of trees;
-    / \           |        root = component id
+     8            5        forest of trees; one per set,
+    / \           |        root = the representative
    3   9          6
    |
    4
@@ -179,6 +195,8 @@ Always link the **smaller** tree under the **larger** (track sizes):
 ```
 
 Keeps trees **balanced** → height ≤ **log₂ N** → find is O(log N).
+
+<small>Called **union by size**. The common variant **union by rank** tracks an upper bound on height instead of size; same log N guarantee, same one-line rule.</small>
 
 --
 
@@ -200,14 +218,16 @@ A node `x` gets **one deeper** only when its tree is linked under a tree **at le
 While doing `find`, **flatten** the path: point each node directly at the root.
 
 ```text
-   find(p):
-     while p != parent[p]:
-        parent[p] = parent[parent[p]];   // halve the path
-        p = parent[p];
-     return p;
+   int find(int x) {
+     if (parent[x] == x) return x;      // x is the root
+     parent[x] = find(parent[x]);       // flatten on the way back
+     return parent[x];
+   }
 ```
 
 Trees become nearly flat → future finds are faster.
+
+<small>The loop variant `parent[x] = parent[parent[x]]` ("path halving") is cheaper per step and gives the same bound.</small>
 
 --
 
@@ -246,11 +266,12 @@ Same three unions, both schemes: `union(4,3)`, `union(3,8)`, `union(9,4)`
 | implementation | union | find |
 |---|---|---|
 | quick-find | O(N) | O(1) |
-| quick-union | O(N) | O(N) |
-| weighted QU | O(log N) | O(log N) |
+| quick-union — **neither** fix | O(N) | O(N) |
+| weighted QU — weighting only | O(log N) | O(log N) |
+| quick-union — compression only | O(log N) | O(log N) |
 | **weighted + path compression** | **~O(1)** | **~O(1)** |
 
-Weighted + compression: **nearly constant** amortized (inverse Ackermann α(N) < 5 for any real N).
+<small>The bottom two rows are **amortized**. **Either** optimization alone gives log N; **both** give O(M·α(N)) for M operations — α is inverse Ackermann, and α(N) < 5 for any N that fits in a computer.</small>
 
 --
 
@@ -281,7 +302,7 @@ Weighted + compression: **nearly constant** amortized (inverse Ackermann α(N) <
 
 ## Connected components via union-find
 
-Count/label components in one pass:
+Feed it the edges — each **set** ends up being one **component**:
 
 ```text
    UF uf(V);
@@ -291,6 +312,23 @@ Count/label components in one pass:
 ```
 
 Unlike DFS components (L08), union-find handles edges arriving **online** and answers queries **as they come**.
+
+--
+
+## What union-find can't do
+
+Sets only ever **merge**. There is no efficient split.
+
+```text
+   unite(p, q)       ✓   ~O(1)
+   connected(p, q)   ✓   ~O(1)
+   un-unite / split  ✗   compression already destroyed the
+                         shape you would need to undo
+   remove an edge    ✗   (not even represented — we store
+                          sets, not edges)
+```
+
+If your input **deletes** connections, run it **backwards**: in reverse, every deletion is an insertion.
 
 ---
 

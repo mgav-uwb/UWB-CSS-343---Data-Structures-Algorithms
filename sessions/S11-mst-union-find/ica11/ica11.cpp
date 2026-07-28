@@ -18,16 +18,18 @@
 using namespace std;
 
 // ---- GIVEN ----------------------------------------------------------------
+// A partition of n elements into disjoint sets: each set is a tree of parent
+// pointers, and a set's ROOT is its representative.  Same set iff same root.
 struct UF {
     vector<int> parent, sz;
-    UF(int n) : parent(n), sz(n, 1) { for (int i = 0; i < n; i++) parent[i] = i; }
+    UF(int n) : parent(n), sz(n, 1) { for (int i = 0; i < n; i++) parent[i] = i; }  // n singleton sets
 };
 struct Edge { int u, v, w; };
 
 // ---- TODO 1 — find --------------------------------------------------------
 // Walk parent pointers from x up to the root, WITH path compression: repoint
 // nodes toward the root as you go (path-halving parent[x]=parent[parent[x]]
-// or full compression — either is fine). Return the root.
+// or full compression — either is fine). Return the root: x's representative.
 int find(UF& uf, int x) {
     // TODO — L11's "path compression" slides show both variants; the grader
     //        accepts either, but the walk must actually REPOINT nodes.

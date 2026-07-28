@@ -19,6 +19,7 @@
   .subtitle{color:var(--dim);font-size:15.5px;margin:0 0 18px;border-bottom:1px solid var(--line);padding-bottom:16px}
   h2{font-size:19px;margin:30px 0 8px;border-bottom:1px solid #edf0f4;padding-bottom:4px}
   p{margin:10px 0} a{color:var(--accent)}
+  p.note{color:var(--dim);font-size:14.6px;border-left:2px solid var(--line);padding-left:12px}
   code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f1f3f7;border-radius:4px;padding:.5px 4px}
   pre{background:#f1f3f7;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:6px;
       padding:11px 14px;overflow-x:auto;margin:12px 0;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
@@ -51,12 +52,14 @@
       <span><b>⚠ Leak-graded</b></span>
     </div>
   </div>
-  <p>You build the disjoint-sets structure from the lecture — <code>find</code> with path compression, <code>unite</code> by size — then drive <strong>Kruskal's MST algorithm</strong> with it: sort the edges, take each one that joins two different components. The starter gives the data structures, helpers, and a <strong>self-running test battery</strong>; you fill the <code>TODO</code>s.</p>
+  <p><strong>Union-find</strong> maintains a <strong>partition</strong> of <code>N</code> elements — every element in exactly one <em>set</em>. <code>find(x)</code> returns a <strong>representative</strong> of x's set, and two elements are in the same set <strong>iff</strong> <code>find</code> returns the same representative; <code>unite(x, y)</code> merges two sets. Sets only ever merge, never split.</p>
+  <p class="note">Sedgewick §1.5 presents the same structure as <em>dynamic connectivity</em> — a stream of connections plus “are p and q connected?”. The two are equivalent: “connected” is transitive, so the connected groups <em>are</em> the disjoint sets, and <code>connected(p,q)</code> is <code>find(p) == find(q)</code>.</p>
+  <p>You build that structure — <code>find</code> with path compression, <code>unite</code> by size — then drive <strong>Kruskal's MST algorithm</strong> with it: sort the edges, take each one whose endpoints are in <em>different</em> sets. The starter gives the data structures, helpers, and a <strong>self-running test battery</strong>; you fill the <code>TODO</code>s.</p>
   <h2>Tasks</h2>
   <ol>
-    <li><code>find</code> — walk to the root <strong>with path compression</strong> (halving or full).</li>
+    <li><code>find</code> — walk to the root (= the representative) <strong>with path compression</strong> (halving or full).</li>
     <li><code>unite</code> — union by size: hang the smaller tree under the larger.</li>
-    <li><code>kruskal</code> — sort edges by weight; add each edge whose endpoints are not yet connected; return the total MST weight.</li>
+    <li><code>kruskal</code> — sort edges by weight; add each edge whose endpoints are in <em>different</em> sets; return the total MST weight.</li>
   </ol>
   <h2>The tests run themselves</h2>
   <pre>g++ -std=c++17 -g ica11.cpp -o ica11 &amp;&amp; ./ica11</pre>
