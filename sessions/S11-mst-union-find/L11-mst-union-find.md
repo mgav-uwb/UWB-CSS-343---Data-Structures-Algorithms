@@ -422,7 +422,7 @@ Remove one edge → disconnected; add one → a cycle.
 
 ## The MST problem
 
-Given a **connected, edge-weighted, undirected** graph, find the spanning tree of **minimum total weight**.
+Given a **connected, edge-weighted, undirected** graph, find the **minimum spanning tree (MST)**: the spanning tree of least total weight.
 
 ```text
    minimize  Σ (weights of chosen edges)
@@ -463,9 +463,9 @@ Given a **connected, edge-weighted, undirected** graph, find the spanning tree o
 
 ## Why MSTs matter
 
-- **network design** — cheapest cabling / roads / pipelines connecting all sites
-- **clustering** — build the MST of the data points, then **cut the k−1 heaviest edges** → k clusters (single-linkage)
-- **circuit design**, **approximation** (e.g. TSP lower bound)
+- **network design** — cheapest cabling, roads, pipelines, chip wiring
+- **clustering** — MST of the data points, then **cut the k−1 heaviest edges** → k clusters (single-linkage)
+- **bounding a harder problem** — the **traveling salesperson problem (TSP)** wants the cheapest tour through every vertex. Drop one edge of a tour and a spanning tree remains: **every tour ≥ the MST**.
 
 --
 
