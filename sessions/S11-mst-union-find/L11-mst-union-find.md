@@ -157,11 +157,11 @@ Every union rescans the array — N unions ⇒ **O(N²)**. Unusable at scale.
 
 ## Quick-union (lazy)
 
-`parent[i]` = i's parent → each **set** is a **tree**; its **root** is the representative.
+`parent[i]` = i's parent → each **set** is a **tree**; its **root** is the representative. So **`find(x)` returns x's root** — the two words mean the same thing from here on.
 
 ```text
-   find(p):    follow parent[] to the root
-   unite(p,q): make root(p)'s parent = root(q)   // O(1) link!
+   find(p):    follow parent[] up to the root
+   unite(p,q): parent[find(p)] = find(q)   // one write!
 ```
 
 The link is cheap (one write) — but **find can be O(N)** (a tall tree).
@@ -203,8 +203,11 @@ Always link the **smaller** tree under the **larger** (track sizes):
 
 ```text
    unite(p,q):
-     if size[root(p)] < size[root(q)]: link p-root under q-root
-     else: link q-root under p-root; update sizes
+     a = find(p);  b = find(q);        // the two roots
+     if (a == b) return;               // already one set
+     if (size[a] < size[b]) swap(a, b);   // a = the bigger
+     parent[b] = a;                    // smaller under larger
+     size[a] += size[b];
 ```
 
 Keeps trees **balanced** → height ≤ **log₂ N** → find is O(log N).
@@ -240,7 +243,7 @@ While doing `find`, **flatten** the path: point each node directly at the root.
 
 Trees become nearly flat → future finds are faster.
 
-<small>The loop variant `parent[x] = parent[parent[x]]` ("path halving") is cheaper per step and gives the same bound.</small>
+<small>This is *full* compression. There is a cheaper one-pass variant — two slides on.</small>
 
 --
 
@@ -259,18 +262,33 @@ The walk `4 → 3 → 8` repoints every visited node at root 8 — here only 4 a
 
 --
 
+## Two ways to compress
+
+```text
+   start:   4 → 3 → 2 → 1 → 0       (0 is the root)
+
+   FULL      find(4): 4→0, 3→0, 2→0    3 nodes move
+   HALVING   find(4): 4→2, 2→0         2 nodes move
+```
+
+**Halving** repoints each node at its **grandparent** in one upward pass — the path halves. **Full** writes the root into every node on the way back up (the recursion's return trip).
+
+<small>Full flattens more; halving needs no call stack. **Same α(N) bound** — ICA 11 takes either.</small>
+
+--
+
 ## Your turn — plain vs weighted
 
 Same three unions, both schemes: `unite(4,3)`, `unite(3,8)`, `unite(9,4)`
 
 ```text
-   plain quick-union:  parent[root(p)] = root(q)
+   plain quick-union:  parent[find(p)] = find(q)
    weighted:           smaller tree under larger (ties: p side)
 
    what does each forest look like — and how tall?
 ```
 
-<small>**Plain:** 4→3, 3→8, then root(9)=9 under root(4)=8 → the tree `8{3{4}, 9}` — **height 2**. **Weighted:** 3 under 4 (tie), then 8 under 4 (size 2 vs 1), then 9 under 4 → the star `4{3, 8, 9}` — **height 1**. Weighting flattens as you build.</small> <!-- .element: class="fragment" -->
+<small>**Plain:** 4→3, 3→8, then find(9)=9 under find(4)=8 → the tree `8{3{4}, 9}` — **height 2**. **Weighted:** 3 under 4 (tie), then 8 under 4 (size 2 vs 1), then 9 under 4 → the star `4{3, 8, 9}` — **height 1**. Weighting flattens as you build.</small> <!-- .element: class="fragment" -->
 
 --
 
