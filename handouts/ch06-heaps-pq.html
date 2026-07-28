@@ -939,13 +939,14 @@ impl MaxHeap {
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
-        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Set <em>build by</em>
-        to <em>heapify</em> and press Build: it loads the raw array, then sinks
+        <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Build with
+        <code>HEAPIFY(1..36:RAND)</code>: it loads the raw array, then sinks
         \(n/2, n/2{-}1, \dots, 1\) bottom-up. Run it on a few random arrays and watch
         the swaps cluster near the bottom and the swap counter stay below \(n\)
-        &mdash; the \(\Theta(n)\) bound made visible. Build the same keys by repeated
-        insert to compare: on ascending input (every key swims to the root) \(1..31\)
-        costs \(98\) swaps that way against \(26\) by heapify.
+        &mdash; the \(\Theta(n)\) bound made visible. Then build the same keys the
+        other way, <code>INSERT(…)</code>, to compare: on ascending input (every key
+        swims to the root) <code>INSERT(1..31)</code> costs \(98\) swaps against
+        \(26\) for <code>HEAPIFY(1..31)</code>.
       </div>
 
       <!-- ============================================================ -->
@@ -1100,7 +1101,7 @@ fn heapsort(a: &amp;mut [i32], n: usize) {
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=heap">Binary-heap demo</a>. Build with
-        <em>build by</em> set to <em>heapify</em> (watch the swaps cluster low &mdash;
+        <code>HEAPIFY(1..16:RAND)</code> (watch the swaps cluster low &mdash;
         the \(\Theta(n)\) build), then run <em>Sort down</em> (\(n\) sinks of a
         shrinking heap &mdash; the
         \(\Theta(n\log n)\) part), and see the sorted tail grow rightward in one
