@@ -51,7 +51,7 @@
   <script src="../../lib/grid-review.js"></script>
   <!-- Unified library — stage-scoped interactive demos:
          union-find (Part 1)  weighted quick-union + path compression on an
-                              editable element count; Union/Connected/Find ops
+                              editable element count; Unite/Connected/Find ops
          mst-tour   (Part 2)  static picture of tonight's UNDIRECTED weighted
                               graph (same 8 vertices as L09, arrows dropped)
          kruskal    (Part 3)  Kruskal on an editable "u v w" edge list
@@ -87,9 +87,9 @@
         ],
         labels: ["the forest — each set is a tree, its root is the set's name",
                  "parent[] — cell i holds parent[i]; parent[i] = i marks a root"],
-        stateMsg: (s) => `${s.inorder()} — flat forest: every element its own root until you Union (a PAIR, e.g. 3 7)`,
+        stateMsg: (s) => `${s.inorder()} — flat forest: every element its own root until you Unite (a PAIR, e.g. 3 7)`,
         ops: [
-          { name: "Union", arg: "pair", run: (s, v) => s.union(v[0], v[1]) },
+          { name: "Unite", arg: "pair", run: (s, v) => s.unite(v[0], v[1]) },
           { name: "Connected", arg: "pair", run: (s, v) => s.connected(v[0], v[1]) },
           { name: "Find", arg: "number", run: (s, v) => s.find(v) },
         ],
@@ -97,7 +97,10 @@
         width: 960, height: [128, 52],
       },
       "mst-tour": { // static view of tonight's undirected graph for Part 2
-        make: () => { const g = new WeightedGraph({ directed: false, layout: "circle" }); g.build(); return g; },
+        // build(WMST), not build(): the no-arg form falls back to the structure's
+        // SAMPLE edge set, which is NOT tonight's graph. aspect keeps the vertex
+        // ring ROUND on the wide canvas — same ring as S09 and the ch09 handout.
+        make: () => { const g = new WeightedGraph({ directed: false, layout: "circle", aspect: (900 - 60) / (225 - 60) }); g.build(WMST.split(/[\s,]+/).filter(Boolean).map(Number)); return g; },
         renderer: (c) => new GraphRenderer(c, { directed: false }),
         label: "tonight's graph — the L09 graph, now undirected: 8 vertices, 11 weighted edges",
         width: 900, height: 225,

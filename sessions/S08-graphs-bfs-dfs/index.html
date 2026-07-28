@@ -105,9 +105,12 @@
     const topoOp = { name: "Topo sort", desc: "Kahn: repeatedly output an in-degree-0 vertex; the finale lines the vertices up — every edge points right", run: (s) => s.topo() };
     initDeckDemos({
       "graph-tour": { // static view of tonight's DAG for Part 1 (no ops yet)
-        make: () => { const g = new Graph({ layout: "circle" }); g.build(); return g; },
+        // build(DAG), not build(): the no-arg form falls back to the structure's
+        // SAMPLE edge set, which is NOT tonight's graph. aspect keeps the vertex
+        // ring ROUND on the wide canvas — same ring as S09/S11 and the handouts.
+        make: () => { const g = new Graph({ layout: "circle", aspect: (900 - 60) / (230 - 60) }); g.build(DAG.split(/[\s,]+/).filter(Boolean).map(Number)); return g; },
         renderer: (c) => new GraphRenderer(c, { directed: true }),
-        label: "tonight's graph — a DAG on 8 vertices, 10 directed edges",
+        label: "tonight's graph — a DAG on 8 vertices, 11 directed edges",
         width: 900, height: 230,
       },
       "graph-dfs":  { ...base(), ...dual(170), ops: [dfsOp] },

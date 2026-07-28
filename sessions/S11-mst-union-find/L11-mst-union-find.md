@@ -80,7 +80,7 @@ Same set **iff** same representative. Start: `N` singleton sets. Sets only ever 
 The reading (§1.5) calls it **dynamic connectivity**: a stream of connections, plus "are p and q connected?" at any time.
 
 ```text
-   union(4, 3)   union(3, 8)   union(6, 5)  …   connected(0, 7)?
+   unite(4, 3)   unite(3, 8)   unite(6, 5)  …   connected(0, 7)?
 
    a connected group  =  a set
    add a connection   =  unite(p, q)
@@ -88,6 +88,8 @@ The reading (§1.5) calls it **dynamic connectivity**: a stream of connections, 
 ```
 
 Connectivity is **transitive**, so it partitions the objects — the connected groups **are** the sets.
+
+<small>The book writes `union`; we write **`unite`** everywhere — `union` is a reserved word in C++.</small>
 
 --
 
@@ -101,7 +103,7 @@ struct UF {
 };
 ```
 
-Everything hinges on **find**: `connected(p,q)` is just `find(p) == find(q)`, and `unite` starts by finding both representatives. <small>(The operation is *union*; the method is `unite` because `union` is a C++ keyword.)</small>
+Everything hinges on **find**: `connected(p,q)` is just `find(p) == find(q)`, and `unite` starts by finding both representatives.
 
 --
 
@@ -129,7 +131,7 @@ struct UF {
 
 ```text
    connected(p,q):  id[p] == id[q]          // O(1) — fast!
-   union(p,q):      relabel EVERY entry
+   unite(p,q):      relabel EVERY entry
                     equal to id[p] → id[q]   // O(N) — slow
 ```
 
@@ -142,9 +144,9 @@ find is O(1), but **union scans the whole array** — O(N).
 ```text
    id:  0 1 2 3 4 5        (each its own label at first)
 
-   union(1,4): scan all, relabel 1 → 4
+   unite(1,4): scan all, relabel 1 → 4
                id = 0 4 2 3 4 5
-   union(2,3): scan all, relabel 2 → 3
+   unite(2,3): scan all, relabel 2 → 3
                id = 0 4 3 3 4 5
    connected(1,4)?  id[1]==id[4] → 4==4 → YES   (O(1))
 ```
@@ -159,7 +161,7 @@ Every union rescans the array — N unions ⇒ **O(N²)**. Unusable at scale.
 
 ```text
    find(p):    follow parent[] to the root
-   union(p,q): make root(p)'s parent = root(q)   // O(1) link!
+   unite(p,q): make root(p)'s parent = root(q)   // O(1) link!
 ```
 
 union is cheap (one link) — but **find can be O(N)** (a tall tree).
@@ -170,10 +172,10 @@ union is cheap (one link) — but **find can be O(N)** (a tall tree).
 
 ```text
    parent: 0 1 2 3 4 5 6 7 8 9   (all roots)
-   union(4,3): parent[4]=3
-   union(3,8): parent[3]=8
-   union(6,5): parent[6]=5
-   union(9,4): find(9)=9, find(4)=8 → parent[9]=8
+   unite(4,3): parent[4]=3
+   unite(3,8): parent[3]=8
+   unite(6,5): parent[6]=5
+   unite(9,4): find(9)=9, find(4)=8 → parent[9]=8
 
      8            5        forest of trees; one per set,
     / \           |        root = the representative
@@ -189,7 +191,7 @@ union is cheap (one link) — but **find can be O(N)** (a tall tree).
 Always link the **smaller** tree under the **larger** (track sizes):
 
 ```text
-   union(p,q):
+   unite(p,q):
      if size[root(p)] < size[root(q)]: link p-root under q-root
      else: link q-root under p-root; update sizes
 ```
@@ -248,7 +250,7 @@ The walk `4 → 3 → 8` repoints every visited node at root 8 — here only 4 a
 
 ## Your turn — plain vs weighted
 
-Same three unions, both schemes: `union(4,3)`, `union(3,8)`, `union(9,4)`
+Same three unions, both schemes: `unite(4,3)`, `unite(3,8)`, `unite(9,4)`
 
 ```text
    plain quick-union:  parent[root(p)] = root(q)
@@ -287,7 +289,7 @@ Same three unions, both schemes: `union(4,3)`, `union(3,8)`, `union(9,4)`
 </pre>
 </div>
 
-<small>Type a pair and press **Union** (`4 3`, then `3 8`, then `9 4` — the your-turn). **Connected** compares roots; **Find** walks up and **flattens** the path it took. Cell i shows `parent[i]`.</small>
+<small>Type a pair, choose **Unite**, press **Run** (`4 3`, then `3 8`, then `9 4` — the your-turn). **Connected** compares roots; **Find** walks up and **flattens** the path it took. Cell i shows `parent[i]`.</small>
 
 --
 
