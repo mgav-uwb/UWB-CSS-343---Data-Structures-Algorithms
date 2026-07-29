@@ -498,13 +498,16 @@ Suppose an MST `T` does **not** contain the min crossing edge `e`:
 
 ## A cut, pictured
 
-```text
+<div class="algo-viz" data-algo="cut-picture">
+<pre class="viz-fallback">
    { 0, 1 }  |  { 2, 3, 4, 5, 6, 7 }
    crossing edges: 1-2 (1), 1-3 (5), 0-3 (6), 0-5 (20)
    lightest = 1-2 (1)  →  SAFE, in some MST
-```
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
 
-Any cut works — the algorithms just choose cuts cleverly.
+<small>**Green** = one side, **grey** = the other. **Orange** edges cross the cut; the **purple** one is the lightest crossing edge — **safe**. Any cut works; the algorithms just choose cuts cleverly.</small>
 
 --
 

@@ -105,6 +105,40 @@
         label: "tonight's graph — the L09 graph, now undirected: 8 vertices, 11 weighted edges",
         width: 900, height: 225,
       },
+      // the cut { 0,1 } | { 2..7 } drawn on tonight's graph (Part 2). Static —
+      // the highlight is fixed, so the renderer wraps GraphRenderer and injects
+      // it. Crossing edges: 0-3, 1-2, 1-3, 0-5; lightest (safe) = 1-2 at w1.
+      // Layout is HAND-PLACED, not the ring: the whole point is to SEE the cut,
+      // so the two sides sit in separate columns with the 4 crossing edges
+      // spanning the gap. 1 is above 0 so 1's crossings (to 2, 3) leave the top
+      // and 0's (to 3, 5) leave the bottom — no crossing edges intersect.
+      "cut-picture": {
+        make: () => {
+          const g = new WeightedGraph({ directed: false });
+          g.build(WMST.split(/[\s,]+/).filter(Boolean).map(Number));
+          g.nodes = [
+            { id: 0, x: 0.11, y: 0.74 }, { id: 1, x: 0.11, y: 0.26 },   // side A (left)
+            { id: 2, x: 0.55, y: 0.12 }, { id: 3, x: 0.58, y: 0.46 },   // side B (right)
+            { id: 4, x: 0.85, y: 0.62 }, { id: 5, x: 0.55, y: 0.90 },
+            { id: 6, x: 0.92, y: 0.93 }, { id: 7, x: 0.90, y: 0.20 },
+          ];
+          return g;
+        },
+        renderer: (c) => {
+          const r = new GraphRenderer(c, { directed: false });
+          const hl = {
+            nodes: { done: [0, 1], visited: [2, 3, 4, 5, 6, 7] },
+            edges: {
+              tree: [[1, 2]],                            // lightest crossing → SAFE
+              active: [[0, 3], [1, 3], [0, 5]],          // the other crossing edges
+              faded: [[0, 1], [2, 3], [3, 4], [3, 7], [4, 5], [5, 6], [4, 7]],
+            },
+          };
+          return { draw: (snap) => r.draw(snap, hl) };
+        },
+        label: "the cut { 0, 1 } | { 2…7 } — 4 edges cross it; the lightest is safe",
+        width: 900, height: 300,
+      },
       "kruskal": { ...mst(),
         renderer: [
           (c) => new GraphRenderer(c, { directed: false }),
