@@ -468,7 +468,7 @@ Every internal node has **exactly two** children — a **full** binary tree.
 <pre class="viz-fallback">
    say WHAT to compress, four ways:
      TEXT(the white fox jumped over the white fence)
-     SYM-FRQ(A-20,B-11,C-7)      SYM-RAND(A..H)
+     SYM-FRQ(a:20, b:17, c:11)   SYM-RAND(a..h)
      5, 9, 12, 13, 16, 45        (freqs for a, b, c, …)
    then merge the two smallest roots until one tree remains.
 [ interactive demo — open this deck on the course site ]

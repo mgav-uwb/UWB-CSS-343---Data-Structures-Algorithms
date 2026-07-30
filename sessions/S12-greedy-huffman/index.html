@@ -54,8 +54,9 @@
        Huffman bits with the ratio:
          TEXT(the white fox …)   count real characters (lower-cased; a space is
                                  a symbol, drawn ␣, and is usually the commonest)
-         SYM-FRQ(A-20,B-11,…)    symbol/frequency pairs, written out
-         SYM-RAND(A..H)          that range with seeded SKEWED frequencies
+         SYM-FRQ(a:20, b:17, …)  symbol/frequency pairs, in the same a:5 b:9
+                                 notation the slides use
+         SYM-RAND(a..h)          that range with seeded SKEWED frequencies
          5, 9, 12, …             bare frequencies for a, b, c, … (as before)
          huffman-build (Part 3)  Build animates the merges. Equal frequencies
                                  ("8, 8, 8, 8") → a balanced tree = no win.
@@ -73,14 +74,14 @@
       initial: CLRS,
       // four ways to say WHAT to compress; `raw` is the box text verbatim,
       // because parseSequence would keep only the digits
-      initialPlaceholder: "TEXT(…) · SYM-FRQ(A-20,…) · SYM-RAND(A..H) · 5, 9, 12",
-      initialTitle: "TEXT(real text) · SYM-FRQ(A-20,B-11) · SYM-RAND(A..H) · or plain frequencies for a, b, c, …",
+      initialPlaceholder: "TEXT(…) · SYM-FRQ(a:20, b:17) · SYM-RAND(a..h) · 5, 9, 12",
+      initialTitle: "TEXT(real text) · SYM-FRQ(a:20, b:17) · SYM-RAND(a..h) · or plain frequencies for a, b, c, …",
       initialWidth: 250,
       presets: [
         { name: "CLRS classic (5,9,12,13,16,45)", initial: CLRS },
         { name: "real text — spaces and all", initial: "TEXT(the white fox jumped over the white fence by the white house)" },
-        { name: "written-out pairs", initial: "SYM-FRQ(A-20,B-11,C-7,D-3,E-2)" },
-        { name: "random skewed frequencies", initial: "SYM-RAND(A..H)" },
+        { name: "written-out pairs", initial: "SYM-FRQ(a:20, b:17, c:11, d:6, e:3)" },
+        { name: "random skewed frequencies", initial: "SYM-RAND(a..h)" },
         { name: "equal frequencies — no win", initial: "8, 8, 8, 8" },
       ],
       buildAll: (s, keys, vals, method, raw) => s.buildInput(raw, keys),
