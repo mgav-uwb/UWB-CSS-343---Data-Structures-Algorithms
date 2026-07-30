@@ -370,9 +370,28 @@
         failure is structural rather than a silly rule: committing to \(A\)
         consumes capacity the optimum spends better, and nothing later can undo
         it. <em>No</em> optimal solution contains \(A\), so the greedy-choice
-        property fails outright. This problem has optimal substructure but
-        <em>not</em> that property, so it needs dynamic programming
-        (<a href="ch15-dp-ii.html">Chapter&nbsp;15</a>).
+        property fails outright.
+        <br><br>
+        The natural response is to blame the rule and pick another &mdash; and on
+        this instance that works, since sorting by <em>value</em> or by
+        <em>weight</em> takes \(C\) then \(B\) and reaches \(220\). But no
+        rule survives a second instance. Take \(W = 10\) with
+        \(X = (10, 10)\), \(Y = (6, 5)\), \(Z = (6, 5)\), where the optimum
+        is \(Y + Z = 12\):
+        <table>
+          <tr><th>rule</th><th>instance 1 (opt 220)</th><th>instance 2 (opt 12)</th></tr>
+          <tr><td>highest value &middot; heaviest first</td><td>220 &#10003;</td><td>10 &#10007;</td></tr>
+          <tr><td>best value/weight &middot; lightest first</td><td>160 &#10007;</td><td>12 &#10003;</td></tr>
+        </table>
+        Each rule is optimal on one instance and wrong on the other, on three
+        items apiece. The conclusion is stronger than &ldquo;the ratio rule is
+        bad&rdquo;: <em>no</em> fixed priority order can work, because whichever
+        one you propose, an instance can be built to defeat it. That is what the
+        missing greedy-choice property means in practice &mdash; there is no
+        locally-best choice that is always safe &mdash; and it is why this
+        problem needs dynamic programming
+        (<a href="ch15-dp-ii.html">Chapter&nbsp;15</a>), which computes over all
+        choices instead of committing to one.
         Tellingly, the <em>fractional</em> knapsack &mdash; where you may take
         part of an item &mdash; <em>is</em> greedy-solvable: the fraction is
         exactly what lets the exchange argument go through without waste. On the

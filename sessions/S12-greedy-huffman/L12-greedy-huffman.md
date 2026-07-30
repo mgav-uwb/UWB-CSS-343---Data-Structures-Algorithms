@@ -182,7 +182,26 @@ Three items, **W = 50**. The natural greedy: best **value/weight** ratio first.
      C     120      30     4      best:   B + C      → 220
 ```
 
-Greedy's first pick **blocks** the better pair. 0/1 knapsack needs **DP** (L14–15).
+Greedy's first pick **blocks** the better pair. But notice: **heaviest-first** would have taken C then B — **220**, optimal. So just use *that* rule?
+
+--
+
+## Then use a different rule?
+
+A second instance, `W = 10`:
+
+```text
+   X: value 10, weight 10     opt: Y + Z = 12
+   Y: value  6, weight  5     but X alone fills the bag = 10
+   Z: value  6, weight  5
+```
+
+| rule | inst 1 (opt **220**) | inst 2 (opt **12**) |
+| --- | --- | --- |
+| highest **value** · **heaviest** first | 220 ✓ | 10 ✗ |
+| best **value/weight** · **lightest** first | 160 ✗ | 12 ✓ |
+
+Each wins on one, loses on the other. **No fixed order works** → **DP** (L14–15).
 
 --
 
