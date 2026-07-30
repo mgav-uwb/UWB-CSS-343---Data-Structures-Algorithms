@@ -41,14 +41,14 @@
 
 ## Reading
 
-**Sedgewick §5.5 (Huffman)** + **Erickson Ch 4 (Greedy)**
+**[Chapter 12 — Greedy & Huffman](../../handouts/ch12-greedy-huffman.html)** + **[Greedy Algorithms](../../handouts/greedy-algorithms.html)** — the course text
 
 - **the greedy method** — locally-best, never reconsider
 - **when it works** — greedy-choice + optimal substructure
 - **the exchange argument** — the correctness proof
 - **Huffman coding** — an optimal prefix-free code
 
-Reading quiz due before class.
+<small>Optional second takes: Sedgewick §5.5; Erickson Ch 4. Reading quiz due before class.</small>
 
 ---
 

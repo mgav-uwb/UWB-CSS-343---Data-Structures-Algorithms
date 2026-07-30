@@ -158,6 +158,7 @@
           <li><a href="#coins">The same rule, opposite fates</a></li>
           <li><a href="#license">The two licensing ingredients</a></li>
           <li><a href="#exchange">The exchange argument</a></li>
+          <li><a href="#rooms">The same events, a different question</a></li>
           <li><a href="#fails">Where greed fails</a></li>
           <li><a href="#course">Greedy in this course</a></li>
           <li><a href="#paradigms">Greedy among the paradigms</a></li>
@@ -257,9 +258,31 @@
       <div class="ex">
         <span class="tag">Example (activity selection)</span>
         Given activities each with a start and finish time, choose the most that
-        can share one room without overlapping. The greedy rule is <em>always
-        take the compatible activity that finishes earliest</em>. It is optimal,
-        by exchange: let \(g\) finish earliest overall, and let \(O\) be any
+        can share <em>one</em> room without overlapping. Take intervals to be
+        <strong>half-open</strong> \([s, f)\), so an activity finishing at
+        \(5\) and one starting at \(5\) do <em>not</em> conflict; with closed
+        intervals every number below changes. Five requests:
+      </div>
+
+      <pre>   t     1  2  3  4  5  6  7  8  9  10 11
+   a     ============                    TAKE   (room free at 5)
+   b        ============                 skip   (starts 2 &lt; 5)
+   c           ============              skip   (starts 3 &lt; 5)
+   d                       ======        TAKE   (starts 7 &ge; 5)
+   e                          =========  skip   (starts 8 &lt; 9)</pre>
+
+      <p>
+        The greedy rule is <em>always take the compatible activity that finishes
+        earliest</em>. Sorted by finish time the order is \(a(5), b(6), c(7),
+        d(9), e(11)\): take \(a\); \(b\) and \(c\) start before \(5\) and
+        are dropped for good; \(d\) starts at \(7 \ge 5\) and is taken;
+        \(e\) starts at \(8 &lt; 9\) and is dropped. Two activities, \(a\)
+        and \(d\) &mdash; three of the five requests are refused.
+      </p>
+
+      <div class="def">
+        <span class="tag">Why earliest-finish is optimal</span>
+        By exchange: let \(g\) finish earliest overall, and let \(O\) be any
         optimal schedule; its first activity finishes no earlier than \(g\), so
         replacing it with \(g\) keeps the schedule feasible (\(g\) frees the
         room soonest) and the same size. The activities starting after \(g\)
@@ -269,20 +292,86 @@
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="fails">5. Where greed fails</h2>
+      <h2 id="rooms">5. The same events, a different question</h2>
+      <p>
+        Activity selection maximizes how many requests fit in <em>one</em> room
+        and refuses the rest. Change one word &mdash; honour <em>every</em>
+        request, using as few rooms as possible, one activity per room at a time
+        &mdash; and it becomes <strong>interval partitioning</strong>. Same five
+        intervals as above, and the answers differ:
+      </p>
+
+      <pre>   t     1  2  3  4  5  6  7  8  9  10 11
+   a     ============
+   b        ============
+   c           ============
+   d                       ======
+   e                          =========
+   count 1  2  3  3  2  1  1  2  1  1</pre>
+
+      <p>
+        The <code>count</code> row is how many bars a vertical line crosses at
+        each instant. Its peak is \(3\), at \(t = 3\) and \(t = 4\), where
+        \(a\), \(b\) and \(c\) are all live. So this instance needs
+        \(3\) rooms while only \(2\) of its activities fit in one &mdash; two
+        different questions about one picture.
+      </p>
+
+      <div class="def">
+        <span class="tag">Why 3 is optimal &mdash; a matching bound, not an exchange</span>
+        <strong>Lower bound.</strong> If \(k\) intervals share an instant they
+        pairwise conflict, so no two of them can share a room and every schedule
+        uses at least \(k\) rooms. Here the maximum overlap is \(3\), so
+        \(\text{rooms} \ge 3\).<br>
+        <strong>Upper bound.</strong> The greedy processes intervals in
+        <em>start</em> order and puts each in any room that has come free,
+        opening a new room only when all are busy:
+        \(a \to R_1\), \(b \to R_2\), \(c \to R_3\), then \(d \to R_1\)
+        (free since \(5\)) and \(e \to R_2\) (free since \(6\)) &mdash;
+        \(3\) rooms. It can never beat the bound either: at the moment it opens
+        room number \(m\), the other \(m-1\) rooms are busy with intervals
+        that all overlap the one being placed, so \(m\) intervals are live at
+        that instant and the maximum overlap is at least \(m\).<br>
+        The two bounds meet, so the greedy and the number \(3\) are both
+        optimal. Notice this proof is <em>not</em> an exchange argument: when a
+        problem has an obvious lower bound, showing the greedy attains it is
+        usually the shorter road.
+      </div>
+
+      <p>
+        Both greedies are in Lecture&nbsp;12&rsquo;s <code>intervals</code>
+        demo, which runs either rule on the same editable set of intervals
+        &mdash; handy for checking that the two answers really do come apart.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="fails">6. Where greed fails</h2>
       <div class="aside">
         <span class="tag">The 0/1 knapsack</span>
         Given items with a value and a weight and a knapsack of capacity
         \(W\), take each item whole or not to maximize value. The natural
         greedy &mdash; take items by value-to-weight ratio, highest first
-        &mdash; can be far from optimal, because one heavy high-ratio item can
-        block two lighter items that together beat it. This problem has optimal
-        substructure but <em>not</em> the greedy-choice property, so it needs
-        dynamic programming (<a href="ch15-dp-ii.html">Chapter&nbsp;15</a>).
+        &mdash; can be far from optimal. Three items and \(W = 50\) break it:
+        <pre>   item   value  weight  ratio
+     A      60      10     6      greedy: A, then B  &rarr; 160
+     B     100      20     5              20 capacity wasted
+     C     120      30     4      best:   B + C      &rarr; 220</pre>
+        Greedy takes \(A\) (the densest), then \(B\), filling \(30\) of the
+        \(50\) units for value \(160\) &mdash; and now \(C\) no longer fits.
+        But \(B + C\) weighs exactly \(50\) and is worth \(220\). The
+        failure is structural rather than a silly rule: committing to \(A\)
+        consumes capacity the optimum spends better, and nothing later can undo
+        it. <em>No</em> optimal solution contains \(A\), so the greedy-choice
+        property fails outright. This problem has optimal substructure but
+        <em>not</em> that property, so it needs dynamic programming
+        (<a href="ch15-dp-ii.html">Chapter&nbsp;15</a>).
         Tellingly, the <em>fractional</em> knapsack &mdash; where you may take
         part of an item &mdash; <em>is</em> greedy-solvable: the fraction is
-        exactly what lets the exchange argument go through without waste. A
-        small change to the problem flips which technique applies.
+        exactly what lets the exchange argument go through without waste. On the
+        same three items the ratio rule takes \(A\), \(B\), and \(20/30\) of
+        \(C\), reaching \(160 + 80 = 240\) &mdash; above the \(0/1\) optimum
+        of \(220\), because the wasted capacity is gone. A small change to the
+        problem flips which technique applies.
       </div>
       <div class="aside">
         <span class="tag">When is greedy <em>always</em> optimal? Matroids</span>
@@ -306,7 +395,7 @@
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="course">6. Greedy in this course</h2>
+      <h2 id="course">7. Greedy in this course</h2>
       <table>
         <tr><th>algorithm</th><th>the greedy choice</th><th>proof of safety</th><th>treated in</th></tr>
         <tr><td><strong>Dijkstra</strong></td><td>settle the nearest unsettled vertex</td>
@@ -334,7 +423,7 @@
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="paradigms">7. Greedy among the paradigms</h2>
+      <h2 id="paradigms">8. Greedy among the paradigms</h2>
       <table>
         <tr><th>paradigm</th><th>idea</th><th>when it applies</th></tr>
         <tr><td><strong>brute force</strong></td>
@@ -367,7 +456,7 @@
       </p>
 
       <!-- ============================================================ -->
-      <h2 id="ex">8. Exercises (with solutions)</h2>
+      <h2 id="ex">9. Exercises (with solutions)</h2>
       <ol>
         <li>
           Using the greedy &ldquo;largest coin first&rdquo; rule with

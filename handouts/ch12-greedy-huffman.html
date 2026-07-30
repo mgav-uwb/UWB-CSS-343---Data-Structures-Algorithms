@@ -601,6 +601,18 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
         and is exactly optimal among codes that use an integer number of bits per
         symbol.
       </div>
+      <p>
+        It is worth putting a number on that guarantee rather than leaving it
+        abstract. For this chapter&rsquo;s own frequencies,
+        \[ H \;=\; -\!\!\sum_{s \in \{a,\dots,f\}} p_s \log_2 p_s \;=\; 2.2199
+           \ \text{bits/symbol} \;\Longrightarrow\; 222 \ \text{bits}, \]
+        against Huffman&rsquo;s \(224\) &mdash; a gap of \(0.02\) bits per
+        symbol, not the \(1\) bit the theorem allows. The bound is a worst
+        case, and Huffman is usually far inside it. Note also that \(222\) is a
+        floor no prefix code can reach here, not a target: attaining it would
+        need fractional code lengths, which is precisely what the next paragraph
+        is about.
+      </p>
       <div class="aside">
         <span class="tag">Kraft&rsquo;s inequality: which code lengths are even possible</span>
         Before asking which prefix code is <em>best</em>, ask which are <em>legal</em>.
