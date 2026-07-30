@@ -57,21 +57,35 @@
          heap-insert  (Part 4)  Insert only — swim
          heap-ops     (Part 5)  Insert + Delete Max — the live PQ
          heap-heapify (Part 6)  raw array + Heapify only
-         heap-sort    (Part 8)  Heapify / Sort Down / Heapsort -->
+         heap-sort    (Part 8)  Heapify / Sort Down / Heapsort
+
+       BUILD METHOD: the build box takes a METHOD(keys) wrapper (see
+       core/sequence.js), and `allow` is what each slide offers — first entry
+       is its default, which is what a bare "1..36:1:RAND" means. So the same
+       keys can be built either way in front of the class:
+         INSERT(1..24:1:ZIG)   n swims           HEAPIFY(1..36:1:RAND)  Θ(n)
+         RAW(1..36:1:RAND)     no build — press Heapify yourself
+       Parts 4-5 default to INSERT (heapify is not introduced until Part 6);
+       Parts 6 and 8 default to RAW, so the slide still opens on an un-heapified
+       array and the Heapify button is the reveal. -->
   <script type="module">
     import { initDeckDemos, MaxHeap, ArrayRenderer, HeapTreeRenderer } from "../../lib/deck.js";
     const dualRenderer = () => [
       (c) => new ArrayRenderer(c, { mode: "cells" }),
       (c) => new HeapTreeRenderer(c),
     ];
+    // build(...allow) → a buildAll that honours the box's METHOD(keys) wrapper,
+    // restricted to the methods this slide offers
+    const build = (...allow) => (s, keys, vals, method) => s.buildBy(keys, method, allow);
     initDeckDemos({
       "heap-insert": {
         title: "heap",
         make: () => new MaxHeap(),
         // the deck's your-turn heap — predict where 85 lands, then Insert 85 here
-        initial: "90,80,70,30,60,50",
+        initial: "INSERT(90,80,70,30,60,50)",
         renderer: dualRenderer(),
-        buildStep: (s, k) => s.insert(k),
+        buildAll: build("insert", "heapify"),
+        initialBuilt: true,   // opens on the built heap, as before
         ops: [
           { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
         ],
@@ -81,9 +95,10 @@
       "heap-ops": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "1..24:1:ZIG",
+        initial: "INSERT(1..24:1:ZIG)",
         renderer: dualRenderer(),
-        buildStep: (s, k) => s.insert(k),
+        buildAll: build("insert", "heapify"),
+        initialBuilt: true,
         ops: [
           { name: "Insert", arg: "number", run: (s, v) => s.insert(v) },
           { name: "Delete Max", run: (s) => s.delMax() },
@@ -94,10 +109,10 @@
       "heap-heapify": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "1..36:1:RAND",
+        initial: "RAW(1..36:1:RAND)",
         renderer: dualRenderer(),
-        loadRaw: true,
-        stateMsg: () => "raw array — press Heapify",
+        buildAll: build("raw", "heapify", "insert"),
+        stateMsg: () => "raw array — press Heapify (or Build with HEAPIFY(…) to animate the whole build)",
         ops: [
           { name: "Heapify", run: (s) => s.heapify() },
         ],
@@ -107,14 +122,18 @@
       "heap-sort": {
         title: "heap",
         make: () => new MaxHeap(),
-        initial: "1..16:1:RAND",
+        initial: "RAW(1..16:1:RAND)",
         renderer: dualRenderer(),
-        loadRaw: true,
+        buildAll: build("raw", "heapify", "insert"),
         stateMsg: () => "raw array — press Heapify, then Sort Down (or Heapsort for both at once)",
+        // Sort Down dims until the array IS a heap — asked of the structure, so
+        // it lights up after a Heapify op OR a HEAPIFY(…) build, and goes dark
+        // again once a finished sort has left the array in ascending order
         ops: [
-          { name: "Heapify", run: (s) => s.heapify(), setsFlag: "heapified" },
-          { name: "Sort Down", run: (s) => s.sinkDown(), requiresFlag: "heapified", clearsFlag: "heapified" },
-          { name: "Heapsort", run: (s) => s.heapsort(), clearsFlag: "heapified" },
+          { name: "Heapify", run: (s) => s.heapify() },
+          { name: "Sort Down", run: (s) => s.sinkDown(),
+            enabledWhen: (s) => s.size() > 1 && s.isHeap(), requires: "a valid heap — Heapify first" },
+          { name: "Heapsort", run: (s) => s.heapsort() },
         ],
         costs: ["compare", "swap"], chrome: { showCosts: true },
         width: 1000, height: [75, 130],
