@@ -348,9 +348,17 @@
       <h2 id="fails">6. Where greed fails</h2>
       <div class="aside">
         <span class="tag">The 0/1 knapsack</span>
-        Given items with a value and a weight and a knapsack of capacity
-        \(W\), take each item whole or not to maximize value. The natural
-        greedy &mdash; take items by value-to-weight ratio, highest first
+        A bag carries at most \(W\) kilos; item \(i\) has value \(v_i\) and
+        weight \(w_i\). Choose a <em>subset</em> \(S\) of the items to pack:
+        \[ \text{maximize} \ \sum_{i \in S} v_i \quad \text{subject to}
+           \ \sum_{i \in S} w_i \le W. \]
+        Each item is all-or-nothing &mdash; take it (\(1\)) or leave it
+        (\(0\)), which is what the name <em>0/1</em> records: the decision
+        variable per item is binary. Two neighbours differ only in that
+        variable&rsquo;s range. <em>Fractional</em> knapsack lets it be any value
+        in \([0,1]\) (take \(40\%\) of an item), and <em>unbounded</em>
+        knapsack lets it be any non-negative integer (unlimited copies). The
+        natural greedy &mdash; take items by value-to-weight ratio, highest first
         &mdash; can be far from optimal. Three items and \(W = 50\) break it:
         <pre>   item   value  weight  ratio
      A      60      10     6      greedy: A, then B  &rarr; 160

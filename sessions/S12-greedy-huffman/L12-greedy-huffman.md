@@ -76,11 +76,11 @@ You watched it **win** (US coins; Dijkstra) and **lose** ({1,3,4} making 6: gree
 
 ## You've already seen greedy
 
-| algorithm | greedy choice |
-|---|---|
-| **Dijkstra** | settle the **nearest** unsettled vertex |
-| **Prim** | add the **lightest** edge leaving the tree |
-| **Kruskal** | take the **cheapest** edge that avoids a cycle |
+| algorithm    | greedy choice                                  |
+| ------------ | ---------------------------------------------- |
+| **Dijkstra** | settle the **nearest** unsettled vertex        |
+| **Prim**     | add the **lightest** edge leaving the tree     |
+| **Kruskal**  | take the **cheapest** edge that avoids a cycle |
 
 Tonight: the general pattern, and **Huffman**.
 
@@ -95,7 +95,6 @@ Tonight: the general pattern, and **Huffman**.
 ```
 
 Greedy is the **cheapest** approach — **if** the problem allows it.
-
 
 --
 
@@ -112,10 +111,10 @@ Greedy is correct exactly when the problem has:
 
 Two different guarantees — don't confuse them:
 
-| property | says | example |
-|---|---|---|
-| **greedy-choice** | the local best is **safe** to commit | take the nearest vertex |
-| **optimal substructure** | the rest is a **smaller same problem** | shortest path minus its first edge |
+| property                 | says                                             | example                            |
+| ------------------------ | ------------------------------------------------ | ---------------------------------- |
+| **greedy-choice**        | the local best is **safe** to commit             | take the nearest vertex            |
+| **optimal substructure** | what is left is the **same problem but smaller** | shortest path minus its first edge |
 
 You need **both**; DP needs only the second.
 
@@ -156,9 +155,25 @@ Solve the subproblem the **same greedy way** — recursion bottoms out at the an
 
 --
 
+## The 0/1 knapsack problem
+
+A bag carries at most **W** kilos. Item `i` has value `v[i]` and weight `w[i]`. Choose a **subset** to pack:
+
+```text
+   maximize    Σ v[i]   over the chosen items
+   subject to  Σ w[i]  ≤  W
+
+   each item is ALL or NOTHING: take it (1) or
+   leave it (0) — hence "0/1". No halves, no seconds.
+```
+
+The **only** freedom is *which subset* — and that one restriction is what breaks greedy.
+
+--
+
 ## When greedy FAILS: 0/1 knapsack
 
-Capacity **W = 50**; take each item whole or not. Greedy = best **value/weight** first:
+Three items, **W = 50**. The natural greedy: best **value/weight** ratio first.
 
 ```text
    item   value  weight  ratio
@@ -636,11 +651,11 @@ The **more skewed** the frequencies, the **bigger** the win.
 
 ## Huffman vs simpler codes
 
-| code | good when | weakness |
-|---|---|---|
-| **fixed-length** | simplicity | ignores skew |
+| code                 | good when                   | weakness               |
+| -------------------- | --------------------------- | ---------------------- |
+| **fixed-length**     | simplicity                  | ignores skew           |
 | **run-length (RLE)** | long **runs** (`aaaa`→`a4`) | useless on varied text |
-| **Huffman** | **frequency** skew | needs frequencies |
+| **Huffman**          | **frequency** skew          | needs frequencies      |
 
 Real compressors **combine** them (e.g. RLE/LZ **then** Huffman).
 
@@ -707,12 +722,12 @@ A 1952 student's term paper, still everywhere.
 
 ## The greedy quartet
 
-| algorithm | greedy choice | proof |
-|---|---|---|
-| **Dijkstra** | nearest unsettled vertex | exchange |
-| **Prim** | lightest edge leaving tree | cut property |
-| **Kruskal** | cheapest safe edge | cut property |
-| **Huffman** | merge two rarest | exchange |
+| algorithm    | greedy choice              | proof        |
+| ------------ | -------------------------- | ------------ |
+| **Dijkstra** | nearest unsettled vertex   | exchange     |
+| **Prim**     | lightest edge leaving tree | cut property |
+| **Kruskal**  | cheapest safe edge         | cut property |
+| **Huffman**  | merge two rarest           | exchange     |
 
 One pattern, four classics — all built from structures you already had.
 
