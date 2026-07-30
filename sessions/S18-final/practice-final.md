@@ -40,11 +40,13 @@ then execute `find(1)` and `find(7)`. Give **(i)** the two find results (2 pts) 
 
 Give the edges in the order Kruskal **accepts** them, written as `u-v` pairs comma-separated (2 pts), the **first edge it skips** as `u-v` (1 pt), and the **MST weight** (1 pt).
 
-## Q3 — Articulation points (8 pts)
+## Q3 — Quicksort partition & selection (8 pts)
 
-An **undirected** graph on {A, B, C, D, E, F, G, H} with edges: A–B · A–C · B–C · C–D · D–F · F–E · D–E · F–G · G–H.
+Array: `6, 9, 2, 8, 3, 5`
 
-Run the (seq, low) algorithm from **A**, visiting neighbors alphabetically. **(a)** Give (seq, low) for every vertex (6 pts). **(b)** List the articulation points (2 pts).
+Run **one Lomuto partition** over the whole array, using the **last element as the pivot**: scan left to right with `i` marking the end of the `< pivot` region; every element `< pivot` is swapped to `a[i]` and `i` advances; finally the pivot is swapped into `a[i]`.
+
+**(a)** the array after the partition, comma-separated (2 pts) · **(b)** the pivot's final index, 0-based (2 pts) · **(c)** quickselect is looking for the **3rd smallest** — after this partition does it recurse **left**, recurse **right**, or is it **done** (2 pts)? · **(d)** the 3rd smallest value (2 pts)
 
 ## Q4 — Huffman coding (8 pts)
 
@@ -132,7 +134,7 @@ Run **Dijkstra from vertex 0**. Give `dist[v]`, the shortest-path distance, for 
 **Q2.** (a) find(1)=3, find(7)=7 · parent[] = `[3, 3, 3, 3, 5, 7, 7, 7, 9, 3]`
 (b) accepted: `2-8,7-6,0-1,5-6,7-8,2-3,1-2,3-4` · first skip: `4-5` (endpoints already connected) · weight **36**
 
-**Q3.** (a) A(1,1) B(2,1) C(3,1) D(4,4) E(5,4) F(6,4) G(7,7) H(8,8) · (b) **C,D,F,G**
+**Q3.** (a) `2,3,5,8,9,6` · (b) **2** · (c) **done** · (d) **5**
 
 **Q4.** (a) a=01 c=1010 d=11 f=10111 g=10110 · (b) `10111011100` · (c) 11 bits
 

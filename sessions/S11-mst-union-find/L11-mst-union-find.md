@@ -842,13 +842,15 @@ Skip the PQ — each round, **scan all vertices** for the nearest to the tree:
 
 ---
 
-### Part 5 · Wrap, an aside & ICA 11
+### Part 5 · Wrap, an optional aside & ICA 11
 
 <small>(~16 min)</small>
 
 --
 
 ## Aside: articulation points
+
+<small>**Optional — not on the final.** One more thing DFS gives you, if time allows.</small>
 
 An **articulation point** is a vertex whose **removal disconnects** the graph — a single point of failure.
 
