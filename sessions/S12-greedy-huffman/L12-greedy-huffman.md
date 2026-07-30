@@ -315,28 +315,45 @@ Same three items, same W = 50 — but now you may take **part** of an item:
 
 --
 
-## The compression problem
+## What a code is
 
-Store text in **fewer bits**. A **fixed-length** code wastes space:
+A computer stores text as **bits**, so every symbol needs a bit pattern. The distinct symbols are the **alphabet**; a **code** gives each one a **codeword**:
 
 ```text
-   6 symbols → 3 bits each (000..101)
-   but 'e' appears 100× and 'z' once — same 3 bits?!
+   alphabet   a   b   c   d   e   f      6 symbols
+   codewords  000 001 010 011 100 101    3 bits each
+
+   encode "cab"  →  010 · 000 · 001  →  010000001
+   decode        →  chop into 3s, look each up
 ```
 
-Idea: give **frequent** symbols **short** codes, **rare** ones long codes — a **variable-length** code.
+**Cost** of a code on a text = total bits = `Σ freq(s) × len(codeword(s))`.
+
+--
+
+## The compression problem
+
+**Minimize that sum.** A fixed-length code cannot: every symbol pays the same width, however often it appears.
+
+```text
+   freqs   a:5  b:9  c:12  d:13  e:16  f:45   (100 chars)
+   fixed   every symbol 3 bits → 100 × 3 = 300 bits
+           f appears 45× and still pays 3
+```
+
+Idea: **frequent** symbols get **short** codewords, rare ones long — a **variable-length** code.
 
 --
 
 ## Fixed vs variable — the numbers
 
 ```text
-   symbols a b c d e f, total 100 chars
-   fixed 3-bit:  100 × 3          = 300 bits
-   variable:     Σ freq · codelen = 224 bits   (Huffman)
+   fixed 3-bit:   100 × 3           = 300 bits
+   Huffman:       Σ freq · codelen  = 224 bits
+                                      25% smaller
 ```
 
-The saving comes entirely from **skew** — a few symbols dominate. Uniform frequencies → no win.
+The saving comes entirely from **skew** — a few symbols dominate. Uniform frequencies → **no win at all**.
 
 --
 
@@ -348,7 +365,7 @@ Variable-length codes can be **ambiguous**:
    a=0  b=1  c=01     "01" = "ab"?  or  "c"?  💥
 ```
 
-We need codes that decode **uniquely** — no code is a **prefix** of another.
+We need codes that decode **uniquely** — no codeword may be a **prefix** of another.
 
 --
 
@@ -366,7 +383,9 @@ Put symbols at the **leaves** of a binary tree; the path (**left=0, right=1**) i
       c    ...        leaves only → prefix-free!
 ```
 
-Since symbols are only at **leaves**, no code is a prefix of another.
+Since symbols sit only at **leaves**, no codeword is a prefix of another.
+
+<small>A **trie** is a tree whose *paths* spell things out — here each root-to-leaf path spells one codeword. Sedgewick's name for this shape; L16 studies tries in their own right.</small>
 
 --
 
@@ -557,7 +576,7 @@ The `fx + fy` term is a **constant** → optimal `T′` ⟺ optimal `T`. Inducti
 
 ## Encoding
 
-Replace each symbol with its code; **concatenate** the bits:
+Replace each symbol with its **codeword**; **concatenate** the bits:
 
 ```text
    text  "face"
@@ -681,7 +700,7 @@ Huffman is guaranteed **within 1 bit** of H per symbol — here it lands within 
 - needs **frequencies up front** (two passes / send the table)
 - integer bits/symbol → up to ~1 bit slack vs entropy
 - **adaptive Huffman** builds the tree as it reads
-- modern: **LZ77 + Huffman** (DEFLATE) · arithmetic / ANS
+- modern: **LZ77 + Huffman** (DEFLATE) · arithmetic coding / **ANS** (asymmetric numeral systems)
 
 --
 

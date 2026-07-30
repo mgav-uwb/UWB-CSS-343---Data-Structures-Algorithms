@@ -157,9 +157,22 @@
       <!-- ============================================================ -->
       <h2 id="huffman">1. Huffman coding: an optimal prefix-free code</h2>
       <p>
-        The problem is data compression: store text in fewer bits. A
-        <strong>fixed-length</strong> code &mdash; \(3\) bits for each of \(6\)
-        symbols &mdash; spends the same on a symbol that appears a hundred times as on
+        The problem is data compression: store text in fewer bits. Start with what
+        a code <em>is</em>. A computer stores text as bits, so every symbol needs a
+        bit pattern. The distinct symbols of the text form its
+        <strong>alphabet</strong>, and a <strong>code</strong> assigns each symbol a
+        <strong>codeword</strong> &mdash; a string of bits. To
+        <strong>encode</strong> a text you replace each symbol by its codeword and
+        concatenate; to <strong>decode</strong> you recover the symbols from the bit
+        stream. The quantity to minimize is the total length,
+        \[ \operatorname{cost} \;=\; \sum_{\text{symbols } s} f_s \cdot
+           \lvert \operatorname{codeword}(s) \rvert, \]
+        with \(f_s\) the number of times \(s\) occurs. A
+        <strong>fixed-length</strong> code gives every codeword the same width
+        &mdash; \(\lceil \log_2 6 \rceil = 3\) bits for \(6\) symbols, the same
+        idea as ASCII&rsquo;s \(8\) bits for \(256\). It is trivial to decode
+        (chop the stream into equal pieces), but it
+        spends the same on a symbol that appears a hundred times as on
         one that appears once, which is wasteful whenever the frequencies are skewed.
         A <strong>variable-length</strong> code fixes this by giving frequent symbols
         short codes and rare symbols long ones, lowering the <em>average</em> bits per
@@ -175,15 +188,18 @@
       <div class="def">
         <span class="tag">Definition (prefix-free code and its trie)</span>
         A code is <strong>prefix-free</strong> if no codeword is a prefix of another.
-        Such a code is exactly a binary <strong>trie</strong> with the symbols at its
-        <em>leaves</em>: the code of a symbol is the sequence of turns from the root
+        Such a code is exactly a binary <strong>trie</strong> &mdash; a tree whose
+        <em>paths</em> spell things out, here one codeword per root-to-leaf path
+        (Chapter&nbsp;16 studies tries in their own right) &mdash; with the symbols at
+        its <em>leaves</em>: the code of a symbol is the sequence of turns from the root
         (left \(= 0\), right \(= 1\)). Because a leaf is never an ancestor of another
         leaf, no code is a prefix of another, so decoding is unambiguous.
       </div>
       <p>
         Decoding a prefix-free code is a walk down the trie: read bits, turn left or
         right, and emit a symbol the instant you reach a leaf, then restart at the
-        root. The total encoded length of a text is
+        root. The cost above now reads off the tree, because a symbol&rsquo;s
+        codeword length <em>is</em> its depth:
         \[
           \operatorname{cost}(T) \;=\; \sum_{\text{symbols } s} f_s \cdot d_s,
         \]
