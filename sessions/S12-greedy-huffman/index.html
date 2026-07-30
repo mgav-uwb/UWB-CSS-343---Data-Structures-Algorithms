@@ -49,16 +49,18 @@
   <script src="../../lib/presenter.js"></script>
   <!-- Grid review: press G for a zoomable, linearized grid of all slides -->
   <script src="../../lib/grid-review.js"></script>
-  <!-- Unified library — stage-scoped interactive Huffman demos. The initial
-       box holds FREQUENCIES; they become symbols a, b, c, … in order:
-         huffman-build (Part 3)  editable frequencies (CLRS sample
-                                 "5, 9, 12, 13, 16, 45" = a..f); Build
-                                 animates the merges. Equal frequencies
-                                 ("10, 10, 10, 10") → a balanced tree =
-                                 no win over fixed-length.
-         huffman-codes (Part 4)  same engine + an Encode op: type any text
-                                 over a..f and watch the root-to-leaf walks
-                                 assemble the bits, then decode back. -->
+  <!-- Unified library — stage-scoped interactive demos. The Huffman initial box
+       takes any of four inputs, and every build reports ASCII vs fixed-length vs
+       Huffman bits with the ratio:
+         TEXT(the white fox …)   count real characters (lower-cased; a space is
+                                 a symbol, drawn ␣, and is usually the commonest)
+         SYM-FRQ(A-20,B-11,…)    symbol/frequency pairs, written out
+         SYM-RAND(A..H)          that range with seeded SKEWED frequencies
+         5, 9, 12, …             bare frequencies for a, b, c, … (as before)
+         huffman-build (Part 3)  Build animates the merges. Equal frequencies
+                                 ("8, 8, 8, 8") → a balanced tree = no win.
+         huffman-codes (Part 4)  same engine + an Encode op: type text and watch
+                                 the root-to-leaf walks assemble the bits. -->
   <script type="module">
     import { initDeckDemos, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
     // Part 2: ONE interval instance, both greedies — a[1,5) b[2,6) c[3,7) d[7,9)
@@ -69,11 +71,23 @@
     const base = () => ({
       make: () => new Huffman(),
       initial: CLRS,
-      buildAll: (s, keys) => s.build(keys),        // Build = ONE animated merge-by-merge trace
+      // four ways to say WHAT to compress; `raw` is the box text verbatim,
+      // because parseSequence would keep only the digits
+      initialPlaceholder: "TEXT(…) · SYM-FRQ(A-20,…) · SYM-RAND(A..H) · 5, 9, 12",
+      initialTitle: "TEXT(real text) · SYM-FRQ(A-20,B-11) · SYM-RAND(A..H) · or plain frequencies for a, b, c, …",
+      initialWidth: 250,
+      presets: [
+        { name: "CLRS classic (5,9,12,13,16,45)", initial: CLRS },
+        { name: "real text — spaces and all", initial: "TEXT(the white fox jumped over the white fence by the white house)" },
+        { name: "written-out pairs", initial: "SYM-FRQ(A-20,B-11,C-7,D-3,E-2)" },
+        { name: "random skewed frequencies", initial: "SYM-RAND(A..H)" },
+        { name: "equal frequencies — no win", initial: "8, 8, 8, 8" },
+      ],
+      buildAll: (s, keys, vals, method, raw) => s.buildInput(raw, keys),
       renderer: (c) => new TreeRenderer(c, { labels: "freq" }),
-      stateMsg: (s) => `Huffman trie — ${s.inorder()}; the numbers in the box are frequencies for a, b, c, …`,
+      stateMsg: (s) => s.statsLine() || `Huffman trie — ${s.inorder()}`,
       chrome: { showCosts: true },
-      width: 820, height: 205,
+      width: 900, height: 300,
     });
     initDeckDemos({
       "intervals": {
@@ -92,7 +106,7 @@
         width: 860, height: 210,
       },
       "huffman-build": { ...base(), costs: ["compare", "link", "alloc"] },
-      "huffman-codes": { ...base(), height: 195, costs: ["compare", "write"],
+      "huffman-codes": { ...base(), costs: ["compare", "write"],
         valPlaceholder: "text to encode",
         ops: [{ name: "Encode", arg: "string", run: (s, v) => s.codesWalk(v) }] },
     });

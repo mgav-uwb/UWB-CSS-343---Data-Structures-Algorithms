@@ -466,15 +466,16 @@ Every internal node has **exactly two** children — a **full** binary tree.
 
 <div class="algo-viz" data-algo="huffman-build">
 <pre class="viz-fallback">
-   frequencies a:5 b:9 c:12 d:13 e:16 f:45  (the CLRS example)
-   repeatedly merge the two smallest-frequency roots into a
-   new parent (freq = sum), until one tree remains. leaves =
-   symbols; the deeper the leaf, the longer (rarer) its code.
+   say WHAT to compress, four ways:
+     TEXT(the white fox jumped over the white fence)
+     SYM-FRQ(A-20,B-11,C-7)      SYM-RAND(A..H)
+     5, 9, 12, 13, 16, 45        (freqs for a, b, c, …)
+   then merge the two smallest roots until one tree remains.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Build** merges the **two smallest** roots each step — rare a, b sink deep; `f` gets 1 bit. Editable: try `10, 10, 10, 10` → a balanced tree, **no win**.</small>
+<small>Every build reports **ASCII · fixed-length · Huffman** bits and the ratio. `TEXT(…)` counts real characters — a space is a symbol, drawn `␣`. Try `8, 8, 8, 8`: **Huffman = fixed, no win**.</small>
 
 --
 
@@ -671,7 +672,7 @@ Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
 </pre>
 </div>
 
-<small>**Build**, then type text over `a…f` and **Encode** — the walks append bits; the last step **decodes** them back. Try `face` (11 bits).</small>
+<small>**Build**, then type text and **Encode** — the walks append bits; the last step **decodes** them back. Try `face` (11 bits) on the CLRS tree, or build from `TEXT(…)` first and encode a word from it.</small>
 
 --
 
