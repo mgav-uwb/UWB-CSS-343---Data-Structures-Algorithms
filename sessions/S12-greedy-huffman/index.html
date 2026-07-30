@@ -63,7 +63,7 @@
          huffman-codes (Part 4)  same engine + an Encode op: type text and watch
                                  the root-to-leaf walks assemble the bits. -->
   <script type="module">
-    import { initDeckDemos, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, ArrayRenderer, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
     // Part 2: ONE interval instance, both greedies — a[1,5) b[2,6) c[3,7) d[7,9)
     // e[8,11). Rooms → 3 (= the max overlap); Select → 2 (a, d). Same picture,
     // different question, different answer: that contrast is the slide's point.
@@ -85,10 +85,16 @@
         { name: "equal frequencies — no win", initial: "8, 8, 8, 8" },
       ],
       buildAll: (s, keys, vals, method, raw) => s.buildInput(raw, keys),
-      renderer: (c) => new TreeRenderer(c, { labels: "freq" }),
+      // both views at once, as the heap demos do: the ordered symbol:frequency
+      // pool above (smallest first — the next merge is the leftmost two) and
+      // the tree below. Frequency rides IN the node; the symbol labels leaves.
+      renderer: [
+        (c) => new ArrayRenderer(c, { mode: "cells", pointers: false }),
+        (c) => new TreeRenderer(c, { labels: "sym" }),
+      ],
       stateMsg: (s) => s.statsLine() || `Huffman trie — ${s.inorder()}`,
       chrome: { showCosts: true },
-      width: 900, height: 300,
+      width: 900, height: [66, 250],
     });
     initDeckDemos({
       "intervals": {
