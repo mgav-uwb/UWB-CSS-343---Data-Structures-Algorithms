@@ -23,10 +23,10 @@
   lemma slides (exchange Δcost algebra + the cost(T) = cost(T′) + fx + fy
   substructure identity), not postulated.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 14 (RECAP of L09's
-  definition + coin pair — do not re-teach) 0:18 P2 when-optimal 24 0:42 BREAK 10
-  0:52 P3 Huffman build 30 1:22 P4 prefix codes 26 1:48 P5 wrap 14 2:02 ICA
-  2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 greedy method 12 (RECAP of L09's
+  definition + coin pair — do not re-teach) 0:16 P2 when-optimal 28 (activity
+  selection + interval partitioning on ONE instance) 0:44 BREAK 10 0:54 P3
+  Huffman build 30 1:24 P4 prefix codes 24 1:48 P5 wrap 14 2:02 ICA 2:30 end.
 -->
 
 ## CSS 343
@@ -54,7 +54,7 @@ Reading quiz due before class.
 
 ### Part 1 · The greedy method
 
-<small>(~14 min)</small>
+<small>(~12 min)</small>
 
 --
 
@@ -99,21 +99,6 @@ Greedy is the **cheapest** approach — **if** the problem allows it.
 
 --
 
-## Another greedy win: fewest platforms
-
-Given event intervals, how few rooms/platforms serve them all?
-
-```text
-   sort all start & end times; sweep;
-   +1 platform on a start, −1 on an end;
-   the running MAX = platforms needed
-```
-
-Greedy sweep, O(n log n) — provably minimal.
-
-
---
-
 ## The two ingredients
 
 Greedy is correct exactly when the problem has:
@@ -138,7 +123,7 @@ You need **both**; DP needs only the second.
 
 ### Part 2 · When greedy is optimal
 
-<small>(~20 min)</small>
+<small>(~28 min)</small>
 
 --
 
@@ -173,15 +158,16 @@ Solve the subproblem the **same greedy way** — recursion bottoms out at the an
 
 ## When greedy FAILS: 0/1 knapsack
 
-Items with (value, weight); knapsack holds weight W. Take each item whole or not:
+Capacity **W = 50**; take each item whole or not. Greedy = best **value/weight** first:
 
 ```text
-   greedy by value/weight ratio → can be far from optimal
-   (a 3-item counterexample is worked in L15)
-   0/1 knapsack needs DYNAMIC PROGRAMMING (next week)
+   item   value  weight  ratio
+     A      60      10     6      greedy: A, then B  → 160
+     B     100      20     5              20 capacity wasted
+     C     120      30     4      best:   B + C      → 220
 ```
 
-The **fractional** knapsack (take fractions) *is* greedy-solvable.
+Greedy's first pick **blocks** the better pair. 0/1 knapsack needs **DP** (L14–15).
 
 --
 
@@ -191,21 +177,42 @@ The checklist for any proposed greedy rule:
 
 - **break it** — hunt a small counterexample ({1,3,4} took one line)
 - **prove it** — exchange argument + substructure
-- good sign: a clear sort key, no **blocking**
-- can block a better whole → likely **DP**
+- good sign: a clear sort key, and committing costs you nothing later
+- bad sign: **blocking** — an early pick eats a resource a better combination needed (knapsack's A) → reach for **DP**
 
 --
 
 ## Classic greedy: activity selection
 
-Pick the **most** non-overlapping activities (each `[start, finish]`) from a room:
+**One** room, five requests. Each is a half-open interval `[start, finish)` — one ending at 5 and one starting at 5 do **not** conflict. Seat as **many** as possible.
 
 ```text
-   greedy rule: always take the activity that FINISHES EARLIEST
-   among those that don't conflict with what you've picked
+   t     1  2  3  4  5  6  7  8  9  10 11
+   a     ============
+   b        ============
+   c           ============
+   d                       ======
+   e                          =========
 ```
 
-Sort by finish time; sweep once. **Provably optimal.**
+Greedy rule: take the activity that **finishes earliest** among those still compatible.
+
+--
+
+## Activity selection — the run
+
+Sort by **finish**: `a(5) b(6) c(7) d(9) e(11)`. Take the first, then skip anything that starts before the last finish.
+
+```text
+   t     1  2  3  4  5  6  7  8  9  10 11
+   a     ============                    TAKE   (room free at 5)
+   b        ============                 skip   (starts 2 < 5)
+   c           ============              skip   (starts 3 < 5)
+   d                       ======        TAKE   (starts 7 ≥ 5)
+   e                          =========  skip   (starts 8 < 9)
+```
+
+**2 activities**: `a` then `d`. Note b, c, e are never revisited.
 
 --
 
@@ -223,16 +230,67 @@ Then optimal substructure on the activities after `g`.
 
 --
 
-## Fractional knapsack IS greedy
+## Same events — how many rooms?
 
-Unlike 0/1, if you can take **fractions** of items:
+Now **every** request must be honoured. Rooms run in parallel, one activity per room at a time. **Minimize the rooms.**
 
 ```text
-   greedy: take items by value/weight ratio, highest first;
-   fill the last bit with a fraction of the next item
+   t     1  2  3  4  5  6  7  8  9  10 11
+   a     ============
+   b        ============
+   c           ============
+   d                       ======
+   e                          =========
+   count 1  2  3  3  2  1  1  2  1  1
 ```
 
-Optimal — because a fraction lets the exchange argument go through.
+At `t = 3` and `t = 4`, **three** events run at once → you need **at least 3** rooms.
+
+--
+
+## Why 3 rooms is optimal
+
+```text
+   LOWER BOUND   k events share an instant ⇒ they pairwise
+                 conflict ⇒ every schedule needs ≥ k rooms.
+                 max overlap here = 3, so rooms ≥ 3.
+
+   GREEDY        in START order, put each event in ANY free
+                 room; open a new room only if all are busy.
+                 a→R1  b→R2  c→R3  d→R1(free at 5)  e→R2(free at 6)
+```
+
+Greedy opens a room only when every open room is busy — and those all overlap the new event, so it never exceeds the max overlap. **3 = 3, so both are optimal.**
+
+--
+
+## 🎬 Demo — intervals
+
+<div class="algo-viz" data-algo="intervals">
+<pre class="viz-fallback">
+   a[1,5) b[2,6) c[3,7) d[7,9) e[8,11)
+   Rooms  — greedy by START time, reuse any free room → 3 rooms
+            (a,d share R1; b,e share R2; c alone in R3)
+   Select — greedy by FINISH time, one room → 2 activities (a, d)
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Same events, both questions. **Rooms** colours each bar by its room; **Select** greens the chosen ones. Editable `start finish` pairs — try making one event span everything.</small>
+
+--
+
+## Fractional knapsack IS greedy
+
+Same three items, same W = 50 — but now you may take **part** of an item:
+
+```text
+   greedy: highest ratio first; top off with a fraction
+   A(10) + B(20) = 30 used, value 160
+   + 20/30 of C  = 50 used, value 160 + 80 = 240
+```
+
+**240 > 220**: the fraction removes the waste that blocked greedy before.
 
 ---
 
@@ -320,7 +378,7 @@ The **deepest** leaves have the **longest** codes — so they should be the **ra
    → they pay the long-code penalty on the fewest occurrences
 ```
 
-Merging them is the safe greedy choice (proved in Part 4).
+Merging them is the safe greedy choice — **proved two slides on**.
 
 --
 
@@ -424,12 +482,12 @@ The heap is the bottleneck — and the reason we built it in L06.
 
 ## Practice — predict a code
 
-Frequencies `x:1  y:1  z:2  w:4`. Build the Huffman tree:
+Frequencies `x:1  y:1  z:2  w:4`. **Ties:** the node listed **earlier** becomes the **left** (0) child; a merged node joins at the **end** of the list.
 
 ```text
-   merge x+y → 2   pool: 2(z) 2(xy) 4(w)
-   merge 2+2 → 4   pool: 4(w) 4
-   merge 4+4 → 8   → root
+   merge x+y → 2   pool: 2(z) 4(w) 2(xy)
+   merge z+xy → 4  pool: 4(w) 4(zxy)
+   merge w+… → 8   → root
 ```
 
 <small>Codes: `w = 0` (freq 4, shallow), `z = 10`, `x = 110`, `y = 111`. The rarest (x, y) sink deepest; total = 4·1 + 2·2 + 1·3 + 1·3 = **14 bits**.</small> <!-- .element: class="fragment" -->
@@ -594,9 +652,12 @@ Shannon: the best possible average is the **entropy**
 
 ```text
    H = − Σ p·log₂ p   bits per symbol
+
+   tonight's frequencies:  H = 2.2199 → 222 bits
+   Huffman                     2.24   → 224 bits
 ```
 
-Huffman gets **within 1 bit** of H per symbol — optimal among **integer-length** codes.
+Huffman is guaranteed **within 1 bit** of H per symbol — here it lands within **0.02**.
 
 --
 
