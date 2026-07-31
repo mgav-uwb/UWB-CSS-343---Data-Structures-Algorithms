@@ -665,14 +665,15 @@ Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
 
 <div class="algo-viz" data-algo="huffman-codes">
 <pre class="viz-fallback">
-   with the trie built, ENCODE = look up each symbol's
-   root-to-leaf path; DECODE = walk the bits from the root,
-   emit a symbol at each leaf, restart.
-   "cab" → 100 1100 1101 → decode back to "cab"
+   three columns:  text  |  encoded bits  |  decoded text
+   ENCODE reads the left column, fills the middle.
+   DECODE reads the middle column, fills the right —
+   so the bits it consumes are the bits Encode just made.
+   "face" → 01100100111 → "face"
 </pre>
 </div>
 
-<small>**Encode** walks root-to-leaf per symbol and appends the bits. **Decode** then walks those bits from the root, emitting at each leaf — leave the box empty and it replays what you just encoded. Try `face` (11 bits), or `1010` → `df`.</small>
+<small>Three columns: **text · bits · decoded text**. Encode reads the left and fills the middle; Decode reads the middle and fills the right. The **input** column marks the character (or bit) being consumed; the **output** column shows the walk producing it, then the result. Sizes run underneath.</small>
 
 --
 
