@@ -114,8 +114,12 @@
       },
       "huffman-build": { ...base(), costs: ["compare", "link", "alloc"] },
       "huffman-codes": { ...base(), costs: ["compare", "write"],
-        valPlaceholder: "text to encode",
-        ops: [{ name: "Encode", arg: "string", run: (s, v) => s.codesWalk(v) }] },
+        valPlaceholder: "text, or bits to decode",
+        ops: [
+          { name: "Encode", arg: "string", desc: "text → bits", run: (s, v) => s.codesWalk(v) },
+          { name: "Decode", arg: "string", desc: "bits → text; empty replays the last Encode",
+            run: (s, v) => s.decodeWalk(v) },
+        ] },
     });
   </script>
 </body>

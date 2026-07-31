@@ -672,7 +672,7 @@ Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
 </pre>
 </div>
 
-<small>**Build**, then type text and **Encode** — the walks append bits; the last step **decodes** them back. Try `face` (11 bits) on the CLRS tree, or build from `TEXT(…)` first and encode a word from it.</small>
+<small>**Encode** walks root-to-leaf per symbol and appends the bits. **Decode** then walks those bits from the root, emitting at each leaf — leave the box empty and it replays what you just encoded. Try `face` (11 bits), or `1010` → `df`.</small>
 
 --
 
