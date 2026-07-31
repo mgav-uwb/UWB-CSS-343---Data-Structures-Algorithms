@@ -60,10 +60,13 @@
          5, 9, 12, …             bare frequencies for a, b, c, … (as before)
          huffman-build (Part 3)  Build animates the merges. Equal frequencies
                                  ("8, 8, 8, 8") → a balanced tree = no win.
-         huffman-codes (Part 4)  same engine + an Encode op: type text and watch
-                                 the root-to-leaf walks assemble the bits. -->
+         huffman-codes (Part 4)  the code USED: the tree on top (⇕ expands it
+                                 over the panels below), then text | bits |
+                                 decoded text. The text panel is the editable
+                                 input box — no separate value box — and each
+                                 symbol's colour marks the bits it produced. -->
   <script type="module">
-    import { initDeckDemos, ArrayRenderer, CodecRenderer, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, ArrayRenderer, codecSpec, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
     // Part 2: ONE interval instance, both greedies — a[1,5) b[2,6) c[3,7) d[7,9)
     // e[8,11). Rooms → 3 (= the max overlap); Select → 2 (a, d). Same picture,
     // different question, different answer: that contrast is the slide's point.
@@ -113,27 +116,18 @@
         width: 860, height: 210,
       },
       "huffman-build": { ...base(), costs: ["compare", "link", "alloc"] },
-      // Part 4: the code USED, in three columns — text · bits · decoded text.
-      // The middle column is the handoff, so Decode literally consumes what
-      // Encode produced. The output column alternates between the walk that is
-      // producing it and the result; the input column marks what it is reading.
+      // Part 4: the code USED. The tree on top (⇕ expands it over the panels),
+      // then text · bits · decoded text. The middle panel is the handoff, so
+      // Decode literally consumes what Encode produced; the left panel is the
+      // editable box, so the text is typed where it is read. Each symbol's
+      // colour marks its bits, so a colour run is one codeword.
       "huffman-codes": {
-        make: () => new Huffman(),
-        initial: CLRS,
-        initialPlaceholder: "TEXT(…) · SYM-FRQ(a:20, b:17) · SYM-RAND(a..h) · 5, 9, 12",
-        initialWidth: 230,
-        valInitial: "face", valPlaceholder: "text (Encode) / bits (Decode)", valWidth: 120,
-        buildAll: (s, keys, vals, method, raw) => s.buildCodec(raw, keys),
-        renderer: (c) => new CodecRenderer(c),
-        stateMsg: (s) => s.statsLine() || "build a code, then Encode",
-        costs: ["compare", "write"], chrome: { showCosts: true },
-        width: 940, height: 260,
-        ops: [
-          { name: "Encode", arg: "string", desc: "text → bits (left column to middle)",
-            run: (s, v) => s.encodeCodec(v || "face") },
-          { name: "Decode", arg: "string", desc: "bits → text (middle to right); empty decodes what Encode just produced",
-            run: (s, v) => s.decodeCodec(v) },
-        ] },
+        ...codecSpec(),
+        width: 900, height: [144, 100],
+        // the SIZES strip is this slide's scoreboard; the compare/write chips
+        // would push the caption off a 620-tall slide for less
+        chrome: { showValue: false, showCosts: false },
+      },
     });
   </script>
 </body>

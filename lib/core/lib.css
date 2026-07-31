@@ -13,6 +13,42 @@
 .u-vp-ctl button { width: 26px; height: 26px; padding: 0; font: 700 15px/1 system-ui, sans-serif; color: #4a5064; background: #fff; border: 1px solid #d5d9e4; border-radius: 6px; cursor: pointer; }
 .u-vp-ctl button:hover { border-color: #7c5cff; color: #7c5cff; }
 .u-player .u-canvas-wrap + .u-canvas-wrap { margin-top: 6px; }
+
+/* EXPAND (core/viewport.js): a short panel takes the demo's full height and
+   overlays the panels below it, instead of pushing them down */
+.u-player { position: relative; }
+.u-canvas-wrap.u-expanded { position: absolute; left: 0; right: 0; top: 0; z-index: 8;
+  box-shadow: 0 10px 34px rgba(20, 22, 40, 0.18); border-color: #d9d2ff; }
+.u-vp-ctl button.on { border-color: #7c5cff; color: #7c5cff; background: #f3f0ff; }
+
+/* the codec's three panels (core/renderers/codec.js) — DOM, not canvas, so the
+   input column is a real editable box; every item is coloured by its SYMBOL */
+.u-codec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.u-cx-col { display: flex; flex-direction: column; min-width: 0; }
+.u-cx-head { display: flex; align-items: baseline; gap: 6px; padding: 0 3px 3px; text-align: left;
+  font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
+.u-cx-col.is-active .u-cx-head .u-cx-name { color: #7c5cff; }
+.u-cx-hint { font-size: 10px; color: #b6bccb; }
+.u-cx-hint.is-on { color: #7c5cff; }
+.u-cx-body { flex: 1; min-height: 84px; border: 1px solid #e3e7ee; border-radius: 8px;
+  padding: 8px 9px; overflow: auto; background: #fff; text-align: left;
+  font: 600 17px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #1a1c22; word-break: break-word; }
+.u-cx-body.is-bits { font-size: 13px; letter-spacing: 0.5px; word-break: break-all; }
+.u-cx-col.is-active .u-cx-body { border-color: #7c5cff; box-shadow: 0 0 0 2px #f3f0ff; }
+.u-cx-body.is-edit { cursor: text; background: #fcfcff; }
+.u-cx-body.is-edit:focus { outline: none; border-color: #7c5cff; }
+.u-cx-body.is-edit:empty::before { content: "type text to encode"; color: #c3c9d4; font-weight: 500; }
+.u-cx-it { padding: 0 0.5px; border-radius: 3px; }
+.u-cx-it.is-todo { color: #1a1c22; }
+.u-cx-it.is-cur { color: #fff; padding: 1px 2px; }
+
+/* stats strip, under the transport (core/info-bar.js, place: "below") */
+.u-infobar.u-below { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 14px;
+  color: #3a3f4d; background: #f7f8fb; border-color: #e6e9f0; }
+.u-infobar.u-below .k { color: #8a93a6; font-weight: 600; }
+.u-infobar.u-below .v { color: #1a1c22; font-weight: 700; }
+.u-infobar.u-below .win { color: #0a7d4d; font-weight: 700; }
 .u-canvas-label { font: 600 12px system-ui; color: #66708a; text-align: center; padding: 0 0 2px; }
 .u-status { min-height: 1.5em; margin: 6px 2px 4px; color: #3a3f4d; font-size: 13.5px; }
 .u-transport { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

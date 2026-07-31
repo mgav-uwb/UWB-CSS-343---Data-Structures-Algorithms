@@ -665,15 +665,16 @@ Using tonight's codes (`f=0 c=100 d=101 e=111 a=1100 b=1101`):
 
 <div class="algo-viz" data-algo="huffman-codes">
 <pre class="viz-fallback">
-   three columns:  text  |  encoded bits  |  decoded text
-   ENCODE reads the left column, fills the middle.
-   DECODE reads the middle column, fills the right —
+   the tree on top; under it three panels:
+       text  |  encoded bits  |  decoded text
+   ENCODE reads the left panel, fills the middle.
+   DECODE reads the middle panel, fills the right —
    so the bits it consumes are the bits Encode just made.
-   "face" → 01100100111 → "face"
+   "face" → 01100100111 → "face"      (11 bits, not 32)
 </pre>
 </div>
 
-<small>Three columns: **text · bits · decoded text**. Encode reads the left and fills the middle; Decode reads the middle and fills the right. The **input** column marks the character (or bit) being consumed; the **output** column shows the walk producing it, then the result. Sizes run underneath.</small>
+<small>**text · bits · decoded text.** Encode fills the middle from the left, Decode the right from the middle — eating exactly what Encode made. One colour per symbol.</small>
 
 --
 
