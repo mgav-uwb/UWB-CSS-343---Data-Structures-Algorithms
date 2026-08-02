@@ -892,7 +892,7 @@ One increment per level; at most **one swap** per level.
 </pre>
 </div>
 
-<small>Encode, then Decode: the decoder starts from an **empty** tree and rebuilds the same one. Try `mississippi`, then a pangram to watch it lose.</small>
+<small>Encode, then Decode: the decoder starts from an **empty** tree and rebuilds the same one. **Grey** bits are the route to NYT; **coloured** bits are what names a symbol.</small>
 
 --
 
