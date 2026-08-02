@@ -690,6 +690,52 @@ The **more skewed** the frequencies, the **bigger** the win.
 
 --
 
+## Can Huffman lose to fixed?
+
+Not on the frequencies it was **built from**:
+
+- a fixed-length code **is** a prefix code — all leaves at one depth
+- Huffman is optimal over **all** prefix codes (Proofs 1–2)
+- therefore `cost(Huffman) ≤ cost(fixed)`, on those frequencies, always
+
+The tie: `8, 8, 8, 8` → the balanced tree, every code 2 bits, saving **0**.
+
+--
+
+## Loss #1 — the wrong text
+
+The **average-English** code, meeting three different texts:
+
+| text                    |  n | fixed 5-bit |        Huffman |
+| ----------------------- | -: | ----------: | -------------: |
+| `she sells sea shells…` | 37 |         185 |  **138** (75%) |
+| `the quick brown fox…`  | 43 |         215 |  **211** (98%) |
+| `jazzy vixen quips`     | 17 |          85 | **103** (121%) |
+
+`j z x q` cost **10 bits each** — the price of `e` and `␣` costing 3.
+
+--
+
+## Loss #2 — sending the table
+
+The decoder cannot decode without the code:
+
+```text
+   "mississippi"  (11 chars, 4 symbols)
+      ASCII                        88 bits
+      Huffman body                 21 bits
+      + the table (8+4+len each)   78 bits   ← still a win
+
+   "abracadabra"  (11 chars, 5 symbols)
+      ASCII                        88 bits
+      Huffman body                 23 bits
+      + the table                  96 bits   ← now a LOSS
+```
+
+Short message, many symbols → the table eats the saving.
+
+--
+
 ## Huffman vs simpler codes
 
 | code                 | good when                   | weakness               |
@@ -721,7 +767,7 @@ Huffman is guaranteed **within 1 bit** of H per symbol — here it lands within 
 
 - needs **frequencies up front** (two passes / send the table)
 - integer bits/symbol → up to ~1 bit slack vs entropy
-- **adaptive Huffman** builds the tree as it reads
+- **adaptive Huffman** builds the tree as it reads — Part 5
 - modern: **LZ77 + Huffman** (DEFLATE) · arithmetic coding / **ANS** (asymmetric numeral systems)
 
 --
@@ -736,7 +782,143 @@ A 1952 student's term paper, still everywhere.
 
 ---
 
-### Part 5 · Wrap & ICA 12
+### Part 5 · Adaptive Huffman
+
+<small>(~18 min)</small>
+
+--
+
+## Two passes, or one?
+
+Static Huffman:
+
+1. read the whole text — count frequencies
+2. build the tree
+3. encode
+4. **send the tree too**
+
+Streaming data has no step 1. Short messages cannot afford step 4.
+
+--
+
+## One tree, two machines
+
+Both sides start from the **same empty tree** and run the **same update** after every symbol.
+
+```text
+   encoder                          decoder
+   ───────                          ───────
+   emit code for s                  read bits → s
+   update(tree, s)                  update(tree, s)
+        │                                │
+        └──── identical trees, always ───┘
+```
+
+The decoder is always **one symbol behind** — and that is enough.
+
+--
+
+## NYT — the escape hatch
+
+- symbol **already** in the tree → send its path
+- symbol **brand new** → the path to **NYT**, then 8 plain ASCII bits
+- then NYT **splits** into a new NYT and the symbol's leaf
+
+```text
+   NYT    →      (1)       →       (2)
+                /   \               /   \
+             NYT     a           (1)     a
+                                /   \
+                             NYT     b
+```
+
+--
+
+## The sibling property
+
+Number the nodes bottom-up, left to right. A tree has the **sibling property** when
+
+```text
+   every node has a sibling, and
+   weight never decreases as the number grows
+```
+
+**Gallager's theorem:** a binary tree is a **Huffman tree** for its leaf weights **exactly when** it has the sibling property.
+
+--
+
+## The update rule
+
+```text
+   update(s):
+     node ← leaf(s)                       # new symbol: split NYT first
+     while node ≠ null:
+         leader ← highest-numbered node of the SAME weight
+         if leader exists and outranks node:
+             swap(node, leader)           # positions swap, numbers stay
+         node.weight ← node.weight + 1
+         node ← node.parent
+```
+
+One increment per level; at most **one swap** per level.
+
+--
+
+## "abracadabra", adaptively
+
+| symbol | in tree? | sent                       | bits | total |
+| ------ | -------- | -------------------------- | ---: | ----: |
+| `a`    | new      | (NYT is the root) + ASCII  |    8 |     8 |
+| `b`    | new      | `0` + ASCII                |    9 |    17 |
+| `r`    | new      | `00` + ASCII               |   10 |    27 |
+| `a`    | yes      | `0`                        |    1 |    28 |
+| `c`    | new      | `100` + ASCII              |   11 |    39 |
+| …      |          |                            |      |       |
+| `a`    | yes      | `0`                        |    1 |    60 |
+
+`a` has drifted to depth 1: **11 characters in 60 bits**, no table.
+
+--
+
+## 🎬 Demo — adaptive Huffman
+
+<div class="algo-viz" data-algo="adaptive-huffman">
+<pre class="viz-fallback">
+   the tree starts as one NYT leaf and reshapes as the text arrives;
+   red = the two nodes a swap just exchanged.
+   "abracadabra" → 60 bits → "abracadabra", no table sent.
+</pre>
+</div>
+
+<small>Encode, then Decode: the decoder starts from an **empty** tree and rebuilds the same one. Try `mississippi`, then a pangram to watch it lose.</small>
+
+--
+
+## Static vs adaptive, counted
+
+| text                        |  n | ASCII | static body | **+ table** | **adaptive** |
+| --------------------------- | -: | ----: | ----------: | ----------: | -----------: |
+| `abracadabra`               | 11 |    88 |          23 |          96 |       **60** |
+| `mississippi`               | 11 |    88 |          21 |          78 |       **53** |
+| `she sells sea shells…`     | 37 |   296 |         112 |         268 |      **191** |
+| `the quick brown fox…`      | 43 |   344 |         192 |         647 |          406 |
+
+Static's **body** always wins. Static's **total** often does not.
+
+--
+
+## Where adaptive matters
+
+- **streaming** — encode as the data arrives, no first pass
+- **no table** — the model is derived, not transmitted
+- it **tracks drift** — the code follows the text as its statistics change
+- the same idea, with a better model: **adaptive arithmetic coding**, **ANS**
+
+Cost: **O(depth)** per symbol, both sides.
+
+---
+
+### Part 6 · Wrap & ICA 12
 
 <small>(~14 min)</small>
 

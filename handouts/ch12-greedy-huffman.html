@@ -150,6 +150,7 @@
           <li><a href="#huffman">Huffman coding: an optimal prefix-free code</a></li>
           <li><a href="#proof">Why Huffman is optimal</a></li>
           <li><a href="#compress">Encoding, decoding, and the limits of compression</a></li>
+          <li><a href="#adaptive">Adaptive Huffman: coding without a table</a></li>
           <li><a href="#ex">Exercises (with solutions)</a></li>
         </ol>
       </div>
@@ -672,7 +673,142 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
       </div>
 
       <!-- ============================================================ -->
-      <h2 id="ex">4. Exercises (with solutions)</h2>
+      <h2 id="adaptive">4. Adaptive Huffman: coding without a table</h2>
+      <p>
+        Everything above assumes the frequencies are known before encoding starts.
+        That assumption costs twice. First, it forces <strong>two passes</strong>: read
+        the whole input to count, then read it again to encode &mdash; impossible for a
+        stream that has no end. Second, the decoder cannot decode without the code, so
+        the <strong>table travels with the message</strong>, and a table is not free.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (the table is not free)</span>
+        Spend \(8\) bits naming the symbol, \(4\) bits for its code length, and the
+        codeword itself, per symbol:
+        <pre>  "mississippi"  11 chars, 4 symbols     "abracadabra"  11 chars, 5 symbols
+     ASCII                 88 bits        ASCII                 88 bits
+     Huffman body          21 bits        Huffman body          23 bits
+     + the table           78 bits        + the table           96 bits
+                    still a win                            now a LOSS</pre>
+        The body is what the earlier sections counted; it is not what you transmit.
+        A short message with many distinct symbols spends most of its budget
+        introducing them.
+      </div>
+      <p>
+        There is a second, subtler failure. A Huffman code is optimal
+        <em>for the frequencies it was built from</em>, and only for those. Meet it
+        with a text drawn from some other distribution and it can cost more than the
+        fixed-length code it replaced &mdash; not because the algorithm went wrong, but
+        because the bet was wrong. Under a code built for average English prose
+        (26 letters plus the space, the space at 18% of characters),
+        <code>she sells sea shells on the sea shore</code> costs 138 bits against the
+        5-bit fixed code's 185, while <code>jazzy vixen quips</code> costs
+        <em>103 against 85</em>. The mechanism is Kraft's inequality: the codeword
+        lengths of any prefix code satisfy \(\sum_s 2^{-\ell_s} \le 1\), a fixed
+        budget, so buying <code>e</code> a 3-bit code forces <code>z</code> up to 10.
+        Huffman spends that budget where the <em>model</em> says the mass is.
+      </p>
+
+      <h3>One tree, two machines</h3>
+      <p>
+        Adaptive Huffman removes both problems at once. Encoder and decoder start from
+        the <strong>same empty tree</strong> and, after every symbol, run the
+        <strong>same update</strong>. The encoder codes symbol \(s\) with the tree
+        built from symbols \(1 \ldots s-1\); the decoder, having just decoded
+        \(1 \ldots s-1\), holds exactly that tree, so it can decode \(s\) &mdash;
+        and only then does either side update. No table is transmitted because none is
+        needed: it is derived, in lockstep, at both ends.
+      </p>
+      <p>
+        A symbol not yet seen has no leaf, so the tree keeps one weight-0 leaf called
+        <strong>NYT</strong> (&ldquo;not yet transmitted&rdquo;) whose path is the
+        escape prefix. Encoding a brand-new symbol emits the path to NYT followed by
+        the symbol&rsquo;s 8 plain ASCII bits; NYT then <em>splits</em> into a new NYT
+        and a leaf for that symbol. The very first symbol of a message is the
+        degenerate case worth checking: the tree <em>is</em> NYT, its path is empty,
+        and the symbol costs exactly its 8 raw bits.
+      </p>
+
+      <h3>The sibling property</h3>
+      <p>
+        Rebuilding a Huffman tree after every symbol would cost
+        \(\Theta(n \log n)\) each time. Instead the algorithm maintains the property
+        that <em>characterizes</em> Huffman trees. Number the nodes bottom-up, left to
+        right, so the root has the highest number. A tree has the
+        <strong>sibling property</strong> when every node has a sibling and weight
+        never decreases as the number grows.
+      </p>
+      <div class="ex">
+        <span class="tag">Gallager&rsquo;s theorem</span>
+        A binary tree is a Huffman tree for its leaf weights <em>exactly when</em> it
+        has the sibling property.
+      </div>
+      <p>
+        Nodes of equal weight form a <strong>block</strong>, and within a block the
+        numbering is free &mdash; that freedom is what the update exploits.
+        Incrementing one leaf can break the ordering in only one way: the node now
+        outweighs a same-weight node that sits higher in the numbering. Moving it into
+        that node&rsquo;s slot first repairs it.
+      </p>
+      <pre>  update(s):
+    node &larr; leaf(s)                       # a new symbol: split NYT first
+    while node &ne; null:
+        leader &larr; highest-numbered node of the SAME weight
+        if leader exists and outranks node:
+            swap(node, leader)            # positions swap, numbers stay behind
+        node.weight &larr; node.weight + 1
+        node &larr; node.parent</pre>
+      <p>
+        Numbers belong to <em>positions</em>, not to nodes, so a swap exchanges them
+        back; this is the detail implementations most often get wrong. Never swap with
+        a parent or a descendant &mdash; that tangles the tree instead of reordering
+        equals. The cost is one increment and at most one swap per level, so
+        \(O(d)\) per symbol on both sides, with \(d\) the current depth.
+      </p>
+
+      <div class="ex">
+        <span class="tag">Example (&ldquo;abracadabra&rdquo;, adaptively)</span>
+        <pre>  symbol  in tree?  sent                       bits   total
+    a     new       (NYT is the root) + ASCII    8       8
+    b     new       0 + ASCII                    9      17
+    r     new       00 + ASCII                  10      27
+    a     yes       0                            1      28
+    c     new       100 + ASCII                 11      39
+    ...
+    a     yes       0                            1      60</pre>
+        Eleven characters in 60 bits with no table, against ASCII&rsquo;s 88 and static
+        Huffman&rsquo;s 23-bit body plus 73-bit table. First appearances are expensive
+        and everything after is cheap: <code>a</code> has been promoted to depth 1, so
+        it costs a single bit.
+      </div>
+
+      <table>
+        <tr><th>text</th><th>n</th><th>ASCII</th><th>static body</th><th>+ table</th><th>adaptive</th></tr>
+        <tr><td><code>abracadabra</code></td><td>11</td><td>88</td><td>23</td><td>96</td><td><strong>60</strong></td></tr>
+        <tr><td><code>mississippi</code></td><td>11</td><td>88</td><td>21</td><td>78</td><td><strong>53</strong></td></tr>
+        <tr><td><code>she sells sea shells&hellip;</code></td><td>37</td><td>296</td><td>112</td><td>268</td><td><strong>191</strong></td></tr>
+        <tr><td><code>the quick brown fox&hellip;</code></td><td>43</td><td>344</td><td>192</td><td>647</td><td>406</td></tr>
+      </table>
+      <p>
+        Static Huffman&rsquo;s <em>body</em> is unbeatable among prefix codes for those
+        exact frequencies &mdash; that is the theorem of &sect;2 &mdash; but the body is
+        not the message. Priced honestly, adaptive wins all but the last row, where
+        nothing works: 27 distinct symbols in 43 characters means both schemes spend
+        their lives introducing symbols they never see again. Compression is a bet on
+        repetition, and no coder manufactures redundancy that is not there.
+      </p>
+      <p>
+        Adaptive Huffman itself is now mostly of historical and teaching interest
+        &mdash; modern compressors keep an adaptive <em>model</em> but pair it with
+        arithmetic coding or ANS, which escape Huffman&rsquo;s whole-bit-per-symbol
+        floor. What survives is the architecture: both ends maintain the same model
+        under the same update rule, so the model never has to be sent, and it adapts to
+        the data in front of it rather than to an average. A code that is provably
+        optimal is not automatically the code you ship.
+      </p>
+
+      <!-- ============================================================ -->
+      <h2 id="ex">5. Exercises (with solutions)</h2>
       <ol>
         <li>
           Build the Huffman tree for frequencies \(x{:}1,\ y{:}1,\ z{:}2,\ w{:}4\).
@@ -745,6 +881,40 @@ fn extract_codes(node: &amp;Node, path: String, code: &amp;mut HashMap&lt;char, 
             other prefix code, including the fixed-length one (which is itself a
             prefix code, the balanced tree). When frequencies are uniform, Huffman
             ties the fixed-length code; when skewed, it beats it.
+          </details>
+        </li>
+        <li>
+          A code built for average English gives <code>e</code> 3 bits and
+          <code>z</code> 10. Explain, using Kraft&rsquo;s inequality, why no prefix
+          code can give both of them short codewords, and what that implies about a
+          text made mostly of rare letters.
+          <details>
+            <summary>solution</summary>
+            Any prefix code satisfies \(\sum_s 2^{-\ell_s} \le 1\): each codeword of
+            length \(\ell\) claims a \(2^{-\ell}\) share of the leaf budget, and the
+            shares cannot exceed the whole. Giving <code>e</code> 3 bits spends
+            \(1/8\) of the budget on one symbol, so the remaining symbols must share
+            what is left and some are pushed deep. The lengths are therefore
+            competitive, not independent. A text made of rare letters pays those deep
+            codewords on every character, which is why <code>jazzy vixen quips</code>
+            costs 103 bits under the English code against the fixed code&rsquo;s 85.
+            Huffman is optimal for the frequencies it was given, not for whatever text
+            arrives.
+          </details>
+        </li>
+        <li>
+          In adaptive Huffman, why must the encoder update the tree <em>after</em>
+          emitting a symbol&rsquo;s codeword rather than before? What would break?
+          <details>
+            <summary>solution</summary>
+            The decoder can only reproduce the tree the encoder used if it has already
+            seen everything that tree was built from. It decodes symbol \(s\) using
+            the tree over symbols \(1 \ldots s-1\), so the encoder must have coded
+            \(s\) with that same tree &mdash; i.e. before applying \(s\)&rsquo;s
+            update. Updating first would code \(s\) with a tree that includes
+            \(s\)&rsquo;s own increment, which the decoder cannot construct until it
+            knows \(s\) &mdash; a circular dependency, and the streams desynchronize
+            from the first symbol.
           </details>
         </li>
         <li>

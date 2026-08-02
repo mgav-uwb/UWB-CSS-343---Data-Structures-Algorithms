@@ -24,6 +24,14 @@
 /* the codec's three panels (core/renderers/codec.js) — DOM, not canvas, so the
    input column is a real editable box; every item is coloured by its SYMBOL */
 .u-codec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+/* op buttons straddling the panel boundaries they move text across */
+.u-cx-acts { display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 2px 0 5px; }
+.u-cx-acts.is-on { display: grid; }
+.u-cx-act { justify-self: center; font: 700 12.5px system-ui, sans-serif; color: #fff;
+  background: #7c5cff; border: 1px solid #7c5cff; border-radius: 999px;
+  padding: 5px 18px; cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 160, 0.25); }
+.u-cx-act:hover { filter: brightness(1.07); }
+.u-cx-act:active { transform: translateY(1px); }
 .u-cx-col { display: flex; flex-direction: column; min-width: 0; }
 .u-cx-head { display: flex; align-items: baseline; gap: 6px; padding: 0 3px 3px; text-align: left;
   font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
@@ -49,6 +57,7 @@
 .u-infobar.u-below .k { color: #8a93a6; font-weight: 600; }
 .u-infobar.u-below .v { color: #1a1c22; font-weight: 700; }
 .u-infobar.u-below .win { color: #0a7d4d; font-weight: 700; }
+.u-infobar.u-below .lose { color: #b3261e; font-weight: 700; }
 .u-canvas-label { font: 600 12px system-ui; color: #66708a; text-align: center; padding: 0 0 2px; }
 .u-status { min-height: 1.5em; margin: 6px 2px 4px; color: #3a3f4d; font-size: 13.5px; }
 .u-transport { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

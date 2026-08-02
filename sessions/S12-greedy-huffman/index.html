@@ -66,7 +66,7 @@
                                  input box — no separate value box — and each
                                  symbol's colour marks the bits it produced. -->
   <script type="module">
-    import { initDeckDemos, ArrayRenderer, codecSpec, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, adaptiveCodecSpec, ArrayRenderer, codecSpec, Huffman, TreeRenderer, Intervals, IntervalRenderer } from "../../lib/deck.js";
     // Part 2: ONE interval instance, both greedies — a[1,5) b[2,6) c[3,7) d[7,9)
     // e[8,11). Rooms → 3 (= the max overlap); Select → 2 (a, d). Same picture,
     // different question, different answer: that contrast is the slide's point.
@@ -84,6 +84,7 @@
         { name: "CLRS classic (5,9,12,13,16,45)", initial: CLRS },
         { name: "real text — spaces and all", initial: "TEXT(the white fox jumped over the white fence by the white house)" },
         { name: "written-out pairs", initial: "SYM-FRQ(a:20, b:17, c:11, d:6, e:3)" },
+        { name: "average English (26 letters + space)", initial: "ENGLISH" },
         { name: "random skewed frequencies", initial: "SYM-RAND(a..h)" },
         { name: "equal frequencies — no win", initial: "8, 8, 8, 8" },
       ],
@@ -126,7 +127,15 @@
         width: 900, height: [144, 100],
         // the SIZES strip is this slide's scoreboard; the compare/write chips
         // would push the caption off a 620-tall slide for less
-        chrome: { showValue: false, showCosts: false },
+        chrome: { showValue: false, showOps: false, showCosts: false },
+      },
+      // Part 5: the same layout, but the tree is BUILT BY THE TEXT — no
+      // frequency box at all, and Decode starts from an empty tree to show it
+      // reaches the same one. Red = the two nodes a swap just exchanged.
+      "adaptive-huffman": {
+        ...adaptiveCodecSpec(),
+        width: 900, height: [150, 96],
+        chrome: { showValue: false, showOps: false, showClear: false, showCosts: false },
       },
     });
   </script>
