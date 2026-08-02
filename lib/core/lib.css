@@ -24,17 +24,22 @@
 /* the codec's three panels (core/renderers/codec.js) — DOM, not canvas, so the
    input column is a real editable box; every item is coloured by its SYMBOL */
 .u-codec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-/* op buttons straddling the panel boundaries they move text across */
-.u-cx-acts { display: none; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 2px 0 5px; }
-.u-cx-acts.is-on { display: grid; }
-.u-cx-act { justify-self: center; font: 700 12.5px system-ui, sans-serif; color: #fff;
+/* the op button rides at the right end of the heading of the panel it READS,
+   so it costs no row of its own — the heading line was mostly white space */
+.u-cx-act { margin-left: auto; flex: none; white-space: nowrap;
+  font: 700 11.5px system-ui, sans-serif; color: #fff;
   background: #7c5cff; border: 1px solid #7c5cff; border-radius: 999px;
-  padding: 5px 18px; cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 160, 0.25); }
+  padding: 3px 12px; cursor: pointer; box-shadow: 0 1px 3px rgba(60, 40, 160, 0.25);
+  line-height: 1.25; }
 .u-cx-act:hover { filter: brightness(1.07); }
 .u-cx-act:active { transform: translateY(1px); }
 .u-cx-col { display: flex; flex-direction: column; min-width: 0; }
-.u-cx-head { display: flex; align-items: baseline; gap: 6px; padding: 0 3px 3px; text-align: left;
-  font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
+.u-cx-head { display: flex; align-items: center; gap: 6px; padding: 0 3px 3px; text-align: left;
+  flex-wrap: nowrap; min-height: 22px; font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
+/* the heading shares its line with an op button, and a slide's panel is
+   narrow: the label elides rather than wrapping the row to two lines */
+.u-cx-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.u-cx-hint { flex: none; white-space: nowrap; }
 .u-cx-col.is-active .u-cx-head .u-cx-name { color: #7c5cff; }
 .u-cx-hint { font-size: 10px; color: #b6bccb; }
 .u-cx-hint.is-on { color: #7c5cff; }
@@ -70,6 +75,8 @@
 .u-frame { margin-left: auto; color: #8a93a6; font: 600 12px ui-monospace, Menlo, monospace; }
 .u-scrub { width: 100%; margin: 6px 0 4px; accent-color: #7c5cff; cursor: pointer; }
 .u-costs { display: flex; gap: 8px; flex-wrap: wrap; }
+/* the counters, riding in the transport row (Player costsInline) */
+.u-transport .u-costs-inline { margin-left: 10px; }
 .u-chip { font-size: 12px; color: #3a3f4d; background: #f3f0ff; border: 1px solid #e2dcff; border-radius: 999px; padding: 3px 10px; }
 .u-chip b { color: #4b3ccc; font-variant-numeric: tabular-nums; }
 .u-chip-dim { color: #9aa3b5; background: #f4f5f8; border-color: #eceef2; }
