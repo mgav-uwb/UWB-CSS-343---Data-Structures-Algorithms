@@ -37,9 +37,10 @@
 .u-cx-head { display: flex; align-items: center; gap: 6px; padding: 0 3px 3px; text-align: left;
   flex-wrap: nowrap; min-height: 22px; font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
 /* the heading shares its line with an op button, and a slide's panel is
-   narrow: the label elides rather than wrapping the row to two lines */
-.u-cx-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.u-cx-hint { flex: none; white-space: nowrap; }
+   narrow: something has to give, and it should be the transient STATUS rather
+   than the panel's name — the name says what the column is */
+.u-cx-name { flex: none; white-space: nowrap; }
+.u-cx-hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .u-cx-col.is-active .u-cx-head .u-cx-name { color: #7c5cff; }
 .u-cx-hint { font-size: 10px; color: #b6bccb; }
 .u-cx-hint.is-on { color: #7c5cff; }
@@ -55,6 +56,10 @@
 .u-cx-it { padding: 0 0.5px; border-radius: 3px; }
 .u-cx-it.is-todo { color: #1a1c22; }
 .u-cx-it.is-cur { color: #fff; padding: 1px 2px; }
+/* a LITERAL: 8 fixed-length bits that are not a walk down the tree */
+.u-cx-it.is-lit { background: #fff6e0; box-shadow: 0 1px 0 #e8a33d inset, 0 -2px 0 #e8a33d inset; }
+.u-cx-it.is-lit-a { border-top-left-radius: 3px; border-bottom-left-radius: 3px; padding-left: 2px; }
+.u-cx-it.is-lit-z { border-top-right-radius: 3px; border-bottom-right-radius: 3px; padding-right: 2px; }
 
 /* stats strip, under the transport (core/info-bar.js, place: "below") */
 .u-infobar.u-below { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 14px;
