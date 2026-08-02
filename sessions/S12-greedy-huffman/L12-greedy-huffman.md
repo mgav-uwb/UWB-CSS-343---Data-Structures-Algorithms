@@ -816,6 +816,8 @@ Both sides start from the **same empty tree** and run the **same update** after 
 
 The decoder is always **one symbol behind** — and that is enough.
 
+<small>The encoder also keeps a **symbol → leaf table**: that lookup is how it knows a symbol is new. The decoder needs none — where its walk **ends** is the answer.</small>
+
 --
 
 ## NYT — the escape hatch
