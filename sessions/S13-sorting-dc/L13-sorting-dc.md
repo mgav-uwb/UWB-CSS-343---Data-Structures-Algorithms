@@ -16,9 +16,9 @@
   Sorting basics are CSS-342 review; NEW here: the D&C generalization + master
   theorem, quickselect, and the sorting lower bound. Demos reuse ArrayRenderer.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 D&C+master 22 0:26 P2 mergesort 24
-  0:50 BREAK 10 1:00 P3 quicksort 30 1:30 P4 lowerbound+select 24 1:54 P5 wrap 12
-  2:06 ICA 2:30 end.
+  Session plan (150 min). 0:00 intro 0:04 P1 D&C+master 26 0:30 P2 mergesort 24
+  0:54 BREAK 10 1:04 P3 quicksort 33 1:37 P4 lowerbound+select 26 2:03 P5 wrap 12
+  2:15 ICA 2:30 end.  (129 taught + 10 break; 11 spare.)
 -->
 
 ## CSS 343
@@ -33,7 +33,7 @@
 
 ## Reading
 
-**Sedgewick §2.2 (Mergesort) + §2.3 (Quicksort)** + **Erickson Ch 1 (D&C)**
+**Chapter 13 — Sorting & Divide-and-Conquer** (course handout) · **Sedgewick §2.2–2.3** · **Erickson Ch 1**
 
 - **divide-and-conquer** — split, recurse, combine
 - the **master theorem** — cost from the recurrence
@@ -46,7 +46,7 @@ Reading quiz due before class.
 
 ### Part 1 · Divide-and-conquer & the master method
 
-<small>(~22 min)</small>
+<small>(~26 min)</small>
 
 --
 
@@ -122,6 +122,23 @@ Sum the recursion tree **level by level**:
 
 --
 
+## 🎬 Demo — the level sum
+
+<div class="algo-viz" data-algo="recurrence">
+<pre class="viz-fallback">
+   one bar per LEVEL of the recursion tree, its length the
+   level's total cost aⁱ·f(n/bⁱ):
+     2T(n/2)+n    flat bars   → every level ties  → ×log n
+     8T(n/2)+n²   bars GROW   → the leaves win    → n³
+     2T(n/2)+n²   bars SHRINK → the root wins     → n²
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Type a recurrence; the bars are the geometric series. **Flat** → case 2, **growing** → case 1 (leaves), **shrinking** → case 3 (root). Try the presets, ending with `2T(n/2) + n log n` — the gap.</small>
+
+--
+
 ## Master theorem — worked
 
 ```text
@@ -148,6 +165,20 @@ Sum the recursion tree **level by level**:
 ```
 
 Compare **leaf work** `n^(log_b a)` vs **combine work** `f(n)` — the bigger wins.
+
+--
+
+## What the theorem does NOT cover
+
+```text
+   T(n) = 2T(n/2) + n log n
+     n^(log₂2) = n  vs  f(n) = n log n
+     f is bigger — but only by log n, NOT by a
+     polynomial factor n^ε.  → falls in the GAP
+     (the true answer is Θ(n log²n), by the level sum)
+```
+
+Cases 1 and 3 need a **polynomial** gap; case 3 also needs `a·f(n/b) ≤ c·f(n)`.
 
 --
 
@@ -328,7 +359,7 @@ Same Θ(n log n); bottom-up avoids the call stack.
    stable: YES          equal keys keep their order
 ```
 
-Guaranteed n log n, stable — but not in place.
+Guaranteed n log n, stable — but not in place. <small>(The Θ never moves; the constant does — the demo counts 24 compares on sorted input against 33 on a shuffle, because a merge stops early when one run empties.)</small>
 
 --
 
@@ -355,7 +386,7 @@ Multi-key sorting relies on stability. **Mergesort is stable; quicksort is not.*
 
 ### Part 3 · Quicksort
 
-<small>(~30 min)</small>
+<small>(~33 min)</small>
 
 --
 
@@ -482,6 +513,23 @@ Average Θ(n log n); **worst Θ(n²)** on already-sorted input with a bad pivot.
 
 --
 
+## Why the average IS n log n
+
+Two elements are compared **at most once** — only when one is the pivot.
+
+```text
+   ranks i < j are compared  ⟺  the FIRST pivot drawn
+   from ranks i..j is i or j       (else they split apart)
+
+   P(compare) = 2 / (j − i + 1)
+
+   E[compares] = Σ  Σ  2/(j−i+1)  =  2n ln n ≈ 1.39 n log₂ n
+```
+
+Not a lucky-split hand-wave: **every** pivot sequence is counted.
+
+--
+
 ## Choosing a good pivot
 
 - **first/last element** → Θ(n²) on sorted input (bad!)
@@ -557,7 +605,7 @@ So `std::sort` is quicksort-based despite the worse worst case.
 
 ### Part 4 · Lower bound & selection
 
-<small>(~24 min)</small>
+<small>(~26 min)</small>
 
 --
 
@@ -586,6 +634,23 @@ By **comparing** keys — **no**. Any comparison sort needs **Ω(n log n)** comp
 ```
 
 `n!` leaves need height `≥ log₂(n!) ≈ n log₂ n`. Any comparison sort **is** such a tree.
+
+--
+
+## Why log₂(n!) is n log n
+
+No Stirling needed — bound the factorial from **both** sides:
+
+```text
+   n! ≤ nⁿ                    →  log₂(n!) ≤ n log₂ n
+
+   n! ≥ (n/2)^(n/2)           →  log₂(n!) ≥ (n/2)·log₂(n/2)
+     (the top half of the factors are each ≥ n/2)
+
+   both are Θ(n log n)  →  log₂(n!) = Θ(n log n)
+```
+
+So `h ≥ log₂(n!) = Ω(n log n)` — the bound is elementary.
 
 --
 
@@ -640,7 +705,11 @@ Partition; the pivot lands at some rank `p`. Recurse only into the **side contai
    else:      recurse RIGHT   (one side only!)
 ```
 
-Average **Θ(n)** — roughly n + n/2 + n/4 + … = 2n.
+```text
+   a random pivot leaves ≤ 3n/4 with probability ≥ ½
+   → E[T(n)] ≤ E[T(3n/4)] + 2n
+   → 2n(1 + ¾ + (¾)² + …) = 2n·4 = 8n  →  Θ(n)
+```
 
 --
 
@@ -683,7 +752,7 @@ If k had been 1, we'd recurse into the **left** only; if 5, the **right** only.
 </pre>
 </div>
 
-<small>**Select rank** k: partition, then recurse into **only** the side holding rank k. Compare the counters with a full **Quicksort** — selection does a fraction of the work (Θ(n) vs Θ(n log n)).</small>
+<small>**Select rank** k: partition, then recurse into **only** the side holding rank k. Compare the counters with a full **Quicksort** — on this 12-element array, **17 compares against 27**; the ratio is Θ(n) vs Θ(n log n), so it widens with n.</small>
 
 --
 

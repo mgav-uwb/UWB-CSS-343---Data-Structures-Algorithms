@@ -263,6 +263,15 @@
       </div>
 
       <!-- ============================================================ -->
+      <div class="ex">
+        <span class="tag">Demo</span>
+        The <a href="../lib/demo.html?ds=recurrence">master-theorem level sum</a> draws one bar per
+        level of the recursion tree. Type a recurrence and read the case off the shape of the
+        series: flat bars are case 2, growing bars are case 1, shrinking bars are case 3. The last
+        preset, \(2T(n/2) + n\log n\), is the gap the three cases do not cover &mdash; the level
+        sum still answers \(\Theta(n\log^2 n)\).
+      </div>
+
       <h2 id="merge">2. Mergesort</h2>
       <p>
         <strong>Mergesort</strong> is the &ldquo;easy divide, hard combine&rdquo;
@@ -626,6 +635,37 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
         pointers inward and does fewer swaps; library sorts use a Hoare-style
         partition, but Lomuto is the teachable one.)
       </p>
+      <h3>Why the average really is \(n\log n\)</h3>
+      <p>
+        &ldquo;Average \(\Theta(n\log n)\)&rdquo; is usually justified by assuming the pivot
+        splits the array in half, which is the <em>best</em> case wearing an average&rsquo;s
+        clothes. The honest argument counts comparisons over <em>all</em> pivot sequences, and it
+        is short.
+      </p>
+      <p>
+        Fix the sorted order and name the elements by rank, \(z_1 &lt; z_2 &lt; \cdots &lt; z_n\).
+        Quicksort only ever compares an element against a <em>pivot</em>, so any two elements are
+        compared <strong>at most once</strong>. When are \(z_i\) and \(z_j\) (\(i &lt; j\))
+        compared at all? Consider the block of ranks \(z_i, \ldots, z_j\) and ask which of them
+        is chosen as a pivot first. If it is \(z_i\) or \(z_j\), the two are compared. If it is
+        any of the \(j-i-1\) elements strictly between them, that pivot separates them into
+        different subarrays and they are never compared again. With a random pivot each of the
+        \(j-i+1\) ranks is equally likely to be drawn first, so
+        \[ \Pr[z_i \text{ and } z_j \text{ are compared}] \;=\; \frac{2}{j-i+1}. \]
+        Summing over all pairs, with \(k = j - i + 1\),
+        \[ E[\text{comparisons}] \;=\; \sum_{i=1}^{n}\sum_{j>i} \frac{2}{j-i+1}
+           \;&lt;\; \sum_{i=1}^{n} \sum_{k=2}^{n} \frac{2}{k}
+           \;=\; 2n\,H_n \;\approx\; 2n\ln n \;\approx\; 1.39\,n\log_2 n. \]
+      </p>
+      <div class="ex">
+        <span class="tag">What the constant tells you</span>
+        Mergesort makes about \(n\log_2 n\) comparisons; quicksort averages
+        \(1.39\,n\log_2 n\) &mdash; <em>more</em>. Quicksort is faster in practice despite
+        comparing more, because it sorts in place, moves less data, and scans contiguously. When
+        someone says &ldquo;quicksort is faster,&rdquo; they are talking about the constant on
+        memory traffic, not on comparisons.
+      </div>
+
       <h3>The worst case, and how to defeat it</h3>
       <p>
         Quicksort&rsquo;s balance depends on the pivot, and a bad pivot is disastrous.
@@ -726,8 +766,20 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
         \[
           h \;\ge\; \log_2(n!) \;=\; \Theta(n\log n)
         \]
-        by Stirling&rsquo;s approximation (\(\log_2(n!) = n\log_2 n - n\log_2 e +
-        O(\log n)\)). The height \(h\) is the worst-case number of comparisons, so
+        by the two-sided bound below. &#8718;
+      </p>
+      <div class="ex">
+        <span class="tag">Why \(\log_2(n!) = \Theta(n\log n)\), without Stirling</span>
+        Bound the product from both sides. Every factor is at most \(n\), so
+        \[ n! \;\le\; n^n \quad\Longrightarrow\quad \log_2(n!) \;\le\; n\log_2 n. \]
+        For the other direction, throw away the smaller half of the factors: the remaining
+        \(n/2\) of them (those from \(n/2\) up to \(n\)) are each at least \(n/2\), so
+        \[ n! \;\ge\; (n/2)^{n/2} \quad\Longrightarrow\quad
+           \log_2(n!) \;\ge\; \tfrac{n}{2}\log_2\tfrac{n}{2}. \]
+        Both bounds are \(\Theta(n\log n)\), so \(\log_2(n!)\) is too. Discarding half the
+        factors costs only a constant factor &mdash; the standard trick for bounding a product
+        from below. Stirling gives the sharp constant
+        (\(\log_2(n!) = n\log_2 n - n\log_2 e + O(\log n)\)); the lower bound does not need it. The height \(h\) is the worst-case number of comparisons, so
         every comparison sort makes \(\Omega(n\log n)\) of them.
         <span class="qed">&#8718;</span>
       </div>

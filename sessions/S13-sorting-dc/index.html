@@ -58,7 +58,7 @@
                                    (already sorted) = the Θ(n²) pivot trap
          quickselect         (P4)  adds Select rank k (one-sided recursion) -->
   <script type="module">
-    import { initDeckDemos, Sorting, ArrayRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, recurrenceSpec, Sorting, ArrayRenderer } from "../../lib/deck.js";
     const base = () => ({
       make: () => new Sorting(),
       initial: "1..12:1:RAND", loadRaw: true,     // Build = show the raw array; ops sort it
@@ -72,6 +72,10 @@
     const mergeOp = { name: "Mergesort", run: (s) => s.mergesort() };
     const quickOp = { name: "Quicksort", run: (s) => s.quicksort() };
     initDeckDemos({
+      // Part 1: the master theorem as the geometric series it is — one bar per
+      // level, the case read off whether the bars grow, stay flat, or shrink
+      "recurrence": { ...recurrenceSpec(), width: 880, height: 250,
+        chrome: { showValue: false, showCosts: false } },
       "mergesort-merge":     { ...base(), ops: [mergeOp],
         renderer: [
           (c) => new ArrayRenderer(c, { mode: "cells" }),
