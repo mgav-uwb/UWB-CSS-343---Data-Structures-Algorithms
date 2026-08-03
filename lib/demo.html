@@ -145,12 +145,23 @@
     }
   });
 
+  // ── the height the description used to occupy ────────────────────────────
+  // With the prose behind the ?, the gallery has ~150px more to give the demo
+  // than the deck does. Grow the MAIN views (a tree, a graph, a matrix — all
+  // autofit, so more height means a bigger drawing) and leave the short strips
+  // alone: an array row or a counter strip gets nothing from extra whitespace.
+  // A spec that has already been sized for the gallery says so with
+  // `galleryHeight` and is taken verbatim.
+  const grow = (h) => (h >= 180 ? Math.min(420, Math.round(h * 1.3)) : h);
+  const base = spec.height ?? 320;
+  const height = spec.galleryHeight ?? (Array.isArray(base) ? base.map(grow) : grow(base));
+
   // the deck bridge defaults to its simplified mini chrome — the gallery is
   // the FULL sandbox tier, so restore scrub + cost counters unless a spec
   // (or a ?config= override, which wins last) opts out
   const full = resolveSpec(
     { chrome: { mini: false, showScrub: true, showCosts: !!spec.costs } },
-    spec, cfg);
+    spec, { height }, cfg);
   mountDemo(document.getElementById("mount"), full);
 </script>
 </body>
