@@ -491,13 +491,23 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
         Partition \([3, 7, 1, 8, 2, 5]\) with pivot \(5\). The index \(i\) marks the
         boundary of the &ldquo;\(&lt; 5\)&rdquo; region; whenever an element beats the
         pivot, grow the region and swap the element in:
-        <pre>  [ 3 7 1 8 2 | 5 ]      pivot 5,  i = &minus;1
-  3 &lt; 5 &rarr; i=0, swap a[0],a[0]  &rarr; 3 7 1 8 2
-  7 &lt; 5 ? no
-  1 &lt; 5 &rarr; i=1, swap a[1],a[2]  &rarr; 3 1 7 8 2
-  8 &lt; 5 ? no
-  2 &lt; 5 &rarr; i=2, swap a[2],a[4]  &rarr; 3 1 2 8 7
-  place pivot: swap a[3],a[5]     &rarr; 3 1 2 [5] 7 8</pre>
+        <pre>  [ 3 7 1 8 2 | 5 ]   pivot = a[hi] = 5   (the LAST element)
+  i = lo &minus; 1 = &minus;1     j scans lo &hellip; hi&minus;1
+
+  j=0   3 &lt; 5  &rarr; swap(a[++i], a[j])   i:0   &rarr; 3 7 1 8 2
+  j=1   7 &lt; 5 ? no
+  j=2   1 &lt; 5  &rarr; swap(a[++i], a[j])   i:1   &rarr; 3 1 7 8 2
+  j=3   8 &lt; 5 ? no
+  j=4   2 &lt; 5  &rarr; swap(a[++i], a[j])   i:2   &rarr; 3 1 2 8 7
+  end           swap(a[i+1], a[hi])           &rarr; 3 1 2 [5] 7 8</pre>
+        Every line of that trace is the loop body <code>if (a[j] &lt; pivot)
+        swap(a[++i], a[j]);</code> with a different <code>j</code> &mdash; written
+        symbolically on purpose, so the mechanism is visible rather than five
+        different-looking moves. <code>j</code> is the scan and visits every slot
+        once; <code>i</code> is the boundary of the &ldquo;&lt; pivot&rdquo; region
+        and advances only when something belongs in it. When <code>i</code> and
+        <code>j</code> are the same slot the swap is a no-op (as at
+        <code>j=0</code>) &mdash; harmless, and not worth a branch to avoid.
         The pivot \(5\) lands at index \(3\), its final sorted position; everything
         left is \(&lt; 5\), everything right is \(&gt; 5\), though neither side is yet
         sorted. That single linear pass is what quicksort recurses around.

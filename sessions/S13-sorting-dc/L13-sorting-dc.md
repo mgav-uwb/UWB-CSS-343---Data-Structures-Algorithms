@@ -269,15 +269,15 @@ Merging is the heart of mergesort — Θ(n) per level.
 ## Merge — a worked trace
 
 ```text
-   L: 2 5 8    R: 1 3 9    out: [ ]
-   1 < 2 → out 1        L:2 5 8   R:3 9
-   2 < 3 → out 2        L:5 8     R:3 9
-   5 > 3 → out 3        L:5 8     R:9
-   5 < 9 → out 5;  8 < 9 → out 8;  R tail 9 → out 9
-   → 1 2 3 5 8 9
+   L: 2 5 8   R: 1 3 9    i→L[0]  j→R[0]  k = out
+   R[j]=1 < L[i]=2 → out[k++]=R[j++]    1
+   L[i]=2 < R[j]=3 → out[k++]=L[i++]    1 2
+   R[j]=3 < L[i]=5 → out[k++]=R[j++]    1 2 3
+   5<9 → take L ;  8<9 → take L         1 2 3 5 8
+   L is empty → copy R's tail           1 2 3 5 8 9
 ```
 
-Each element is copied **exactly once** → Θ(n).
+One test per output slot; each element is copied **exactly once** → Θ(n).
 
 --
 
@@ -420,19 +420,21 @@ The pivot lands in its **final** sorted position. Linear scan, Θ(n).
 
 ## Partition — a worked trace
 
-Lomuto scheme, **pivot = last element**:
+Lomuto scheme — the pivot is **`a[hi]`, the last element**:
 
 ```text
-   [ 3 7 1 8 2 | 5 ]   pivot 5, boundary i = −1
-   3<5 → i=0, swap a[0],a[0]  → 3 7 1 8 2
-   7<5? no
-   1<5 → i=1, swap a[1],a[2]  → 3 1 7 8 2
-   8<5? no
-   2<5 → i=2, swap a[2],a[4]  → 3 1 2 8 7
-   place pivot: swap a[3],a[5] → 3 1 2 [5] 7 8
+   [ 3 7 1 8 2 | 5 ]   pivot = a[hi] = 5
+   i = lo−1 = −1       j scans lo … hi−1
+
+   j=0  3<5 → swap(a[++i],a[j])  i:0  → 3 7 1 8 2
+   j=1  7<5 ? no
+   j=2  1<5 → swap(a[++i],a[j])  i:1  → 3 1 7 8 2
+   j=3  8<5 ? no
+   j=4  2<5 → swap(a[++i],a[j])  i:2  → 3 1 2 8 7
+   end      swap(a[i+1],a[hi])        → 3 1 2 [5] 7 8
 ```
 
-Pivot 5 lands at index 3 — its final sorted spot; left all < 5, right all > 5.
+Every line is the **same two statements** — the indices do the thinking. Pivot 5 lands at `i+1 = 3`, its final spot.
 
 --
 
@@ -441,11 +443,12 @@ Pivot 5 lands at index 3 — its final sorted spot; left all < 5, right all > 5.
 Lomuto, **pivot = last**:
 
 ```text
-   [ 5 9 3 8 6 | 7 ]    where does 7 land?
-   what are the two sides?
+   [ 5 9 3 8 6 | 7 ]   pivot = a[hi] = 7,  i = −1
+   run j = 0 … 4:  where does 7 land, and what
+   are the two sides?
 ```
 
-<small>5&lt;7 (i=0) · 9 no · 3&lt;7 → swap → `5 3 9 8 6` · 8 no · 6&lt;7 → swap → `5 3 6 8 9` · place pivot: swap a[3],a[5] → **`5 3 6 [7] 9 8`** — pivot at rank 3, left `5 3 6`, right `9 8`.</small> <!-- .element: class="fragment" -->
+<small>`j=0` 5&lt;7 → swap, `i:0` · `j=1` 9 no · `j=2` 3&lt;7 → swap, `i:1` → `5 3 9 8 6` · `j=3` 8 no · `j=4` 6&lt;7 → swap, `i:2` → `5 3 6 8 9` · end `swap(a[i+1],a[hi])` → **`5 3 6 [7] 9 8`** — pivot at index 3, left `5 3 6`, right `9 8`.</small> <!-- .element: class="fragment" -->
 
 --
 
