@@ -38,7 +38,7 @@ void mergesort(vector<int>& a, int lo, int hi) {
 // such that everything in a[lo..i-1] <= a[i] and everything in a[i+1..hi] >= a[i].
 int partition(vector<int>& a, int lo, int hi) {
     // TODO — Lomuto, exactly as traced on the L13 partition slides (pivot =
-    //        a[hi], one scanning index). Trace your code on [3 7 1 8 2 5]
+    //        a[hi], one scanning index). Trace your code on [3 7 1 9 4 8 6 2 5]
     //        and compare with the deck before trusting it.
     return 0;
 }

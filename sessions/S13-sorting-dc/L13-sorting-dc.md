@@ -409,9 +409,9 @@ Work is in the **partition**; the combine is **free**.
 Pick a **pivot**; rearrange so smaller elements go left, larger go right, pivot in the middle:
 
 ```text
-   [ 3 7 1 8 2 5 ]  pivot = 5
-   → [ 3 1 2 ] 5 [ 7 8 ]
-        <5        >5
+   [ 3 7 1 9 4 8 6 2 5 ]   pivot = 5 (the last)
+   → [ 3 1 4 2 ] 5 [ 8 6 9 7 ]
+          <5           >5
 ```
 
 The pivot lands in its **final** sorted position. Linear scan, Θ(n).
@@ -423,18 +423,21 @@ The pivot lands in its **final** sorted position. Linear scan, Θ(n).
 Lomuto scheme — the pivot is **`a[hi]`, the last element**:
 
 ```text
-   [ 3 7 1 8 2 | 5 ]   pivot = a[hi] = 5
-   i = lo−1 = −1       j scans lo … hi−1
+   [ 3 7 1 9 4 8 6 2 | 5 ]   pivot = a[hi] = 5
+   i = lo−1 = −1             j scans lo … hi−1
 
-   j=0  3<5 → swap(a[++i],a[j])  i:0  → 3 7 1 8 2
+   j=0  3<5 → swap(a[++i],a[j])  i:0  → 3 7 1 9 4 8 6 2
    j=1  7<5 ? no
-   j=2  1<5 → swap(a[++i],a[j])  i:1  → 3 1 7 8 2
-   j=3  8<5 ? no
-   j=4  2<5 → swap(a[++i],a[j])  i:2  → 3 1 2 8 7
-   end      swap(a[i+1],a[hi])        → 3 1 2 [5] 7 8
+   j=2  1<5 → swap(a[++i],a[j])  i:1  → 3 1 7 9 4 8 6 2
+   j=3  9<5 ? no
+   j=4  4<5 → swap(a[++i],a[j])  i:2  → 3 1 4 9 7 8 6 2
+   j=5  8<5 ? no
+   j=6  6<5 ? no
+   j=7  2<5 → swap(a[++i],a[j])  i:3  → 3 1 4 2 7 8 6 9
+   end  swap(a[i+1],a[hi])  → 3 1 4 2 [5] 8 6 9 7
 ```
 
-Every line is the **same two statements** — the indices do the thinking. Pivot 5 lands at `i+1 = 3`, its final spot.
+Every line is the **same two statements** — the indices do the thinking. Pivot 5 lands at `i+1 = 4`, its final spot.
 
 --
 
@@ -572,13 +575,13 @@ Equal keys are done — never recursed on. Θ(n) on all-equal input (else Θ(n²
 ## Quicksort — the whole sort
 
 ```text
-   [3 7 1 8 2 5]           pivot 5 → [3 1 2] 5 [7 8]
-   [3 1 2]  pivot 2 → [1] 2 [3]      [7 8] pivot 8 → [7] 8
-   [1] [3] [7]  singletons — done
-   → 1 2 3 5 7 8
+   [3 7 1 9 4 8 6 2 5]   pivot 5 → [3 1 4 2] 5 [8 6 9 7]
+   left  [3 1 4 2] p=2 → [1] 2 [4 3];  [4 3] p=3 → 3 [4]
+   right [8 6 9 7] p=7 → [6] 7 [9 8];  [9 8] p=8 → 8 [9]
+   → 1 2 3 4 5 6 7 8 9
 ```
 
-Each pivot (5, 2, 8, …) locks in; the sides sort recursively, in place.
+Each pivot (5, then 2 and 7, then 3 and 8) locks in; the sides sort recursively, in place.
 
 --
 
@@ -732,15 +735,15 @@ Beautiful in theory; the constant is large, so **randomized** quickselect wins i
 
 ## Quickselect — a worked run
 
-Find rank **k = 3** (0-indexed, the 4th smallest):
+Find rank **k = 4** (0-indexed, the 5th smallest — the median of 9):
 
 ```text
-   [ 3 7 1 8 2 5 ]   partition (pivot 5)
-   → [ 3 1 2 ] 5 [ 7 8 ]   pivot 5 lands at rank 3
-   rank 3 == k → answer = 5   (one partition, done!)
+   [ 3 7 1 9 4 8 6 2 5 ]   partition (pivot 5)
+   → [ 3 1 4 2 ] 5 [ 8 6 9 7 ]   pivot lands at rank 4
+   rank 4 == k → answer = 5   (one partition, done!)
 ```
 
-If k had been 1, we'd recurse into the **left** only; if 5, the **right** only.
+If k had been 1, we'd recurse into the **left** only; if 7, the **right** only — and never touch the other four.
 
 --
 

@@ -491,15 +491,18 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
         Partition \([3, 7, 1, 8, 2, 5]\) with pivot \(5\). The index \(i\) marks the
         boundary of the &ldquo;\(&lt; 5\)&rdquo; region; whenever an element beats the
         pivot, grow the region and swap the element in:
-        <pre>  [ 3 7 1 8 2 | 5 ]   pivot = a[hi] = 5   (the LAST element)
-  i = lo &minus; 1 = &minus;1     j scans lo &hellip; hi&minus;1
+        <pre>  [ 3 7 1 9 4 8 6 2 | 5 ]   pivot = a[hi] = 5   (the LAST element)
+  i = lo &minus; 1 = &minus;1           j scans lo &hellip; hi&minus;1
 
-  j=0   3 &lt; 5  &rarr; swap(a[++i], a[j])   i:0   &rarr; 3 7 1 8 2
+  j=0   3 &lt; 5  &rarr; swap(a[++i], a[j])   i:0   &rarr; 3 7 1 9 4 8 6 2
   j=1   7 &lt; 5 ? no
-  j=2   1 &lt; 5  &rarr; swap(a[++i], a[j])   i:1   &rarr; 3 1 7 8 2
-  j=3   8 &lt; 5 ? no
-  j=4   2 &lt; 5  &rarr; swap(a[++i], a[j])   i:2   &rarr; 3 1 2 8 7
-  end           swap(a[i+1], a[hi])           &rarr; 3 1 2 [5] 7 8</pre>
+  j=2   1 &lt; 5  &rarr; swap(a[++i], a[j])   i:1   &rarr; 3 1 7 9 4 8 6 2
+  j=3   9 &lt; 5 ? no
+  j=4   4 &lt; 5  &rarr; swap(a[++i], a[j])   i:2   &rarr; 3 1 4 9 7 8 6 2
+  j=5   8 &lt; 5 ? no
+  j=6   6 &lt; 5 ? no
+  j=7   2 &lt; 5  &rarr; swap(a[++i], a[j])   i:3   &rarr; 3 1 4 2 7 8 6 9
+  end           swap(a[i+1], a[hi])           &rarr; 3 1 4 2 [5] 8 6 9 7</pre>
         Every line of that trace is the loop body <code>if (a[j] &lt; pivot)
         swap(a[++i], a[j]);</code> with a different <code>j</code> &mdash; written
         symbolically on purpose, so the mechanism is visible rather than five
@@ -508,9 +511,10 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
         and advances only when something belongs in it. When <code>i</code> and
         <code>j</code> are the same slot the swap is a no-op (as at
         <code>j=0</code>) &mdash; harmless, and not worth a branch to avoid.
-        The pivot \(5\) lands at index \(3\), its final sorted position; everything
+        The pivot \(5\) lands at index \(4\), its final sorted position; everything
         left is \(&lt; 5\), everything right is \(&gt; 5\), though neither side is yet
-        sorted. That single linear pass is what quicksort recurses around.
+        sorted &mdash; note how the scan jumped over \(9, 8, 6\) and left them in
+        the order it found them. That single linear pass is what quicksort recurses around.
       </div>
       <p>
         The same partition as an array, cell by cell. The
@@ -523,27 +527,33 @@ fn mergesort(a: &amp;mut [i32], lo: usize, hi: usize, aux: &amp;mut [i32]) {
       </p>
       <figure>
         <table class="trace">
-          <tr><th class="lab">step</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>i</th><th>j</th></tr>
-          <tr><td class="lab">pivot = a[5] = 5</td>
-            <td class="cell">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>&minus;1</td><td>&mdash;</td></tr>
+          <tr><th class="lab">step</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>i</th><th>j</th></tr>
+          <tr><td class="lab">pivot = a[8] = 5</td>
+            <td class="cell">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">9</td><td class="cell">4</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>&minus;1</td><td>&mdash;</td></tr>
           <tr><td class="lab">j=0: 3&lt;5 &rarr; i=0, swap</td>
-            <td class="cell lt scan">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>0</td></tr>
+            <td class="cell lt scan">3</td><td class="cell">7</td><td class="cell">1</td><td class="cell">9</td><td class="cell">4</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>0</td></tr>
           <tr><td class="lab">j=1: 7&ge;5, skip</td>
-            <td class="cell lt">3</td><td class="cell scan">7</td><td class="cell">1</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>1</td></tr>
+            <td class="cell lt">3</td><td class="cell scan">7</td><td class="cell">1</td><td class="cell">9</td><td class="cell">4</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>0</td><td>1</td></tr>
           <tr><td class="lab">j=2: 1&lt;5 &rarr; i=1, swap</td>
-            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell scan">7</td><td class="cell">8</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>2</td></tr>
-          <tr><td class="lab">j=3: 8&ge;5, skip</td>
-            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell">7</td><td class="cell scan">8</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>3</td></tr>
-          <tr><td class="lab">j=4: 2&lt;5 &rarr; i=2, swap</td>
-            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">2</td><td class="cell">8</td><td class="cell scan">7</td><td class="cell piv">5</td><td>2</td><td>4</td></tr>
-          <tr><td class="lab">place: swap a[3],a[5]</td>
-            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">2</td><td class="cell piv">5</td><td class="cell">7</td><td class="cell">8</td><td>&mdash;</td><td>&mdash;</td></tr>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell scan">7</td><td class="cell">9</td><td class="cell">4</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>2</td></tr>
+          <tr><td class="lab">j=3: 9&ge;5, skip</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell">7</td><td class="cell scan">9</td><td class="cell">4</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>1</td><td>3</td></tr>
+          <tr><td class="lab">j=4: 4&lt;5 &rarr; i=2, swap</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">4</td><td class="cell">9</td><td class="cell scan">7</td><td class="cell">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>2</td><td>4</td></tr>
+          <tr><td class="lab">j=5: 8&ge;5, skip</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">4</td><td class="cell">9</td><td class="cell">7</td><td class="cell scan">8</td><td class="cell">6</td><td class="cell">2</td><td class="cell piv">5</td><td>2</td><td>5</td></tr>
+          <tr><td class="lab">j=6: 6&ge;5, skip</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">4</td><td class="cell">9</td><td class="cell">7</td><td class="cell">8</td><td class="cell scan">6</td><td class="cell">2</td><td class="cell piv">5</td><td>2</td><td>6</td></tr>
+          <tr><td class="lab">j=7: 2&lt;5 &rarr; i=3, swap</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">4</td><td class="cell lt">2</td><td class="cell">7</td><td class="cell">8</td><td class="cell">6</td><td class="cell scan">9</td><td class="cell piv">5</td><td>3</td><td>7</td></tr>
+          <tr><td class="lab">place: swap a[4],a[8]</td>
+            <td class="cell lt">3</td><td class="cell lt">1</td><td class="cell lt">4</td><td class="cell lt">2</td><td class="cell piv">5</td><td class="cell">8</td><td class="cell">6</td><td class="cell">9</td><td class="cell">7</td><td>&mdash;</td><td>&mdash;</td></tr>
         </table>
         <figcaption>
-          Lomuto partition of \([3,7,1,8,2,5]\). The green &ldquo;less-than&rdquo;
+          Lomuto partition of \([3,7,1,9,4,8,6,2,5]\). The green &ldquo;less-than&rdquo;
           region grows only when an element beats the pivot; skipped elements
-          (\(7, 8\)) are simply passed over. The final swap drops the pivot at index
-          \(3\), the boundary of the region &mdash; its permanent home. Neither side is
+          (\(7, 9, 8, 6\)) are simply passed over. The final swap drops the pivot at
+          index \(4\), the boundary of the region &mdash; its permanent home. Neither side is
           sorted; quicksort recurses on each.
         </figcaption>
       </figure>
@@ -638,10 +648,10 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
 <p class="ct-src">source: <code>code/sorting/quicksort.cpp &middot; code/sorting/quicksort.java &middot; code/sorting/quicksort.py &middot; code/sorting/quicksort.rs</code></p>
 <!--/ct--></div>
       <p>
-        Running the recursion to completion on the same array &mdash; partition
-        \([3,1,2]\) around \(2\), and \([7,8]\) around \(8\), down to singletons
-        &mdash; yields \(1\ 2\ 3\ 5\ 7\ 8\), each pivot locking into place with no
-        combine step. (An alternative, <em>Hoare&rsquo;s</em> scheme, runs two
+        Running the recursion to completion on the same array &mdash; partition \([3,1,4,2]\) around \(2\)
+        and \([8,6,9,7]\) around \(7\), then \([4,3]\) around \(3\) and \([9,8]\) around \(8\), down to
+        singletons &mdash; yields \(1\,2\,3\,4\,5\,6\,7\,8\,9\): five pivots for nine elements, each
+        placed permanently the moment it lands, with no combine step. (An alternative, <em>Hoare&rsquo;s</em> scheme, runs two
         pointers inward and does fewer swaps; library sorts use a Hoare-style
         partition, but Lomuto is the teachable one.)
       </p>
