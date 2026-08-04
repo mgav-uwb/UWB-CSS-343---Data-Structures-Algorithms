@@ -651,9 +651,73 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
         Running the recursion to completion on the same array &mdash; partition \([3,1,4,2]\) around \(2\)
         and \([8,6,9,7]\) around \(7\), then \([4,3]\) around \(3\) and \([9,8]\) around \(8\), down to
         singletons &mdash; yields \(1\,2\,3\,4\,5\,6\,7\,8\,9\): five pivots for nine elements, each
-        placed permanently the moment it lands, with no combine step. (An alternative, <em>Hoare&rsquo;s</em> scheme, runs two
-        pointers inward and does fewer swaps; library sorts use a Hoare-style
-        partition, but Lomuto is the teachable one.)
+        placed permanently the moment it lands, with no combine step. </p>
+
+      <h3>Hoare&rsquo;s partition</h3>
+      <p>
+        Lomuto is the one to learn first; <strong>Hoare&rsquo;s</strong> original scheme (1961) is
+        the one libraries use. The pivot is now <code>a[lo]</code>, the FIRST element, and two
+        pointers walk toward each other: <code>i</code> moves right while keys are smaller than the
+        pivot, <code>j</code> moves left while keys are bigger. When both stop, the two keys they
+        are looking at are on the wrong sides <em>of each other</em>, so one swap fixes both. When
+        the pointers cross, <code>j</code> marks where the pivot belongs.
+      </p>
+      <div class="ex">
+        <span class="tag">The difference in one sentence</span>
+        Lomuto asks &ldquo;does this element belong on the left?&rdquo; once per element and pays a
+        swap every time the answer is yes; Hoare asks &ldquo;is this <em>pair</em> inverted?&rdquo;
+        and pays one swap per inverted pair. A random array straddling a pivot has far fewer
+        inverted pairs than it has small elements, so Hoare moves much less data.
+      </div>
+      <pre>  [ 3 | 7 1 9 4 8 6 2 5 ]   pivot = a[lo] = 3
+
+  i&rarr; stops at a[1]=7 (&ge;3)
+  j&larr; 5, 7 are &gt;3; stops at a[7]=2 (&le;3)
+  i &lt; j &rarr; swap(a[i], a[j])   &rarr; 3 2 1 9 4 8 6 7 5
+
+  i&rarr; 1 is &lt;3, keep going; stops at a[3]=9
+  j&larr; 7, 6, 8, 4, 9 are &gt;3;  stops at a[2]=1
+  i=3 &ge; j=2 &rarr; CROSSED, no swap, the scan ends
+
+  swap(a[lo], a[j])            &rarr; 1 2 [3] 9 4 8 6 7 5</pre>
+      <p>
+        One swap inside the scan against Lomuto&rsquo;s four on the same array, and the keys
+        between the pointers were never touched. Two details are where implementations go wrong.
+        First, the scans stop <em>on</em> keys equal to the pivot rather than running past them &mdash;
+        that looks wasteful and is the opposite: it is what keeps duplicates from degenerating
+        (below). Second, the loop does not place the pivot; the final swap does. CLRS teaches a
+        variant that returns a split point <em>without</em> placing the pivot, so its recursion is
+        <code>sort(lo, j)</code> and <code>sort(j+1, hi)</code> rather than excluding an index &mdash;
+        both are correct, but mixing the two is an infinite recursion.
+      </p>
+
+      <h3>Which scheme, measured</h3>
+      <table>
+        <tr><th>input</th><th>Lomuto</th><th>Hoare</th></tr>
+        <tr><td><code>3 7 1 9 4 8 6 2 5</code></td><td>11 swaps</td><td><strong>7 swaps</strong></td></tr>
+        <tr><td>sorted <code>1..12</code></td><td>77 swaps</td><td><strong>11 swaps</strong></td></tr>
+        <tr><td>all equal, \(n=16\)</td><td><strong>120 comparisons, \(\Theta(n^2)\)</strong></td><td>50, \(\Theta(n\log n)\)</td></tr>
+      </table>
+      <p>
+        The last row is the one that matters. With every key equal, Lomuto&rsquo;s test
+        <code>a[j] &lt; pivot</code> is false for every element, so <code>i</code> never advances,
+        the pivot lands at the boundary, and each level peels off exactly one element &mdash;
+        \(\Theta(n^2)\). Hoare&rsquo;s scans both stop immediately on equal keys, so the pointers
+        meet in the middle and the recursion stays balanced. Measured at \(n = 8, 16, 24\): Lomuto
+        takes \(28, 120, 276\) comparisons (about \(0.46n^2\)) and Hoare \(18, 50, 90\) (about
+        \(0.78 n\log_2 n\)). So &ldquo;quicksort is quadratic on duplicates&rdquo; is a statement
+        about <em>Lomuto</em>; the case that defeats both is <em>many</em> duplicates but not all,
+        which is what 3-way partitioning is for.
+      </p>
+      <div class="ex">
+        <span class="tag">Demo</span>
+        <a href="../lib/demo.html?ds=quicksort">Quicksort (Lomuto vs Hoare)</a> runs both schemes on
+        one array. Compare the swap counters on a shuffle, then load the all-equal preset and watch
+        Lomuto place one element per level while Hoare splits down the middle. (Do not read the
+        comparison counters as a race on a single small input &mdash; the schemes take different
+        pivots, so they split differently; the swap column is the structural difference.)
+      </div>
+      <p>
       </p>
       <h3>Why the average really is \(n\log n\)</h3>
       <p>
@@ -746,12 +810,15 @@ fn quicksort(a: &amp;mut [i32], lo: usize, hi: usize) {
       </p>
       <div class="aside">
         <span class="tag">Duplicates and 3-way partitioning</span>
-        Plain two-way quicksort is quadratic on an array of many equal keys
-        (all-equal input is a worst case). Splitting into <em>three</em> regions
+        <em>Lomuto</em> is quadratic on an array of many equal keys (its test never
+        fires, so the pivot lands at the boundary every level); Hoare splits such an
+        array down the middle and is \(\Theta(n\log n)\), which is fine but still
+        makes \(\log n\) passes over keys already known to be equal. Splitting into
+        <em>three</em> regions
         &mdash; less than, equal to, and greater than the pivot &mdash; parks every
         equal key in the middle, done, so recursion touches only the strictly-smaller
-        and strictly-larger parts. This makes quicksort robust on real data with
-        repeated keys.
+        and strictly-larger parts &mdash; all-equal input becomes a single linear pass.
+        This makes quicksort robust on real data with repeated keys.
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>

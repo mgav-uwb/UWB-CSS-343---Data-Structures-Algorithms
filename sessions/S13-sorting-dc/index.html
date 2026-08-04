@@ -70,7 +70,8 @@
     // aux row adapter: draw the frame's scratch buffer with its own highlights
     const auxView = (inner) => ({ draw: (snap, hl) => inner.draw(snap?.aux ?? [], (hl && hl.aux) || {}) });
     const mergeOp = { name: "Mergesort", run: (s) => s.mergesort() };
-    const quickOp = { name: "Quicksort", run: (s) => s.quicksort() };
+    const quickOp = { name: "Quicksort (Lomuto)", run: (s) => s.quicksort() };
+    const hoareOp = { name: "Quicksort (Hoare)", run: (s) => s.quicksortHoare() };
     initDeckDemos({
       // Part 1: the master theorem as the geometric series it is — one bar per
       // level, the case read off whether the bars grow, stay flat, or shrink
@@ -84,6 +85,14 @@
         labels: ["a[]", "aux — the Θ(n) buffer each merge copies into"],
         height: [105, 85] },
       "quicksort-partition": { ...base(), ops: [mergeOp, quickOp] },
+      // Part 3: the two schemes on ONE array — the counters are the lesson
+      "quicksort-hoare":     { ...base(), ops: [quickOp, hoareOp],
+        initial: "3, 7, 1, 9, 4, 8, 6, 2, 5",
+        presets: [
+          { name: "the lecture's array", initial: "3, 7, 1, 9, 4, 8, 6, 2, 5" },
+          { name: "all equal — Lomuto Θ(n²), Hoare Θ(n log n)", initial: "7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7" },
+          { name: "sorted 1..12 — both quadratic, Lomuto thrashes", initial: "1..12" },
+        ] },
       "quickselect":         { ...base(), ops: [mergeOp, quickOp,
         { name: "Select rank", arg: "number", run: (s, v) => s.quickselect(v) }] },
     });

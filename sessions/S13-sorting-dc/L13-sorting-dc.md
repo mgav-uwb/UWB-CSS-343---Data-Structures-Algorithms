@@ -17,8 +17,10 @@
   theorem, quickselect, and the sorting lower bound. Demos reuse ArrayRenderer.
 
   Session plan (150 min). 0:00 intro 0:04 P1 D&C+master 26 0:30 P2 mergesort 24
-  0:54 BREAK 10 1:04 P3 quicksort 33 1:37 P4 lowerbound+select 26 2:03 P5 wrap 12
-  2:15 ICA 2:30 end.  (129 taught + 10 break; 11 spare.)
+  0:54 BREAK 10 1:04 P3 quicksort 40 1:44 P4 lowerbound+select 26 2:10 P5 wrap 12
+  2:22 ICA 2:30 end.  (128 lecture + 10 break + 8 ICA in-room.)
+  P3 carries BOTH partition schemes now; if it runs long, the median-of-medians
+  survey slide (P4) and the Hoare worked trace (the demo covers it) are the cuts.
 -->
 
 ## CSS 343
@@ -386,7 +388,7 @@ Multi-key sorting relies on stability. **Mergesort is stable; quicksort is not.*
 
 ### Part 3 · Quicksort
 
-<small>(~33 min)</small>
+<small>(~40 min)</small>
 
 --
 
@@ -455,12 +457,69 @@ Lomuto, **pivot = last**:
 
 --
 
-## Two partition schemes
+## Hoare's partition
 
-- **Lomuto** — one scanning index; simple; a bit more swapping (shown above)
-- **Hoare** — two pointers moving inward, swapping out-of-place pairs; fewer swaps, faster
+Pivot = **`a[lo]`, the first**. Two pointers walk **inward**:
 
-Both are Θ(n) and place the pivot; Hoare is the classic, Lomuto the teachable one.
+```text
+   i → right while a[i] < pivot   (stop on ≥)
+   j ← left  while a[j] > pivot   (stop on ≤)
+   both stopped and i < j → the two keys are on the
+   WRONG sides of each other → swap them, continue
+   crossed (i ≥ j) → swap(a[lo], a[j]); pivot is at j
+```
+
+Only genuinely **misplaced pairs** move — that is the whole saving.
+
+--
+
+## Hoare — a worked trace
+
+Same array, pivot is now the **first** element:
+
+```text
+   [ 3 | 7 1 9 4 8 6 2 5 ]   pivot = a[lo] = 3
+
+   i→ stops at a[1]=7 (≥3)
+   j← 5,7 are >3; stops at a[7]=2 (≤3)
+   i<j → swap(a[i],a[j])  → 3 2 1 9 4 8 6 7 5
+
+   i→ 1 is <3, keep going; stops at a[3]=9
+   j← 7,6,8,4,9 are >3;   stops at a[2]=1
+   i=3 ≥ j=2 → CROSSED, no swap, scan ends
+
+   swap(a[lo],a[j])       → 1 2 [3] 9 4 8 6 7 5
+```
+
+**One** swap in the scan, plus the pivot's. Pivot 3 at index `j = 2`.
+
+--
+
+## Lomuto vs Hoare — counted
+
+| on this input | Lomuto | Hoare |
+|---|---|---|
+| `3 7 1 9 4 8 6 2 5` | 11 swaps | **7** |
+| sorted `1..12` | 77 swaps | **11** |
+| **all equal** (n=16) | **120 compares, Θ(n²)** | 50, Θ(n log n) |
+
+Same Θ, same recursion, in place, neither stable — **Hoare moves less data**, and its scans stopping on **equal** keys are what save it on duplicates.
+
+--
+
+## 🎬 Demo — Lomuto vs Hoare
+
+<div class="algo-viz" data-algo="quicksort-hoare">
+<pre class="viz-fallback">
+   the same array, both schemes, same counters:
+     3 7 1 9 4 8 6 2 5   Lomuto 11 swaps · Hoare 7
+     1..12 (sorted)      Lomuto 77 swaps · Hoare 11
+     all equal (n=12)    Lomuto 66 compares · Hoare 34
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Run **Lomuto**, then **Hoare**, on the same array and read the swap counter. Then load the **all-equal** preset — the compare counters separate.</small>
 
 --
 
@@ -539,24 +598,13 @@ Not a lucky-split hand-wave: **every** pivot sequence is counted.
 ## Choosing a good pivot
 
 - **first/last element** → Θ(n²) on sorted input (bad!)
-- **random** pivot → Θ(n log n) expected, no bad input
-- **median-of-three** (first, middle, last) → good in practice
-
-Randomization makes the worst case a matter of luck, not input.
-
---
-
-## Randomized quicksort
-
-**Shuffle** the array first (or pick each pivot at random):
+- **median-of-three** (first, middle, last) → dodges it cheaply
+- **random** pivot, or **shuffle** first → expected Θ(n log n) on **every** input
 
 ```text
-   now NO fixed input is the worst case —
-   the Θ(n²) event depends only on coin flips, not the data
-   → expected Θ(n log n) on EVERY input
+   the Θ(n²) event now depends on COIN FLIPS, not on the data
+   — an adversary who knows your code still can't force it
 ```
-
-An adversary who knows your code still can't force the bad case.
 
 --
 
@@ -568,7 +616,7 @@ With many equal keys, split into **three** regions:
    [ < pivot ] [ = pivot ] [ > pivot ]
 ```
 
-Equal keys are done — never recursed on. Θ(n) on all-equal input (else Θ(n²)!).
+Equal keys are done — never recursed on: **Θ(n)** on all-equal input, where Lomuto is Θ(n²) and even Hoare still pays Θ(n log n).
 
 --
 
