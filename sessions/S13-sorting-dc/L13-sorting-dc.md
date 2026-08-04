@@ -422,7 +422,7 @@ The pivot lands in its **final** sorted position. Linear scan, Θ(n).
 
 ## Partition — a worked trace
 
-Lomuto scheme — the pivot is **`a[hi]`, the last element**:
+Lomuto — pivot = **`a[hi]`**, the last element:
 
 ```text
    [ 3 7 1 9 4 8 6 2 | 5 ]   pivot = a[hi] = 5
@@ -439,7 +439,7 @@ Lomuto scheme — the pivot is **`a[hi]`, the last element**:
    end  swap(a[i+1],a[hi])  → 3 1 4 2 [5] 8 6 9 7
 ```
 
-Every line is the **same two statements** — the indices do the thinking. Pivot 5 lands at `i+1 = 4`, its final spot.
+Every line is the **same two statements** — the indices do the thinking; pivot 5 lands at `i+1 = 4`.
 
 --
 
@@ -457,9 +457,109 @@ Lomuto, **pivot = last**:
 
 --
 
+## Quicksort — the whole sort
+
+One partition placed **one** element. Now do it **recursively**:
+
+```text
+   [3 7 1 9 4 8 6 2 5]   pivot 5 → [3 1 4 2] 5 [8 6 9 7]
+   left  [3 1 4 2] p=2 → [1] 2 [4 3];  [4 3] p=3 → 3 [4]
+   right [8 6 9 7] p=7 → [6] 7 [9 8];  [9 8] p=8 → 8 [9]
+   → 1 2 3 4 5 6 7 8 9
+```
+
+Each pivot (5, then 2 and 7, then 3 and 8) locks in; the sides sort recursively, in place.
+
+--
+
+## Quicksort — the code
+
+```text
+void sort(int a[], int lo, int hi) {
+    if (hi <= lo) return;
+    int p = partition(a, lo, hi);   // pivot to final spot
+    sort(a, lo, p - 1);             // left  (< pivot)
+    sort(a, p + 1, hi);             // right (> pivot)
+}
+```
+
+Note the mirror of mergesort: the **work is before** the recursion (partition), and there's **no combine** — `a[lo..hi]` is sorted once both sides are.
+
+--
+
+## 🎬 Demo — partition
+
+<div class="algo-viz" data-algo="quicksort-partition">
+<pre class="viz-fallback">
+   quicksort: pick a pivot, PARTITION (smaller left, larger
+   right, pivot to its final slot), then recurse on each
+   side. watch the pivot lock into place, in-place, no buffer.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>**Quicksort**: each pivot **locks into its final slot**, in place. Compare its counters with **Mergesort** on the same input — then Build `1..12` (sorted!) and watch quicksort's compares **blow up**.</small>
+
+--
+
+## Quicksort — cost
+
+```text
+   balanced pivots:  T(n) = 2T(n/2) + Θ(n) = Θ(n log n)   (average)
+   worst pivot:      T(n) = T(n-1) + Θ(n) = Θ(n²)         (sorted input!)
+```
+
+Average Θ(n log n); **worst Θ(n²)** on already-sorted input with a bad pivot.
+
+--
+
+## Why the average IS n log n
+
+Two elements are compared **at most once** — only when one is the pivot.
+
+```text
+   ranks i < j are compared  ⟺  the FIRST pivot drawn
+   from ranks i..j is i or j       (else they split apart)
+
+   P(compare) = 2 / (j − i + 1)
+
+   E[compares] = Σ  Σ  2/(j−i+1)  =  2n ln n ≈ 1.39 n log₂ n
+```
+
+Not a lucky-split hand-wave: **every** pivot sequence is counted.
+
+--
+
+## The worst case, pictured
+
+A bad pivot peels off **one** element per level → **n levels**:
+
+```text
+   sorted input + a fixed-position pivot (first or last):
+   [1 2 3 4|5] → [1 2 3|4] → [1 2|3] → …
+   n levels, each peeling ONE element → Θ(n²)
+```
+
+Balanced pivots give log n levels; bad pivots give n. **Pivot choice is everything.**
+
+--
+
+## Choosing a good pivot
+
+- **first/last element** → Θ(n²) on sorted input (bad!)
+- **median-of-three** (first, middle, last) → dodges it cheaply
+- **random** pivot, or **shuffle** first → expected Θ(n log n) on **every** input
+
+```text
+   the Θ(n²) event now depends on COIN FLIPS, not on the data
+   — an adversary who knows your code still can't force it
+```
+
+--
+
 ## Hoare's partition
 
-Pivot = **`a[lo]`, the first**. Two pointers walk **inward**:
+Pivot *choice* is settled. Now a different way to do the **partition itself** — pivot = **`a[lo]`**, two pointers walking **inward**:
 
 ```text
    i → right while a[i] < pivot   (stop on ≥)
@@ -523,91 +623,6 @@ Same Θ, same recursion, in place, neither stable — **Hoare moves less data**,
 
 --
 
-## The worst case, pictured
-
-A bad pivot peels off **one** element per level → **n levels**:
-
-```text
-   sorted input + a fixed-position pivot (first or last):
-   [1 2 3 4|5] → [1 2 3|4] → [1 2|3] → …
-   n levels, each peeling ONE element → Θ(n²)
-```
-
-Balanced pivots give log n levels; bad pivots give n. **Pivot choice is everything.**
-
---
-
-## 🎬 Demo — partition
-
-<div class="algo-viz" data-algo="quicksort-partition">
-<pre class="viz-fallback">
-   quicksort: pick a pivot, PARTITION (smaller left, larger
-   right, pivot to its final slot), then recurse on each
-   side. watch the pivot lock into place, in-place, no buffer.
-[ interactive demo — open this deck on the course site ]
-</pre>
-</div>
-
-<small>**Quicksort**: each pivot **locks into its final slot**, in place. Compare its counters with **Mergesort** on the same input — then Build `1..12` (sorted!) and watch quicksort's compares **blow up**.</small>
-
---
-
-## Quicksort — the code
-
-```text
-void sort(int a[], int lo, int hi) {
-    if (hi <= lo) return;
-    int p = partition(a, lo, hi);   // pivot to final spot
-    sort(a, lo, p - 1);             // left  (< pivot)
-    sort(a, p + 1, hi);             // right (> pivot)
-}
-```
-
-Note the mirror of mergesort: the **work is before** the recursion (partition), and there's **no combine** — `a[lo..hi]` is sorted once both sides are.
-
---
-
-## Quicksort — cost
-
-```text
-   balanced pivots:  T(n) = 2T(n/2) + Θ(n) = Θ(n log n)   (average)
-   worst pivot:      T(n) = T(n-1) + Θ(n) = Θ(n²)         (sorted input!)
-```
-
-Average Θ(n log n); **worst Θ(n²)** on already-sorted input with a bad pivot.
-
---
-
-## Why the average IS n log n
-
-Two elements are compared **at most once** — only when one is the pivot.
-
-```text
-   ranks i < j are compared  ⟺  the FIRST pivot drawn
-   from ranks i..j is i or j       (else they split apart)
-
-   P(compare) = 2 / (j − i + 1)
-
-   E[compares] = Σ  Σ  2/(j−i+1)  =  2n ln n ≈ 1.39 n log₂ n
-```
-
-Not a lucky-split hand-wave: **every** pivot sequence is counted.
-
---
-
-## Choosing a good pivot
-
-- **first/last element** → Θ(n²) on sorted input (bad!)
-- **median-of-three** (first, middle, last) → dodges it cheaply
-- **random** pivot, or **shuffle** first → expected Θ(n log n) on **every** input
-
-```text
-   the Θ(n²) event now depends on COIN FLIPS, not on the data
-   — an adversary who knows your code still can't force it
-```
-
---
-
 ## 3-way partitioning (duplicates)
 
 With many equal keys, split into **three** regions:
@@ -617,19 +632,6 @@ With many equal keys, split into **three** regions:
 ```
 
 Equal keys are done — never recursed on: **Θ(n)** on all-equal input, where Lomuto is Θ(n²) and even Hoare still pays Θ(n log n).
-
---
-
-## Quicksort — the whole sort
-
-```text
-   [3 7 1 9 4 8 6 2 5]   pivot 5 → [3 1 4 2] 5 [8 6 9 7]
-   left  [3 1 4 2] p=2 → [1] 2 [4 3];  [4 3] p=3 → 3 [4]
-   right [8 6 9 7] p=7 → [6] 7 [9 8];  [9 8] p=8 → 8 [9]
-   → 1 2 3 4 5 6 7 8 9
-```
-
-Each pivot (5, then 2 and 7, then 3 and 8) locks in; the sides sort recursively, in place.
 
 --
 
