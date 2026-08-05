@@ -58,7 +58,7 @@
                                    (already sorted) = the Θ(n²) pivot trap
          quickselect         (P4)  adds Select rank k (one-sided recursion) -->
   <script type="module">
-    import { initDeckDemos, recurrenceSpec, Sorting, ArrayRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, lomutoHoareRaceDemo, recurrenceSpec, Sorting, ArrayRenderer } from "../../lib/deck.js";
     const base = () => ({
       make: () => new Sorting(),
       initial: "1..12:1:RAND", loadRaw: true,     // Build = show the raw array; ops sort it
@@ -70,8 +70,7 @@
     // aux row adapter: draw the frame's scratch buffer with its own highlights
     const auxView = (inner) => ({ draw: (snap, hl) => inner.draw(snap?.aux ?? [], (hl && hl.aux) || {}) });
     const mergeOp = { name: "Mergesort", run: (s) => s.mergesort() };
-    const quickOp = { name: "Quicksort (Lomuto)", run: (s) => s.quicksort() };
-    const hoareOp = { name: "Quicksort (Hoare)", run: (s) => s.quicksortHoare() };
+    const quickOp = { name: "Quicksort", run: (s) => s.quicksort() };
     initDeckDemos({
       // Part 1: the master theorem as the geometric series it is — one bar per
       // level, the case read off whether the bars grow, stay flat, or shrink
@@ -85,14 +84,12 @@
         labels: ["a[]", "aux — the Θ(n) buffer each merge copies into"],
         height: [105, 85] },
       "quicksort-partition": { ...base(), ops: [mergeOp, quickOp] },
-      // Part 3: the two schemes on ONE array — the counters are the lesson
-      "quicksort-hoare":     { ...base(), ops: [quickOp, hoareOp],
-        initial: "3, 7, 1, 9, 4, 8, 6, 2, 5",
-        presets: [
-          { name: "the lecture's array", initial: "3, 7, 1, 9, 4, 8, 6, 2, 5" },
-          { name: "all equal — Lomuto Θ(n²), Hoare Θ(n log n)", initial: "7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7" },
-          { name: "sorted 1..12 — both quadratic, Lomuto thrashes", initial: "1..12" },
-        ] },
+      // Part 3: the two schemes RACING on one array, stacked so the arrays line
+      // up column for column; the per-panel telemetry (partitions · swaps ·
+      // elements in final position) is the lesson
+      "quicksort-hoare": { ...lomutoHoareRaceDemo,
+        panels: lomutoHoareRaceDemo.panels.map((p) => ({ ...p, width: 820, height: 78 })),
+        speed: 260 },
       "quickselect":         { ...base(), ops: [mergeOp, quickOp,
         { name: "Select rank", arg: "number", run: (s, v) => s.quickselect(v) }] },
     });

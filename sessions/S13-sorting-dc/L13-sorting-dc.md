@@ -611,7 +611,8 @@ Same Θ, same recursion, in place, neither stable — **Hoare moves less data**,
 
 <div class="algo-viz" data-algo="quicksort-hoare">
 <pre class="viz-fallback">
-   the same array, both schemes, same counters:
+   both schemes race on ONE array, stacked, in lockstep;
+   each panel reads  partitions · swaps · in final position
      3 7 1 9 4 8 6 2 5   Lomuto 11 swaps · Hoare 7
      1..12 (sorted)      Lomuto 77 swaps · Hoare 11
      all equal (n=12)    Lomuto 66 compares · Hoare 34
@@ -619,7 +620,7 @@ Same Θ, same recursion, in place, neither stable — **Hoare moves less data**,
 </pre>
 </div>
 
-<small>Run **Lomuto**, then **Hoare**, on the same array and read the swap counter. Then load the **all-equal** preset — the compare counters separate.</small>
+<small>One array, **both schemes at once**, stacked and stepped in lockstep. Each panel reads **partitions · swaps · in final position**. Race the lecture's array, then `1..12`, then twelve `7`s.</small>
 
 --
 
