@@ -732,6 +732,21 @@ fn pieces(cut: &amp;[usize], mut n: usize) -&gt; Vec&lt;usize&gt; {
         \(n(n+1)/2\) candidates, \(4096\) against \(78\) at \(n = 12\), same optimum.
       </div>
 
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=rodcut-tree">The subproblem tree</a> is the picture this
+        recurrence describes: a node is the length still to cut, an edge is the piece taken, so a
+        root-to-leaf path is one complete cutting and the leaves enumerate <em>all</em> of
+        them — the \(2^{n-1}\) compositions of \(n\), which is \(8\) for the running
+        instance. Scoring them leaves \(2+2 = 10\) as the only green path, with the whole rod
+        and the greedy best-ratio choice sitting beside it at \(9\). Its other two views are
+        the argument of this section in one image: <em>memoized</em> greys out every subtree a
+        cache hit removes, leaving exactly \(1 + n(n+1)/2\) nodes lit (\(11\) of \(16\)) —
+        the root plus this table's candidate count — and <em>tabulated</em> drops the recursion
+        altogether for \(n+1\) cells and \(n(n+1)/2\) links. The pruned tree and the table are
+        the same \(\Theta(n^2)\) work, drawn twice.
+      </div>
+
       <!-- ============================================================ -->
       <h2 id="lcs">3. Longest common subsequence</h2>
       <p>
