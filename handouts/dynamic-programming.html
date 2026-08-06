@@ -271,6 +271,17 @@
         round-\((i{-}1)\) answers. Both are the same move: when greedy has no
         license, try every option and remember the subproblems.
       </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        Two demos make the recomputation itself countable, which is the only claim this section
+        rests on. <a href="../lib/demo.html?ds=fib-race">Fibonacci race</a> runs naive, memoized
+        and two-variable Fibonacci in lockstep: at \(n = 10\) they need \(177\), \(19\) and
+        \(10\) steps, and the naive panel's <em>times</em> row ends as the Fibonacci numbers
+        themselves. <a href="../lib/demo.html?ds=rodcut-race">Rod cutting race</a> does the same
+        for a problem with choices: without a table, exactly \(2^n\) calls; with one,
+        \(n(n+1)/2\) candidates. At \(n = 12\) that is \(4096\) against \(78\), and both
+        panels return the same optimum.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="styles">2. Memoization and tabulation</h2>
@@ -346,6 +357,14 @@
         &ldquo;keep only the last two rows&rdquo; space optimization that only the
         bottom-up form makes natural. Neither is &ldquo;the&rdquo; dynamic
         programming; they are two implementations of the same table.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        The same recurrence, filled top-down and bottom-up:
+        <a href="../lib/demo.html?ds=fib">Fibonacci</a> runs <em>Naive fib</em>,
+        <em>Memo fib</em> and <em>2 vars</em> one at a time, so the counters can be compared at
+        the same \(n\) — and the two-variable table visibly never grows past two cells, which
+        is the space optimization tabulation makes natural.
       </div>
 
       <!-- ============================================================ -->
@@ -455,6 +474,16 @@
         handout) &mdash; the 0/1 knapsack and edit distance &mdash; and closes the
         arc: the problems that defeated greedy fall to DP.
       </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        One demo per row of the recipe, in the order the recipe asks its questions.
+        <a href="../lib/demo.html?ds=rodcut">Rod cutting</a> is the smallest problem with a
+        genuine <em>choice</em>: a max over every first cut, and a <code>cut[]</code> row whose
+        only purpose is the traceback (step 5).
+        <a href="../lib/demo.html?ds=lcs">LCS</a> is the same recipe in two dimensions, on any two
+        words you type. Both animate the <em>state</em> being computed and the states it reads —
+        which is what &ldquo;transition&rdquo; means when you see it rather than define it.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="capstone">4. The unit in one table &mdash; and the design-paradigm capstone</h2>
@@ -508,6 +537,15 @@
         <code>git diff</code> and spell-checkers through resource allocation to
         genome alignment.
       </p>
+
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        Chapter 15's problems, on the same machinery:
+        <a href="../lib/demo.html?ds=knapsack">0/1 knapsack</a> (take-or-skip, with the item
+        traceback) and <a href="../lib/demo.html?ds=edit-distance">edit distance</a> (the
+        min-of-three table and the edit script it recovers). Every demo in the library is listed
+        on the <a href="../lib/demo.html">explorer</a>.
+      </div>
 
       <footer>
         CSS 343 &middot; Summer 2026 &middot; course text, Dynamic Programming v1.0

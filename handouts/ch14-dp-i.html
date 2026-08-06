@@ -726,6 +726,10 @@ fn pieces(cut: &amp;[usize], mut n: usize) -&gt; Vec&lt;usize&gt; {
         which is the whole reason the row exists. The presets carry exercise 3's prices
         \(2, 5, 7, 8\) and exercise 4's \(1, 5, 8, 9, 10\) at \(n = 5\), so both can be
         checked against your own table.
+        The proposition above claims \(\Theta(2^n)\) without a cache;
+        <a href="../lib/demo.html?ds=rodcut-race">the rod-cutting race</a> counts it, running the
+        same rod through both versions in lockstep &mdash; exactly \(2^n\) calls against
+        \(n(n+1)/2\) candidates, \(4096\) against \(78\) at \(n = 12\), same optimum.
       </div>
 
       <!-- ============================================================ -->

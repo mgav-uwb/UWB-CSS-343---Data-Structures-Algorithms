@@ -597,7 +597,7 @@ Most DP problems fit a few table shapes:
 
 | shape | subproblem | examples |
 |---|---|---|
-| **1-D** | `dp[i]` over a prefix/length | Fibonacci, rod cutting |
+| **1-D** | `dp[i]` over a prefix/length | Fibonacci, rod cutting, LIS |
 | **2-D grid** | `dp[i][j]` over two indices | LCS, edit distance, knapsack |
 | **interval** | `dp[i][j]` over a range | matrix-chain, optimal BST |
 
