@@ -242,7 +242,15 @@
         lets the cached subproblem answers sort out the winner. That is why DP
         solves the problems where greedy has a counterexample &mdash; the
         \(\{1,3,4\}\) coin system, the 0/1 knapsack &mdash; at the price of
-        computing more subproblems, a price overlap and caching keep polynomial.
+        computing many more subproblems. Two things keep that price down: the
+        subproblems <strong>overlap</strong>, so there are only polynomially many
+        <em>distinct</em> ones, and <strong>caching</strong> solves each distinct
+        one exactly once. The total is therefore (number of distinct subproblems)
+        &times; (work per subproblem) &mdash; for coin change \(\Theta(ak)\) and
+        for 0/1 knapsack \(\Theta(nW)\), which is polynomial in the numeric
+        capacity but <em>not</em> in the size of the input that writes it down:
+        the pseudo-polynomial fine print, in the table below and in
+        <a href="ch15-dp-ii.html">Chapter 15</a>.
         The practical test is to draw the recursion tree: <em>repeated</em> nodes
         mean DP; all-distinct nodes mean divide-and-conquer; and if one branch
         provably suffices, greedy. Often you try greedy first and fall back to DP
@@ -463,7 +471,7 @@
         <tr><td>0/1 knapsack</td><td>\(dp[i][w]\)</td><td>max(skip, take)</td><td>\(\Theta(nW)\) <em>(pseudo-poly)</em></td></tr>
         <tr><td>edit distance</td><td>\(dp[i][j]\)</td><td>match: diag; else \(1+\)min of 3</td><td>\(\Theta(mn)\)</td></tr>
         <tr><td>grid path (min / count)</td><td>\(dp[i][j]\)</td><td>min / sum of up, left</td><td>\(\Theta(mn)\)</td></tr>
-        <tr><td>coin change</td><td>\(dp[a]\)</td><td>min over last coin</td><td>\(\Theta(a k)\)</td></tr>
+        <tr><td>coin change</td><td>\(dp[a]\)</td><td>min over last coin</td><td>\(\Theta(a k)\) (pseudo-poly)</td></tr>
         <tr><td>LIS</td><td>\(dp[i]\) (ending at \(i\))</td><td>max over smaller predecessors</td><td>\(\Theta(n^2)\)</td></tr>
         <tr><td>matrix chain / optimal BST</td><td>\(dp[i][j]\) (range)</td><td>min over splits \(k\)</td><td>\(\Theta(n^3)\)</td></tr>
       </table>
