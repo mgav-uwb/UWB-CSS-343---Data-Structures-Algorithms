@@ -1028,6 +1028,21 @@ fn lcs_string(a: &amp;[u8], b: &amp;[u8], l: &amp;[Vec&lt;usize&gt;]) -&gt; Stri
         \(4\), one LCS is <code>BCBA</code>).
       </div>
 
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=lcs-tree">The LCS subproblem tree</a> is the recursion this
+        table is an optimization of, and it answers the question the table cannot: <em>why</em>
+        \(\Theta(mn)\) is available at all. A node is a prefix pair \((i,j)\); an edge is the
+        move — <b>↖</b> on a match (worth \(+1\), and only ONE child follows), <b>↑</b> or
+        <b>←</b> on a mismatch, which is the two-way branch that makes the tree grow
+        exponentially. Run <em>Naive</em> then <em>Memoized</em>: the same walk in the same order,
+        differing only in the cache. On <code>AGCAT</code> / <code>GAC</code> that is \(27\)
+        nodes against \(19\) visited over \(16\) distinct pairs — and the bound is the point,
+        since there are never more than \((m{+}1)(n{+}1) = 24\) distinct pairs however wildly the
+        tree branches. A pair <em>is</em> a cell of the table. The green chain is the traceback,
+        and its ↖ edges spell <code>AC</code>.
+      </div>
+
       <!-- ============================================================ -->
       <h2 id="ex">4. Exercises (with solutions)</h2>
       <ol>
