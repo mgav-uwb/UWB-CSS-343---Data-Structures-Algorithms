@@ -714,6 +714,20 @@ fn pieces(cut: &amp;[usize], mut n: usize) -&gt; Vec&lt;usize&gt; {
         <em>writing</em> such an exercise, state one.
       </div>
 
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=rodcut">Rod-cutting demo</a>. Three rows &mdash; the given
+        <code>price</code>, the <code>best</code> table being filled, and the <code>cut</code>
+        record &mdash; and one frame per <em>candidate</em>, so the \(\Theta(n^2)\) is counted
+        rather than asserted: the candidate counter ends at \(n(n+1)/2\), which is \(10\) for
+        the running instance. Watch each candidate highlight the smaller <code>best[]</code>
+        cell it reads &mdash; that reuse is the overlap. The traceback at the end walks the
+        <code>cut</code> row alone (\(\mathrm{cut}[4] = 2\), then \(\mathrm{cut}[2] = 2\)),
+        which is the whole reason the row exists. The presets carry exercise 3's prices
+        \(2, 5, 7, 8\) and exercise 4's \(1, 5, 8, 9, 10\) at \(n = 5\), so both can be
+        checked against your own table.
+      </div>
+
       <!-- ============================================================ -->
       <h2 id="lcs">3. Longest common subsequence</h2>
       <p>

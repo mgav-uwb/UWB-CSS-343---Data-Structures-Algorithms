@@ -55,6 +55,8 @@
                         the linear versions finish and freeze (2-var: n adds,
                         memo: 2n−1 calls) while naive crawls toward
                         2·fib(n+1)−1; ⏩ 1024× sweeps the exponential tail
+         rodcut   (P2)  rod cutting: price / best / cut rows, one frame per
+                        CANDIDATE, then the traceback walks cut[]
          lcs      (P3)  LCS of any two words (type "SUNDAY SATURDAY" in the
                         value box) — table fill + traceback -->
   <script type="module">
@@ -77,6 +79,24 @@
         opLabel: "Race fib", valLabel: "n (2–16)", placeholder: "10", initialValue: 10,
         speed: 300, speedControl: true, finishButton: true,
       },
+      "rodcut": {
+        make: () => new DP(),
+        noBuild: true,
+        renderer: (c) => new MatrixRenderer(c, {}),
+        // the price list and the rod length stay visible while the table fills,
+        // so the instance on screen is always the instance being computed
+        stateMsg: () => "ready: prices 1,5,8,9 and a rod of length 4 — press Run",
+        inputs: [
+          { key: "prices", label: "price[1..k]", value: "1,5,8,9", width: 120 },
+          { key: "n", label: "rod n", value: "4", width: 50 },
+        ],
+        ops: [{ name: "Run", run: (s, _v, vals) => {
+          const nums = String(vals.prices ?? "").split(/[,\s]+/).map((x) => parseInt(x, 10))
+            .filter((x) => Number.isFinite(x) && x >= 0);
+          return s.rodCut(nums.length ? nums.slice(0, 12) : [1, 5, 8, 9], parseInt(vals.n, 10));
+        } }],
+        costs: ["compare", "read", "write"], chrome: { showCosts: true, showValue: false }, width: 560, height: 175,
+      },
       "lcs": {
         make: () => new DP(),
         noBuild: true,
@@ -92,7 +112,7 @@
           const word = (t, d) => (String(t ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 12) || d);
           return s.lcs(word(vals.a, "SUNDAY"), word(vals.b, "SATURDAY"));
         } }],
-        costs: ["compare", "write"], chrome: { showCosts: true }, width: 560, height: 140,
+        costs: ["compare", "write"], chrome: { showCosts: true, showValue: false }, width: 560, height: 140,
       },
     });
   </script>

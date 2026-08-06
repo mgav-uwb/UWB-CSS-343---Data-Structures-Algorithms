@@ -19,7 +19,8 @@ using namespace std;
 
 // ---- GIVEN — naive exponential fib, instrumented with a call counter -----
 // Used only so a test can demonstrate the exponential blow-up that memoization
-// avoids. Do not call fibNaive with n much above ~30 — it really is Θ(2^n).
+// avoids. Do not call fibNaive with n much above ~30 — it really is Θ(φⁿ),
+// and its exact call count is 2·fib(n+1) − 1 (177 calls for n = 10).
 static long naiveCallCount = 0;
 long fibNaive(int n) {
     naiveCallCount++;

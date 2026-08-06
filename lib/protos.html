@@ -318,7 +318,7 @@ Node* buildTrie(freq[]) {
 </section>
 
 <section id="dp">
-<h2>Dynamic programming — fib · LCS · knapsack · edit distance</h2>
+<h2>Dynamic programming — fib · rod cutting · LCS · knapsack · edit distance</h2>
 <p class="why">Recursion + remembering. The recipe: subproblem, recurrence (the last decision), base cases, fill order, answer — then traceback.</p>
 <pre>
 long fib(int n, memo[]) {
@@ -326,6 +326,12 @@ long fib(int n, memo[]) {
     if (memo[n]) return memo[n];
     return memo[n] = fib(n-1, memo) + fib(n-2, memo);
 }
+
+// rod cutting: best[len] = the most a rod of that length can earn
+//   best[len] = max over first cuts i = 1..len of price[i] + best[len-i]
+//   best[0] = 0
+// TODO: the two nested loops; record cut[len] = the winning i, then the
+//       TRACEBACK takes cut[n], subtracts, and repeats until nothing is left
 
 // LCS: L[i][j] = LCS length of a[0..i) and b[0..j)
 //   a[i-1] == b[j-1] → L[i-1][j-1] + 1        (extend the match)

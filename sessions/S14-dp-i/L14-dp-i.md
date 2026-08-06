@@ -15,8 +15,8 @@
   generalizes it. DP is NEW this term (greedy's fallback when a single choice
   isn't safe).
 
-  Session plan (150 min). 0:00 intro 0:04 P1 memo/tab 22 0:26 P2 fib/rod 26
-  0:52 BREAK 10 1:02 P3 LCS 30 1:32 P4 the recipe 22 1:54 P5 wrap 12
+  Session plan (150 min). 0:00 intro 0:04 P1 memo/tab 22 0:26 P2 fib/rod 29
+  0:55 BREAK 10 1:05 P3 LCS 30 1:35 P4 the recipe 19 1:54 P5 wrap 12
   2:06 ICA 2:30 end.
 -->
 
@@ -32,7 +32,7 @@
 
 ## Reading
 
-**Erickson Ch 3 §3.1–3.6** — Dynamic Programming
+**Chapter 14 — Dynamic Programming I** (course handout) · **Erickson Ch 3 §3.1–3.6**
 
 - **overlapping subproblems** + **optimal substructure**
 - **memoization** (top-down) vs **tabulation** (bottom-up)
@@ -185,7 +185,7 @@ DP is greedy **without the leap of faith** — it explores every option but shar
 
 ### Part 2 · Fibonacci → rod cutting
 
-<small>(~26 min)</small>
+<small>(~29 min)</small>
 
 --
 
@@ -256,14 +256,14 @@ Bottom-up, and we only need the **last two** values:
 
 ## Fibonacci: the whole arc
 
-| version | time | space |
-|---|---|---|
-| naive recursion | **Θ(φⁿ)** | Θ(n) stack |
-| memoized | Θ(n) | Θ(n) |
-| tabulated | Θ(n) | Θ(n) |
-| tabulated + 2 vars | Θ(n) | **Θ(1)** |
+| version | time | space | at n = 10 |
+|---|---|---|---|
+| naive recursion | **Θ(φⁿ)** | Θ(n) stack | **177** calls |
+| memoized | Θ(n) | Θ(n) | 19 calls (8 hits) |
+| tabulated | Θ(n) | Θ(n) | 11 cells written |
+| tabulated + 2 vars | Θ(n) | **Θ(1)** | **10** additions |
 
-From a **billion** calls to **fifty** additions — the DP payoff in one table.
+At n = 50: **forty billion** calls, or **fifty** additions.
 
 --
 
@@ -324,6 +324,22 @@ Try **every first cut** `i`, then optimally cut the rest:
 
 --
 
+## Rod cutting — worked
+
+Prices `[_,1,5,8,9]` (length 1..4):
+
+```text
+   best[0] = 0
+   best[1] = 1+best[0] = 1
+   best[2] = max(1+best[1], 5+best[0]) = max(2,5) = 5
+   best[3] = max(1+5, 5+1, 8+0) = 8
+   best[4] = max(1+8, 5+5, 8+1, 9+0) = 10   ← two length-2 cuts
+```
+
+Each cell reuses the smaller `best[]` — that's the overlap DP exploits.
+
+--
+
 ## Rod cutting — tabulated
 
 ```text
@@ -351,23 +367,23 @@ Store the winning first cut `cut[len]` at each length, then trace back:
    → cuts: 2 + 2   (value 10)
 ```
 
-The same "store the choice, walk back" traceback as LCS.
+The same "store the choice, walk back" traceback as LCS — and the next slide runs it.
 
 --
 
-## Rod cutting — worked
+## 🎬 Demo — rod cutting
 
-Prices `[_,1,5,8,9]` (length 1..4):
+<div class="algo-viz" data-algo="rodcut">
+<pre class="viz-fallback">
+   prices 1,5,8,9 · rod n = 4, one frame per CANDIDATE:
+     best[4] = max(1+8, 5+5, 8+1, 9+0) = 10   cut[4] = 2
+     10 candidates = 4·5/2 → n subproblems × O(n) choices
+   traceback: cut[4]=2, cut[2]=2 → pieces 2 + 2, value 10
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
 
-```text
-   best[0] = 0
-   best[1] = 1+best[0] = 1
-   best[2] = max(1+best[1], 5+best[0]) = max(2,5) = 5
-   best[3] = max(1+5, 5+1, 8+0) = 8
-   best[4] = max(1+8, 5+5, 8+1, 9+0) = 10   ← two length-2 cuts
-```
-
-Each cell reuses the smaller `best[]` — that's the overlap DP exploits.
+<small>Three rows: **price** (given), **best** (filled), **cut** (the winning first cut). Every candidate reads a **smaller** `best[]` cell; the traceback then walks `cut[]`.</small>
 
 --
 
@@ -433,8 +449,13 @@ Let `L[i][j]` = LCS length of `A[0..i)` and `B[0..j)`:
 Look at the **last** characters `A[i−1]`, `B[j−1]`:
 
 ```text
-   MATCH    → both can end the LCS → 1 + LCS of shorter prefixes (diagonal)
-   MISMATCH → at least one is NOT in the LCS → drop it → max(up, left)
+   MATCH → some optimal LCS DOES end with that pair:
+      one that ends elsewhere can swap its last match
+      for this pair — same length, still common
+      → 1 + LCS of the shorter prefixes (diagonal)
+
+   MISMATCH → they can't both end it → drop one
+      → max(up, left)
 ```
 
 Every case reduces to a **smaller prefix pair** — optimal substructure.
@@ -554,7 +575,7 @@ Filling LCS of `A="AB"`, `B="CB"` — compute `dp[2][2]`:
 
 ### Part 4 · The DP recipe
 
-<small>(~22 min)</small>
+<small>(~19 min)</small>
 
 --
 
@@ -622,20 +643,6 @@ Express `dp[x]` using **strictly smaller** subproblems:
 
 --
 
-## State & transition
-
-The two words that describe every DP:
-
-```text
-   STATE       = a subproblem (a table cell):  dp[i]  or  dp[i][j]
-   TRANSITION  = the recurrence linking states
-   total time  = (# states) × (transition cost)
-```
-
-**Design the state, then the transition** — that's the whole of DP.
-
---
-
 ## Step 3–4 — base cases & order
 
 - **base cases** — the smallest subproblems, answered directly (empty string → 0, length 0 → 0)
@@ -648,19 +655,21 @@ The two words that describe every DP:
 
 --
 
-## Reading off the complexity
-
-A DP's cost is a simple product:
+## State, transition, cost
 
 ```text
-   time  = (# subproblems) × (work per subproblem)
-   space = (# subproblems)   — often reducible
+   STATE      = one subproblem = one cell: dp[i], dp[i][j]
+   TRANSITION = the recurrence linking states
+   time = (# states) × (transition cost)   space = (# states)
 ```
 
-```text
-   LCS:  mn cells × O(1)  = Θ(mn)
-   rod:  n cells × O(n)   = Θ(n²)   (each tries n cuts)
-```
+| DP | states | transition | total |
+|---|---|---|---|
+| Fibonacci | n | O(1) | Θ(n) |
+| rod cutting | n | O(n) — try every cut | **Θ(n²)** |
+| LCS | m·n | O(1) | **Θ(mn)** |
+
+**Design the state, then the transition** — the cost is then arithmetic.
 
 --
 
