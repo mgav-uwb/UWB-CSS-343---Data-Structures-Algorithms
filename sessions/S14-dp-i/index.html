@@ -57,10 +57,16 @@
                         2·fib(n+1)−1; ⏩ 1024× sweeps the exponential tail
          rodcut   (P2)  rod cutting: price / best / cut rows, one frame per
                         CANDIDATE, then the traceback walks cut[]
+         rodcut-tree (P2) the recursion the table optimizes: naive vs memoized
+                        vs tabulated, on one tree
+         lcs-tree (P3)  the LCS recursion: ↖ match / ↑ ← mismatch, and the
+                        green chain is the traceback
          lcs      (P3)  LCS of any two words (type "SUNDAY SATURDAY" in the
                         value box) — table fill + traceback -->
   <script type="module">
-    import { initDeckDemos, DP, MatrixRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, DP, MatrixRenderer, TreeRenderer } from "../../lib/deck.js";
+    const nums = (v) => { const n = String(v ?? "").split(/[,\s]+/).map((x) => parseInt(x, 10))
+      .filter((x) => Number.isFinite(x) && x >= 0); return n.length ? n.slice(0, 12) : [1, 5, 8, 9]; };
     const clampN = (v) => Math.max(2, Math.min(16, Math.trunc(v) || 10)); // all racers must solve the SAME n
     initDeckDemos({
       "fib-race": {
@@ -97,6 +103,39 @@
         } }],
         costs: ["compare", "read", "write"], chrome: { showCosts: true, showValue: false }, width: 560, height: 175,
       },
+      "rodcut-tree": {
+        make: () => new DP(),
+        noBuild: true,
+        renderer: (c) => new TreeRenderer(c, { labels: "none", R: 14 }),
+        stateMsg: () => "prices 1,5,8,9, rod 4 — run Naive, then Memoized",
+        inputs: [
+          { key: "prices", label: "price[1..k]", value: "1,5,8,9", width: 110 },
+          { key: "n", label: "rod n", value: "4", width: 45 },
+        ],
+        ops: [
+          { name: "Naive (no memo)", run: (s, _v, vals) => s.rodCutTree(nums(vals.prices), parseInt(vals.n, 10)) },
+          { name: "Memoized", run: (s, _v, vals) => s.rodCutTreeMemo(nums(vals.prices), parseInt(vals.n, 10)) },
+          { name: "Tabulated", run: (s, _v, vals) => s.rodCutTreeTab(nums(vals.prices), parseInt(vals.n, 10)) },
+        ],
+        costs: ["compare", "recompute", "cache-hit"], chrome: { showCosts: true, showValue: false },
+        width: 880, height: 250,
+      },
+      "lcs-tree": {
+        make: () => new DP(),
+        noBuild: true,
+        renderer: (c) => new TreeRenderer(c, { labels: "none", R: 14 }),
+        stateMsg: () => 'LCS("AGCAT","GAC") — 27 nodes naive, 19 memoized',
+        inputs: [
+          { key: "a", label: "A", value: "AGCAT", width: 80 },
+          { key: "b", label: "B", value: "GAC", width: 80 },
+        ],
+        ops: [
+          { name: "Naive (no memo)", run: (s, _v, vals) => s.lcsTree(vals.a, vals.b) },
+          { name: "Memoized", run: (s, _v, vals) => s.lcsTreeMemo(vals.a, vals.b) },
+        ],
+        costs: ["compare", "recompute", "cache-hit"], chrome: { showCosts: true, showValue: false },
+        width: 880, height: 250,
+      },
       "lcs": {
         make: () => new DP(),
         noBuild: true,
@@ -112,7 +151,10 @@
           const word = (t, d) => (String(t ?? "").trim().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 12) || d);
           return s.lcs(word(vals.a, "SUNDAY"), word(vals.b, "SATURDAY"));
         } }],
-        costs: ["compare", "write"], chrome: { showCosts: true, showValue: false }, width: 560, height: 140,
+        // SUNDAY/SATURDAY is a 7x9 grid: at 140px tall the renderer autofit it down
+        // to ~14px cells, which is where the "low-res" came from once the canvas
+        // stopped being stretched. 340 gives it full-size (42px) cells.
+        costs: ["compare", "write"], chrome: { showCosts: true, showValue: false }, width: 760, height: 250,
       },
     });
   </script>

@@ -15,8 +15,8 @@
   generalizes it. DP is NEW this term (greedy's fallback when a single choice
   isn't safe).
 
-  Session plan (150 min). 0:00 intro 0:04 P1 memo/tab 22 0:26 P2 fib/rod 29
-  0:55 BREAK 10 1:05 P3 LCS 30 1:35 P4 the recipe 19 1:54 P5 wrap 12
+  Session plan (150 min). 0:00 intro 0:04 P1 memo/tab 17 0:21 P2 fib/rod 32
+  0:53 BREAK 10 1:03 P3 LCS 32 1:35 P4 the recipe 19 1:54 P5 wrap 12
   2:06 ICA 2:30 end.
 -->
 
@@ -44,7 +44,7 @@ _(DP isn't in Sedgewick.) Optional: CLRS Ch 14. Quiz due before class._
 
 ### Part 1 · Memoization vs tabulation
 
-<small>(~22 min)</small>
+<small>(~17 min)</small>
 
 --
 
@@ -58,20 +58,6 @@ Solve a problem by combining answers to **overlapping** subproblems — and **st
    plain recursion:  recompute subproblems → exponential
    DP:               cache them → polynomial
 ```
-
---
-
-## Why "dynamic programming"?
-
-Richard Bellman coined it in the **1950s**:
-
-```text
-   "programming" = tabular PLANNING (as in "linear programming"),
-                    NOT writing code
-   "dynamic"     = multistage decisions over time
-```
-
-The name is opaque; the idea — **remember subproblems** — is simple.
 
 --
 
@@ -149,16 +135,7 @@ No recursion — an explicit loop over the table.
 | computes | only needed subproblems | usually all |
 | order | automatic | you choose it |
 
-Same answers, same asymptotic cost — pick by convenience.
-
---
-
-## Memoize or tabulate?
-
-- **memoize** when: the recursion is natural, or only **some** subproblems are reached
-- **tabulate** when: you need the **speed** (no call overhead) or a **space** optimization (keep few rows)
-
-**Advice:** write it memoized first (hard to get wrong), then tabulate if it matters.
+**Write it memoized first** (hard to get wrong); tabulate for **speed** or a **space** trick.
 
 --
 
@@ -185,7 +162,7 @@ DP is greedy **without the leap of faith** — it explores every option but shar
 
 ### Part 2 · Fibonacci → rod cutting
 
-<small>(~29 min)</small>
+<small>(~32 min)</small>
 
 --
 
@@ -324,6 +301,23 @@ Try **every first cut** `i`, then optimally cut the rest:
 
 --
 
+## 🎬 Demo — the rod tree
+
+<div class="algo-viz" data-algo="rodcut-tree">
+<pre class="viz-fallback">
+   "try every first cut" drawn: node = length still to cut,
+   edge = the piece taken (with its price)
+     naive     16 nodes (2⁴) — cut(2) solved twice, cut(1) 4×
+     memoized  11 lit = 1 + 4·5/2, the rest greyed OUT
+     the green chain is the answer: 2→5 then 2→5 = 10
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Run **Naive**, then **Memoized**: the same walk, the same order — the greyed subtrees are the ones you just watched being recomputed.</small>
+
+--
+
 ## Rod cutting — worked
 
 Prices `[_,1,5,8,9]` (length 1..4):
@@ -402,7 +396,7 @@ Prices `[_, 2, 5, 7, 8]` (lengths 1..4). Fill `best[1..4]`:
 
 ### Part 3 · Longest common subsequence
 
-<small>(~30 min)</small>
+<small>(~32 min)</small>
 
 --
 
@@ -459,6 +453,23 @@ Look at the **last** characters `A[i−1]`, `B[j−1]`:
 ```
 
 Every case reduces to a **smaller prefix pair** — optimal substructure.
+
+--
+
+## 🎬 Demo — the LCS recursion
+
+<div class="algo-viz" data-algo="lcs-tree">
+<pre class="viz-fallback">
+   AGCAT vs GAC as a recursion: node = prefix pair (i,j)
+     ↖ match  → +1, ONE child      ↑ / ← mismatch → TWO
+     naive     27 nodes
+     memoized  19 visited, 16 distinct pairs
+   ≤ (5+1)(3+1) = 24 pairs — which IS the table
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>The **green chain** is the traceback; its **↖** edges spell the subsequence — here **AC**.</small>
 
 --
 
