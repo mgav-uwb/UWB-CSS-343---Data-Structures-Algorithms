@@ -752,3 +752,5 @@ In `ica14/ica14.cpp`:
 
 Build `-g`, run the self-tests, Valgrind-clean.
 
+<small>**+10 extra credit**, optional: return the **cuts** (not the value), the **subsequence** (not the length), and LCS in **two rows**.</small>
+

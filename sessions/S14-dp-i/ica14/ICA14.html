@@ -71,13 +71,38 @@
     grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
     Vectors only — a clean run still catches bad table indexing. See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> handout.
   </div>
-  <h2>Grading (10 pts)</h2>
+  <h2>Extra credit (+10, optional)</h2>
+  <p>Each of these turns one of your TODOs from returning a <em>number</em> into returning the
+  <em>thing the number describes</em> — which is what the DP recipe's last step is about. All three
+  use only tonight's material, and skipping them costs you nothing: the extra-credit tests report
+  separately and your battery still exits 0.</p>
+  <ol>
+    <li><strong><code>rodCutPieces</code> (+3)</strong> — return the actual cuts, not just their
+    value. Record which first cut won at each length, then trace it back.
+    <code>{0,1,5,8,9}</code>, n = 4 → <code>{2,2}</code>.</li>
+    <li><strong><code>lcsString</code> (+3)</strong> — return the subsequence, not just its length.
+    Walk back from the bottom-right corner; on a match take the character and step diagonally,
+    otherwise follow the larger neighbour. <code>SUNDAY</code>/<code>SATURDAY</code> →
+    <code>SUDAY</code>.</li>
+    <li><strong><code>lcsLengthTwoRows</code> (+4)</strong> — the same length in
+    <code>&Theta;(min(m,n))</code> space, keeping only two rows. It must handle a 2000&times;2000
+    instance. Then notice what you have given up: the traceback from the previous part is now
+    impossible, because the rows it needs have been overwritten. That trade-off is the point.</li>
+  </ol>
+  <p>Ties are fine — several cut lists or subsequences can be optimal, and the grader accepts any
+  of them (it checks your answer really is optimal and really is a subsequence, rather than
+  comparing to one fixed string).</p>
+
+  <h2>Grading (10 pts + 10 extra credit)</h2>
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
     <tr><td>Mechanics (fib memo+tab , rodCut , lcs)</td><td>6</td><td>checked against our own test harness</td></tr>
     <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>rodCutPieces</code></td><td>+3</td><td>optional; all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>lcsString</code></td><td>+3</td><td>optional; all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>lcsLengthTwoRows</code></td><td>+4</td><td>optional; all-or-nothing</td></tr>
   </table>
   <h2>Submit</h2>
   <p>Your finished <code>ica14.cpp</code> in the Canvas ICA 14 quiz (single file upload; resubmits allowed). <strong>Due Fri Aug 7, 11:59 PM.</strong></p>

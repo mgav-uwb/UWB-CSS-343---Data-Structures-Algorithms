@@ -70,6 +70,56 @@ int lcs(const string& a, const string& b) {
     return 0;
 }
 
+
+// ==========================================================================
+// EXTRA CREDIT (optional, +10) — the VALUE vs the SOLUTION.
+// Every TODO above returns a NUMBER. These three return the thing the number
+// describes, which is what L14 Part 4 step 5 is about: the table stores the
+// optimal value, and recovering the choices needs a traceback. Skipping these
+// costs you nothing — the battery below still exits 0.
+// ==========================================================================
+
+// ---- EC 1 (+3) — rodCutPieces: which cuts, not just their value -----------
+// Same DP as rodCut, but also record cut[len] = the FIRST cut length that
+// achieved best[len]. Then trace back from n: take cut[n], subtract it, repeat
+// until nothing is left. Return the pieces (any order; ties may differ).
+//   price {0,1,5,8,9}, n=4  ->  {2,2}      (value 10, two length-2 pieces)
+//   price {0,1,5,8,9}, n=3  ->  {3}        (value 8, one uncut piece)
+// See L14 "Rod cutting — which cuts?" and the ?ds=rodcut demo's cut[] row.
+vector<int> rodCutPieces(const vector<int>& price, int n) {
+    // TODO — fill best[] as in rodCut, recording cut[] alongside it, then walk
+    //        cut[] back from n. Return an empty vector when n == 0.
+    return {};
+}
+
+// ---- EC 2 (+3) — lcsString: the subsequence, not just its length ----------
+// Fill the same table as lcs, then walk BACK from L[m][n] toward L[0][0]:
+//   a[i-1] == b[j-1]  -> that character is in the LCS; take it, move diagonally
+//   else              -> move toward the LARGER of L[i-1][j] (up) / L[i][j-1] (left)
+// Collect the matched characters and REVERSE them (the walk finds them
+// back to front). Any valid LCS is accepted — ties give different strings.
+//   lcsString("AGCAT","GAC")        -> "AC"  (or "GA"/"GC" — all length 2)
+//   lcsString("SUNDAY","SATURDAY")  -> "SUDAY"
+// See L14 "LCS — reconstructing the string" and the ?ds=lcs-tree green chain.
+string lcsString(const string& a, const string& b) {
+    // TODO — build the table, then trace back from the bottom-right corner.
+    return "";
+}
+
+// ---- EC 3 (+4) — lcsLengthTwoRows: the same answer in O(min(m,n)) space ---
+// Row i of the LCS table depends only on row i-1 and the current row's left
+// neighbour, so the whole (m+1)x(n+1) table is never needed to get the LENGTH:
+// keep TWO rows and slide them. Put the SHORTER string along the columns so
+// the rows are as short as possible, and return the same value as lcs(a,b).
+//   Must handle the 2000-character stress case in T9 without a 2-D table.
+// The point (L14 Part 4, step 5): this is why "value or solution?" is a design
+// decision — the traceback of EC 2 is impossible here, because the rows it
+// would need have been overwritten.
+int lcsLengthTwoRows(const string& a, const string& b) {
+    // TODO — two vectors (prev, cur), the same recurrence, swapped each row.
+    return 0;
+}
+
 // ==========================================================================
 // UNIT TESTS + APPLICATION (given — do not edit).
 // ==========================================================================
@@ -78,6 +128,18 @@ static int passCnt = 0, failCnt = 0;
 static void check(bool ok, const string& what) {
     (ok ? passCnt : failCnt)++;
     cout << (ok ? "  [PASS] " : "  [FAIL] ") << what << '\n';
+}
+// Extra credit reports separately and never touches passCnt/failCnt, so
+// leaving the EC TODOs empty still gives a clean ./ica14 run (exit 0).
+static void checkEC(bool ok, const string& what) {
+    cout << (ok ? "  [EC PASS] " : "  [ec ....] ") << what << '\n';
+}
+static bool sameMultiset(vector<int> x, vector<int> y) {
+    sort(x.begin(), x.end()); sort(y.begin(), y.end()); return x == y;
+}
+static bool isSubsequenceOf(const string& s, const string& t) {
+    size_t i = 0; for (char c : t) if (i < s.size() && s[i] == c) i++;
+    return i == s.size();
 }
 
 int main() {
@@ -141,7 +203,51 @@ int main() {
         check(rodCut(price, 0) == 0, "rodCut(price, n=0) == 0");
     }
 
-    cout << passCnt << " passed, " << failCnt << " failed"
+    cout << "\nEXTRA CREDIT (optional — these do not affect the counts above)\n";
+    cout << "EC1 · rodCutPieces — the cuts themselves\n";
+    {
+        vector<int> price = {0, 1, 5, 8, 9};
+        vector<int> got = rodCutPieces(price, 4);
+        checkEC(sameMultiset(got, {2, 2}), "rodCutPieces([_,1,5,8,9], 4) == {2,2}");
+        checkEC(rodCutPieces(price, 3) == vector<int>{3}, "rodCutPieces([_,1,5,8,9], 3) == {3}");
+        checkEC(rodCutPieces(price, 0).empty(), "rodCutPieces(price, 0) is empty");
+        vector<int> big = {0, 1, 5, 8, 9, 10, 17, 17, 20};
+        vector<int> pieces = rodCutPieces(big, 8);
+        int sum = 0, value = 0;
+        for (int piece : pieces) { sum += piece; value += big[piece]; }
+        checkEC(sum == 8 && value == 22,
+                "CLRS n=8: the pieces sum to 8 and are worth 22");
+    }
+
+    cout << "EC2 · lcsString — the subsequence itself\n";
+    {
+        string s1 = lcsString("AGCAT", "GAC");
+        checkEC(s1.size() == 2 && isSubsequenceOf(s1, "AGCAT") && isSubsequenceOf(s1, "GAC"),
+                "lcsString(\"AGCAT\",\"GAC\") is a length-2 subsequence of both");
+        string s2 = lcsString("SUNDAY", "SATURDAY");
+        checkEC(s2 == "SUDAY", "lcsString(\"SUNDAY\",\"SATURDAY\") == \"SUDAY\"");
+        checkEC(lcsString("abc", "xyz").empty(), "no common characters gives \"\"");
+        string s4 = lcsString("banana", "banana");
+        checkEC(s4 == "banana", "identical strings give the string back");
+    }
+
+    cout << "EC3 · lcsLengthTwoRows — same answer, O(min(m,n)) space\n";
+    {
+        // expected values are literal, so EC3 does not depend on your lcs()
+        struct Case { string a, b; int want; };
+        vector<Case> cases = {{"AGCAT", "GAC", 2}, {"SUNDAY", "SATURDAY", 5},
+                              {"ABCBDAB", "BDCABA", 4}, {"", "abc", 0}, {"aaaa", "bbbb", 0}};
+        bool agree = true;
+        for (const Case& c : cases) if (lcsLengthTwoRows(c.a, c.b) != c.want) agree = false;
+        checkEC(agree, "five known instances: 2, 5, 4, 0, 0");
+        // 2000 x 2000 would be 4M cells as a full table; two rows is 4001 ints
+        string x(2000, 'a'), y(2000, 'a');
+        for (int i = 0; i < 2000; i++) { x[i] = 'a' + (i * 7 % 4); y[i] = 'a' + (i * 5 % 4); }
+        int v = lcsLengthTwoRows(x, y);
+        checkEC(v > 0 && v <= 2000, "2000x2000 instance runs in two rows (answer " + to_string(v) + ")");
+    }
+
+    cout << '\n' << passCnt << " passed, " << failCnt << " failed"
          << (failCnt ? "" : "  —  now run it under valgrind (must be clean)") << '\n';
     return failCnt ? 1 : 0;
 }
