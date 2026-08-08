@@ -58,7 +58,7 @@
                                 force, then KMP on the same pair and compare
                                 the compare counters -->
   <script type="module">
-    import { initDeckDemos, Trie, StringSearch, TrieRenderer, ArrayRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, Trie, StringSearch, TrieRenderer, ArrayRenderer, MatrixRenderer } from "../../lib/deck.js";
     import { expandRepeats } from "../../lib/core/sequence.js";
     const pair = (s, v) => {   // "TEXT PATTERN" | "PATTERN" → set text/pattern
       // A^11B shorthand works, like the gallery — the note's adversarial pair
@@ -79,6 +79,19 @@
           { name: "Prefix", arg: "string", run: (s, v) => s.prefix(String(v).trim().toLowerCase()) },
         ],
         costs: ["read", "compare"], chrome: { showCosts: true }, width: 840, height: 195,
+      },
+      "kmp-fail": {
+        make: () => new StringSearch(),
+        noBuild: true,
+        renderer: (c) => new MatrixRenderer(c, {}),
+        stateMsg: () => 'ready: fail("ABABAC") — the pattern from the your-turn slide',
+        inputs: [{ key: "p", label: "pattern", value: "ABABAC", width: 110 }],
+        ops: [{ name: "Build fail[]", run: (s, _v, vals) => {
+          const pat = expandRepeats(String(vals.p ?? "")).toUpperCase().replace(/[^A-Z]/g, "").slice(0, 14) || "ABABAC";
+          s.build(["", pat]); return s.failTable();
+        } }],
+        costs: ["compare", "read", "write"], chrome: { showCosts: true, showValue: false },
+        width: 620, height: 150,
       },
       "string-search": {
         make: () => { const s = new StringSearch(); s.build([]); return s; },

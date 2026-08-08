@@ -70,13 +70,30 @@
     grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
     Vectors only — a clean run still catches bad table indexing. See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> handout.
   </div>
-  <h2>Grading (10 pts)</h2>
+  <h2>Extra credit (+5, optional)</h2>
+  <p><code>editDistance</code> returns a <em>number</em>; a spell-checker or <code>diff</code> needs
+  the actual edits. Skipping this costs you nothing — the extra-credit tests report separately and
+  your battery still exits 0.</p>
+  <ol>
+    <li><strong><code>editOps</code> (+5)</strong> — return the <strong>edit script</strong>: one
+    character per step, <code>'M'</code> match, <code>'R'</code> replace, <code>'D'</code> delete,
+    <code>'I'</code> insert, in forward order. Fill the same <code>D</code> table, then walk back
+    from <code>D[m][n]</code> naming each step — the same move as your <code>knapsackItems</code>
+    traceback, on the other table. <code>editOps("kitten","sitting")</code> →
+    <code>R M M M R M I</code> (2 replaces + 1 insert = distance 3).</li>
+  </ol>
+  <p>Ties are fine — several optimal scripts can exist. The tests <em>replay</em> your ops on
+  <code>a</code> and check they really produce <code>b</code> in exactly
+  <code>editDistance(a,b)</code> real edits, so any optimal script is accepted.</p>
+
+  <h2>Grading (10 pts + 5 extra credit)</h2>
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
     <tr><td>Mechanics (knapsack, editDistance, traceback)</td><td>6</td><td>checked against our own test harness</td></tr>
     <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>editOps</code></td><td>+5</td><td>optional; all-or-nothing</td></tr>
   </table>
   <h2>Submit</h2>
   <p>Your finished <code>ica15.cpp</code> in the Canvas ICA 15 quiz (single file upload; resubmits allowed). <strong>Due Wed Aug 12, 11:59 PM.</strong></p>

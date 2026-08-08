@@ -111,6 +111,48 @@ NFA buildExample2() {
 }
 
 // ==========================================================================
+// EXTRA CREDIT (optional, +5) — build the machine you have been simulating.
+// buildExample() and buildExample2() were handed to you, hand-wired from a
+// regex. This writes the hand-wiring as an algorithm: Thompson's construction
+// in Sedgewick's encoding (L17 Parts "Sedgewick's encoding", "Build A*B —
+// worked", "Parsing with a stack"). Skipping it costs you nothing — the
+// battery below still exits 0.
+// ==========================================================================
+
+// ---- EC (+5) — buildNFA: regex -> NFA --------------------------------------
+// Return the machine for `re` under the SAME conventions as buildExample():
+// state i "is" re[i], a LETTER state consumes its char to reach i+1, the meta
+// characters ( ) | * only carry ε-edges, state 0 is the start and state n-1 is
+// the accept state. Supported: letters plus ( ) | * (concatenation implicit) —
+// the deck's subset. Keep n <= MAX.
+//
+// Wrap the regex in implicit parens FIRST (`re = "(" + re + ")"`), so a
+// top-level | or * has a group to anchor to; then scan left to right with a
+// stack of positions (L17 "Parsing with a stack"):
+//   '(' or '|'        -> push i;  lp = i
+//   ')'               -> pop the '|' positions above the matching '(' — for
+//                        each one `orp`: ε lp->orp+1 and ε orp->i — then pop
+//                        the '(' into lp
+//   next char is '*'  -> ε lp->i+1 and ε i+1->lp   (skip the atom / repeat it)
+//   '(' ')' '*'       -> ε i->i+1                  (metas fall through)
+//   a letter          -> match[i] = re[i]          (the ONLY way to consume)
+// `lp` is "the atom or group that just ended", which is what a following '*'
+// wraps: for a letter that is i itself; for a ')' it is the matching '('.
+//
+//   buildNFA("A*B")     accepts B, AB, AAB   rejects "", A, BA, AABB
+//   buildNFA("(A|B)*C") accepts C, AC, ABBAC rejects AB, "", CA
+// Feed the result to YOUR simulate() — that is what the tests below do.
+NFA buildNFA(const string& re) {
+    // TODO — the wrap, then one left-to-right pass with a stack of positions.
+    (void)re;
+    NFA nfa;                       // an empty but WELL-FORMED machine, so the
+    nfa.n = 1;                     // EC tests below can run (and fail) safely
+    nfa.eps.assign(1, {});         // while this TODO is unwritten
+    for (int i = 0; i < MAX; i++) nfa.match[i] = 0;
+    return nfa;
+}
+
+// ==========================================================================
 // UNIT TESTS (given — do not edit).
 // ==========================================================================
 #ifndef ICA17_GRADER
@@ -118,6 +160,11 @@ static int passCnt = 0, failCnt = 0;
 static void check(bool ok, const string& what) {
     (ok ? passCnt : failCnt)++;
     cout << (ok ? "  [PASS] " : "  [FAIL] ") << what << '\n';
+}
+// Extra credit reports separately and never touches passCnt/failCnt, so
+// leaving the EC TODO empty still gives a clean ./ica17 run (exit 0).
+static void checkEC(bool ok, const string& what) {
+    cout << (ok ? "  [EC PASS] " : "  [ec ....] ") << what << '\n';
 }
 
 int main() {
@@ -156,6 +203,48 @@ int main() {
     check(!simulate(acd, "AC"), "\"AC\" rejected (missing the final D)");
     check(!simulate(acd, "ABCD"), "\"ABCD\" rejected (not a valid branch)");
     check(!simulate(acd, ""), "\"\" rejected (need a full branch + D)");
+
+    cout << "\nEXTRA CREDIT (optional — these do not affect the counts above)\n";
+    cout << "EC · buildNFA — the construction, not just the simulation\n";
+    {
+        // a machine must at least be well-formed before we can run it
+        auto wellFormed = [](const NFA& m) {
+            return m.n > 0 && m.n <= MAX && (int)m.eps.size() == m.n;
+        };
+        // every string over `alpha` up to length `len`
+        auto strings = [](const string& alpha, int len) {
+            vector<string> out = {""};
+            for (size_t i = 0; i < out.size(); i++) {
+                if ((int)out[i].size() >= len) continue;
+                for (char c : alpha) out.push_back(out[i] + c);
+            }
+            return out;
+        };
+        NFA ab = buildNFA("A*B");
+        bool ok = wellFormed(ab);                   // an ill-formed machine just fails
+        for (auto& s : strings("AB", 5)) {
+            if (!ok) break;
+            size_t i = 0;                           // reference for ^A*B$
+            while (i < s.size() && s[i] == 'A') i++;
+            bool want = (i + 1 == s.size() && s[i] == 'B');
+            if (simulate(ab, s) != want) ok = false;
+        }
+        checkEC(ok, "your A*B machine agrees with ^A*B$ on every string up to length 5");
+        NFA acd = buildNFA("(A*B|AC)D");
+        bool acc = wellFormed(acd), rej = wellFormed(acd);
+        if (wellFormed(acd)) {
+            for (string s : {"BD", "ABD", "AAABD", "ACD"}) if (!simulate(acd, s)) acc = false;
+            for (string s : {"", "D", "AD", "AC", "ABDD", "ACDD"}) if (simulate(acd, s)) rej = false;
+        }
+        checkEC(acc, "your (A*B|AC)D machine accepts BD, ABD, AAABD, ACD");
+        checkEC(rej, "your (A*B|AC)D machine rejects the near-misses");
+
+        NFA star = buildNFA("(A|B)*C");
+        checkEC(wellFormed(star)
+                && simulate(star, "C") && simulate(star, "AC") && simulate(star, "ABBAC")
+                && !simulate(star, "") && !simulate(star, "AB") && !simulate(star, "CA"),
+                "(A|B)*C accepts C, AC, ABBAC and rejects \"\", AB, CA");
+    }
 
     cout << passCnt << " passed, " << failCnt << " failed" << '\n';
     return failCnt ? 1 : 0;

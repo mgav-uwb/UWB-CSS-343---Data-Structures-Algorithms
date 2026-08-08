@@ -69,13 +69,32 @@
     grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
     Sets and vectors only — a clean run is still required (it catches out-of-bounds access into <code>eps</code>). See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> handout.
   </div>
-  <h2>Grading (10 pts)</h2>
+  <h2>Extra credit (+5, optional)</h2>
+  <p><code>buildExample()</code> and <code>buildExample2()</code> were handed to you, hand-wired
+  from a regex. This turns that hand-wiring into an algorithm. Skipping it costs you nothing — the
+  extra-credit tests report separately and your battery still exits 0.</p>
+  <ol>
+    <li><strong><code>buildNFA</code> (+5)</strong> — regex → NFA, Thompson's construction in
+    Sedgewick's encoding: state <code>i</code> <em>is</em> <code>re[i]</code>, a letter state
+    consumes its character to reach <code>i+1</code>, and <code>( ) | *</code> only carry
+    &epsilon;-edges. Wrap the regex in implicit parentheses first, then make one left-to-right pass
+    with a <strong>stack of positions</strong> — the same stack parse as L03's expression trees.
+    Supported: letters plus <code>( ) | *</code>, concatenation implicit.
+    <code>buildNFA("A*B")</code> must accept <code>B</code>, <code>AB</code>, <code>AAB</code> and
+    reject <code>""</code>, <code>A</code>, <code>BA</code>.</li>
+  </ol>
+  <p>Feed your machine to your own <code>simulate</code> — that is what the tests do. Grading is
+  behavioural: any construction that accepts the right language passes, whatever your state
+  numbering.</p>
+
+  <h2>Grading (10 pts + 5 extra credit)</h2>
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
     <tr><td>Mechanics (epsClosure , simulate on A*B , simulate on (A*B|AC)D)</td><td>6</td><td>checked against our own test harness</td></tr>
     <tr><td>Your test battery passes (T1–T5)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>buildNFA</code></td><td>+5</td><td>optional; all-or-nothing</td></tr>
   </table>
   <h2>Submit</h2>
   <p>Your finished <code>ica17.cpp</code> in the Canvas ICA 17 quiz (single file upload; resubmits allowed). <strong>Due Wed Aug 19, 11:59 PM.</strong></p>

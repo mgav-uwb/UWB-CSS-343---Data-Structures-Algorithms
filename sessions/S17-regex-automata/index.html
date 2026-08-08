@@ -59,7 +59,7 @@
                          ("AAABD" ✓ left branch, "ACD" ✓ right, "AAD" ✗);
                          Build swaps in a different regex first -->
   <script type="module">
-    import { initDeckDemos, NFA, GraphRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, NFA, DFA, GraphRenderer } from "../../lib/deck.js";
     const RE = "(A*B|AC)D";
     // sanitize a typed regex: letters + ( ) | * only, balanced parens, ≤ 9
     // chars (the wrapped machine stays readable at 12 states); else default
@@ -75,6 +75,19 @@
     initDeckDemos({
       // P3 — Thompson/Sedgewick construction, edge by edge, of a typed regex.
       // NAMED regex box (the gallery pattern): the machine's source stays visible
+      "dfa": {
+        make: () => new DFA(),
+        noBuild: true,
+        renderer: (c) => new GraphRenderer(c, {}),
+        stateMsg: () => "ready: (0|1)*0 on 110 — one state highlighted, not a set",
+        inputs: [
+          { key: "m", label: "machine", value: "ends-in-0", width: 100 },
+          { key: "s", label: "string", value: "110", width: 90 },
+        ],
+        ops: [{ name: "Run", run: (s, _v, vals) => { s.build(String(vals.m ?? "ends-in-0").trim()); return s.run(vals.s ?? ""); } }],
+        costs: ["compare", "read"], chrome: { showCosts: true, showValue: false },
+        width: 640, height: 230,
+      },
       "nfa-build": {
         ...graph(),
         make: () => { const n = new NFA(); n.build("A*B"); return n; },

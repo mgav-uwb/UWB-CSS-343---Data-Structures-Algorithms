@@ -13,8 +13,8 @@
   needs a TRACEBACK to recover the solution, and a rolling-array trick to cut
   space. Knapsack's O(nW) is "pseudo-polynomial" — a subtlety worth naming.
 
-  Session plan (150 min). 0:00 intro 0:04 P1 knapsack 28 0:32 P2 edit distance 28
-  1:00 BREAK 10 1:10 P3 grid+interval 26 1:36 P4 traceback+space 22 1:58 P5 wrap 8
+  Session plan (150 min). 0:00 intro 0:04 P1 knapsack 31 0:35 P2 edit distance 31
+  1:06 BREAK 10 1:16 P3 grid+interval 26 1:42 P4 traceback+space 16 1:58 P5 wrap 8
   2:06 ICA 2:30 end.
 -->
 
@@ -30,7 +30,7 @@
 
 ## Reading
 
-**Erickson Ch 3 §3.7–3.10** — more Dynamic Programming
+**Chapter 15 — Dynamic Programming II** (course handout) · **Erickson Ch 3 §3.7–3.10**
 
 - **0/1 knapsack** — take-or-leave, a 2-D table
 - **edit distance** — insert / delete / replace
@@ -43,7 +43,7 @@ _Optional:_ CLRS Ch 14. Reading quiz due before class.
 
 ### Part 1 · 0/1 knapsack
 
-<small>(~28 min)</small>
+<small>(~31 min)</small>
 
 --
 
@@ -61,7 +61,7 @@ Which subset fits and is worth the most?
 
 --
 
-## Greedy fails (recall L12)
+## Greedy fails (as L12 showed)
 
 ```text
    W = 6:   P (value 5, weight 4)   ratio 1.25  ← best
@@ -102,6 +102,24 @@ One high-ratio item **blocks** two better ones. **Try all → DP.**
 ```
 
 The "last decision": **take item i or not?**
+
+--
+
+## Why take-or-skip is correct
+
+Take an **optimal** packing S of items 1..i within w. Item i is in it, or not:
+
+```text
+   i NOT in S → S packs items 1..i-1 in w    → value = K[i-1][w]
+   i IN S     → remove it. What is left packs
+                items 1..i-1 in w - weight[i]
+                and must be OPTIMAL there — if not,
+                swap in a better one and S improves,
+                contradicting that S was optimal
+              → value = value[i] + K[i-1][w-weight[i]]
+```
+
+Every optimum is **exactly one** of these two, so the **max** finds it.
 
 --
 
@@ -189,7 +207,7 @@ Two loops, the recurrence in the body — the standard 2-D DP shape.
 </pre>
 </div>
 
-<small>Each cell = `max(skip = above, take = value + K[i−1][w − wt])`; the **traceback** marks the items taken. Type a different **W** and re-run: at 5 → **A+B (7)**; try 9, 12, 14.</small>
+<small>Each cell = `max(skip = above, take = value + K[i−1][w − wt])`; the **traceback** marks the items taken. Type a different **W** (1–14) and re-run: 5 → **A+B (7)** · 9 → **A+B+C (12)** · 12 → **B+C+D (15**, A drops out**)** · 14 → **all four (18)**.</small>
 
 --
 
@@ -246,7 +264,7 @@ Fast when W is small — but W is a **number**, not the input size…
 
 ### Part 2 · Edit distance
 
-<small>(~28 min)</small>
+<small>(~31 min)</small>
 
 --
 
@@ -274,6 +292,22 @@ Also called **Levenshtein distance**.
                             D[i-1][j-1] ) // replace
    D[i][0] = i;  D[0][j] = j              // to/from empty
 ```
+
+--
+
+## Why min-of-three is correct
+
+Look at the **last operation** of an optimal script turning `A[0..i)` into `B[0..j)`:
+
+```text
+   delete A[i-1]   → 1 + D[i-1][j]
+   insert B[j-1]   → 1 + D[i][j-1]
+   replace/match   → D[i-1][j-1] + (0 if equal else 1)
+```
+
+Every script ends in one of the three, and its remainder must be optimal → **min**.
+
+<small>And when the characters **match**, the free diagonal always wins: neighbours differ by at most 1, so `D[i−1][j−1] ≤ 1 + min(up, left)`. That is why the match case takes the diagonal *without* a min.</small>
 
 --
 
@@ -492,6 +526,23 @@ Each cell = up + left; the corner counts all paths. Add an obstacle → set that
 
 --
 
+## 🎬 Demo — grid DP
+
+<div class="algo-viz" data-algo="grid-dp">
+<pre class="viz-fallback">
+   1 3 1     cheapest path: cell + min(up, left)
+   1 5 1  →  1 4 5 / 2 7 6 / 6 8 7  → 7 (green chain)
+   4 2 1     count paths: up + left
+             all-ones 3x3 → 1 1 1 / 1 2 3 / 1 3 6 → 6
+             a wall in the middle → 6 drops to 2
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>**Same table, same fill order** — **Cheapest path** takes `min(up,left)`, **Count paths** takes `up+left`. Add a **wall** with a negative cost.</small>
+
+--
+
 ## Interval DP
 
 The state is a **range** `[i, j]`; combine over a **split point** `k`:
@@ -571,20 +622,12 @@ Find the longest strictly-increasing subsequence — a 1-D DP:
    [3 1 4 1 5 9 2 6]  →  LIS = 1,4,5,9 (or 1,4,5,6) → length 4
 ```
 
---
-
-## LIS in practice
-
-- **patience sorting** (the card game that names the Θ(n log n) method)
-- **longest chain** of nested boxes / compatible upgrades
-- **scheduling** — longest set of compatible tasks by one axis
-- version / dependency **compatibility** chains
 
 ---
 
 ### Part 4 · Reconstruction & space-saving
 
-<small>(~22 min)</small>
+<small>(~16 min)</small>
 
 --
 
@@ -601,21 +644,10 @@ Every optimization DP recovers its solution the same way:
 
 Store the choice while filling, or recompute it on the way back.
 
---
-
-## The universal DP skeleton
-
-Every DP you've seen is the same code shape:
-
 ```text
-   1. allocate the table; set BASE cells
-   2. loop over states in dependency ORDER
-   3. each cell = combine(smaller cells)   // the recurrence
-   4. read the ANSWER cell
-   5. (optional) TRACE BACK for the solution
+   the whole of DP:  base cells → fill in dependency order
+                     → read the answer cell → trace back
 ```
-
-Change the state and the recurrence — the skeleton never changes.
 
 --
 
@@ -643,6 +675,11 @@ If a cell needs only the **previous row**, keep **two rows** (or one):
 ```
 
 Cuts space from **Θ(mn)** to **Θ(n)** — but you lose the full table for traceback.
+
+| you need | keep | space |
+|---|---|---|
+| the optimal **value** | two rows | **Θ(n)** |
+| the **solution** (traceback) | the whole table | **Θ(mn)** |
 
 --
 
@@ -678,17 +715,6 @@ Prefer recursion? **Memoize** instead of tabulate:
 ```
 
 Same Θ(nW); computes only the **reached** cells.
-
---
-
-## Value or solution? — the trade
-
-| you need | space |
-|---|---|
-| just the optimal **value** | **Θ(n)** — rolling array |
-| the full **solution** (traceback) | **Θ(mn)** — keep the table |
-
-Decide up front which you need.
 
 --
 

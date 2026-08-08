@@ -10,6 +10,7 @@
 // startsWith (the trie primitives), and failure/kmp (KMP substring search).
 // Run early and often: the tests report [PASS]/[FAIL] one by one.
 
+#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -84,6 +85,31 @@ int kmp(const string& text, const string& pat) {
 }
 
 // ==========================================================================
+// EXTRA CREDIT (optional, +5) — the trie's signature operation.
+// search answers "is this key here?" — the question a hash table also answers.
+// This one it answers that a hash table cannot: "what is here that STARTS with
+// this?" Skipping it costs you nothing — the battery below still exits 0.
+// ==========================================================================
+
+// ---- EC (+5) — keysWithPrefix (autocomplete) -------------------------------
+// Return every stored word that begins with `prefix` (L16 "keysWithPrefix
+// (autocomplete)"), in two steps:
+//   1. walk `prefix` down from the root, exactly like startsWith; if the path
+//      breaks, nothing starts with it — return {}
+//   2. from the node you land on, explore its WHOLE subtree, and every time you
+//      stand on a node with isWord, record prefix + the characters walked
+//      since (the prefix itself counts when it is a stored word)
+// Visiting next[0..25] in index order yields alphabetical order for free.
+//   trie {she, shell, shells, sea}: "sh" -> {she, shell, shells}
+//                                   ""   -> all four        "xyz" -> {}
+// Recursion wants a helper — write one above this function. This only READS
+// the trie: allocate nothing here and there is nothing to free.
+vector<string> keysWithPrefix(TrieNode* root, const string& prefix) {
+    // TODO — walk to the prefix node, then collect the subtree's words.
+    return {};
+}
+
+// ==========================================================================
 // UNIT TESTS (given — do not edit).
 // ==========================================================================
 #ifndef ICA16_GRADER
@@ -91,6 +117,16 @@ static int passCnt = 0, failCnt = 0;
 static void check(bool ok, const string& what) {
     (ok ? passCnt : failCnt)++;
     cout << (ok ? "  [PASS] " : "  [FAIL] ") << what << '\n';
+}
+// Extra credit reports separately and never touches passCnt/failCnt, so
+// leaving the EC TODO empty still gives a clean ./ica16 run (exit 0).
+static void checkEC(bool ok, const string& what) {
+    cout << (ok ? "  [EC PASS] " : "  [ec ....] ") << what << '\n';
+}
+static bool sameWords(vector<string> got, vector<string> want) {
+    sort(got.begin(), got.end());
+    sort(want.begin(), want.end());
+    return got == want;
 }
 
 int main() {
@@ -157,6 +193,22 @@ int main() {
     destroy(big);
 
     destroy(root);   // free T1/T2's trie — leak-clean run
+
+    cout << "\nEXTRA CREDIT (optional — these do not affect the counts above)\n";
+    cout << "EC · keysWithPrefix — autocomplete\n";
+    {
+        TrieNode* ec = new TrieNode();
+        for (const string& w : {"she", "shell", "shells", "sea", "shore"}) insert(ec, w);
+        checkEC(sameWords(keysWithPrefix(ec, "sh"), {"she", "shell", "shells", "shore"}),
+                "prefix \"sh\" gives she, shell, shells, shore");
+        checkEC(sameWords(keysWithPrefix(ec, "she"), {"she", "shell", "shells"}),
+                "prefix \"she\" includes \"she\" itself (it is a stored word)");
+        checkEC(sameWords(keysWithPrefix(ec, ""), {"she", "shell", "shells", "sea", "shore"}),
+                "empty prefix gives every word");
+        checkEC(keysWithPrefix(ec, "xyz").empty(), "a prefix no word starts with gives {}");
+        checkEC(keysWithPrefix(ec, "shellsx").empty(), "walking off the end of a word gives {}");
+        destroy(ec);   // EC allocates no nodes of its own — still leak-clean
+    }
 
     cout << passCnt << " passed, " << failCnt << " failed"
          << (failCnt ? "" : "  —  now run it under valgrind (must be clean)") << '\n';

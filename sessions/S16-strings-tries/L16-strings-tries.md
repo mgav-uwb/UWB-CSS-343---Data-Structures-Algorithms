@@ -32,7 +32,7 @@
 
 ## Reading
 
-**Sedgewick & Wayne §5.2 (Tries) + §5.3 (Substring Search)**
+**Chapter 16 — Strings: Tries & Substring Search** (course handout) · **Sedgewick §5.2–5.3**
 
 - **tries** — string symbol tables keyed by character path
 - **prefix operations** — autocomplete, longest-prefix
@@ -502,6 +502,23 @@ We matched `"ABAB"`. `"AB"` is a prefix of the pattern that's also a **suffix** 
 
 --
 
+## Why skipping is safe
+
+Sliding past positions feels like cheating. It isn't:
+
+```text
+   suppose the pattern DID match starting somewhere
+   between the old alignment and the new one
+   → then some prefix of the pattern, LONGER than
+     fail[j-1], equals a suffix of what we matched
+   → but fail[j-1] is the LONGEST such overlap
+   → contradiction: no such alignment exists
+```
+
+The failure function skips exactly the alignments that **provably cannot match**.
+
+--
+
 ## The failure function
 
 Precompute, for the **pattern**, how much of a partial match survives a mismatch:
@@ -571,6 +588,23 @@ The pattern matches **itself** — Θ(m).
 
 --
 
+## 🎬 Demo — building fail[]
+
+<div class="algo-viz" data-algo="kmp-fail">
+<pre class="viz-fallback">
+   the pattern matched against ITSELF, cell by cell:
+     ABABAC → [0, 0, 1, 2, 3, 0]
+   match  → the overlap grows      k = k+1
+   miss   → fall back THROUGH the table already built
+            k = fail[k-1]  (C falls 3 → 1 → 0)
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>Two rows: the **pattern**, and **fail[]** filling in. Run `ABABAC` (the your-turn) and watch the final **C fall back three times**.</small>
+
+--
+
 ## KMP — the search
 
 ```text
@@ -614,7 +648,7 @@ int kmp(const string& t, const string& p, vector<int>& fail) {
 </pre>
 </div>
 
-<small>Run **Brute force**, then **KMP** on the same pair and compare the **compare counters**. The default is the intro example; try `AAAAAAAAAAAB AAAB` — brute force's worst case, KMP unbothered.</small>
+<small>Run **Brute force**, then **KMP** on the same pair and compare the **compare counters**. The default is the intro example; then `A^40B A^6B` — brute force's worst case: **245 compares against KMP's 75**.</small>
 
 --
 
@@ -687,14 +721,7 @@ Often **sublinear** — the standard for `grep`/editors.
 
 One comparison skipped 6 positions — that's the sublinear win.
 
---
-
-## Boyer-Moore: two rules
-
-Boyer-Moore combines two skip heuristics, taking the **larger**:
-
-- **bad character** — align the mismatched char with its last pattern occurrence
-- **good suffix** — reuse an already-matched suffix (KMP's idea, for suffixes)
+<small>Full Boyer-Moore takes the **larger** of two skips: this **bad-character** rule, and a **good-suffix** rule that reuses an already-matched suffix — KMP's idea, applied to suffixes.</small>
 
 --
 
@@ -720,19 +747,6 @@ Hash the pattern once; **roll** a hash over each length-m window of the text:
 
 Shines for **multiple patterns** (hash them all into a set) and **2-D** search.
 
---
-
-## The common thread
-
-Every fast searcher **preprocesses the pattern**, then reads the text **once**:
-
-```text
-   KMP:          failure function / DFA
-   Boyer-Moore:  skip tables
-   Rabin-Karp:   pattern hash
-```
-
-Preprocess `m` (small, reused), then scan `n` (huge) → **Θ(n + f(m))**.
 
 ---
 

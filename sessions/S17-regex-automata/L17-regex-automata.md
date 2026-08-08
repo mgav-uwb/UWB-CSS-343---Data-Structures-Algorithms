@@ -29,7 +29,7 @@
   RE→NFA construction + simulation is the Sedgewick §5.4 addition. Demos: nfa-build
   + nfa-sim (GraphRenderer, editable regex/text).
 
-  Session plan (150 min). 0:00 intro 0:04 P1 regex+languages 22 0:26 P2 NFAs 26
+  Session plan (150 min). 0:00 intro 0:04 P1 regex+languages 20 0:24 P2 NFAs 28
   0:52 BREAK 10 1:02 P3 RE→NFA 26 1:28 P4 simulate+Kleene 26 1:54 P5 wrap 10
   2:04 ICA 2:30 end.
 -->
@@ -46,7 +46,7 @@
 
 ## Reading
 
-**Sedgewick & Wayne §5.4** — Regular Expressions
+**Chapter 17 — Regular Expressions & Finite Automata** (course handout) · **Sedgewick §5.4**
 
 - **regexes** — concatenation, `|` (or), `*` (closure), `()`
 - the **language** a regex describes
@@ -59,7 +59,7 @@ Reading quiz due before class.
 
 ### Part 1 · Regexes & the languages they describe
 
-<small>(~22 min)</small>
+<small>(~20 min)</small>
 
 --
 
@@ -158,20 +158,13 @@ Use `()` to override — the #1 source of regex bugs.
 - **validation** — emails, phone numbers, dates
 - **lexing** — the first phase of every compiler
 
-Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
-
---
-
-## A validation example
-
-Match a US phone number, three formats:
-
 ```text
-   (206) 555-1234    206-555-1234    2065551234
-   pattern: \(?\d{3}\)?[- ]?\d{3}-?\d{4}
+   a real one — US phone, three formats at once:
+   \(?\d{3}\)?[- ]?\d{3}-?\d{4}
+   matches (206) 555-1234 · 206-555-1234 · 2065551234
 ```
 
-`\d` = digit, `{3}` = repeat, `?` = optional, `[- ]` = space-or-dash — all sugar over the four operations.
+Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
 
 --
 
@@ -203,7 +196,7 @@ Counting / nesting → **context-free** (needs a stack). *Don't parse HTML with 
 
 ### Part 2 · Finite automata (NFAs)
 
-<small>(~26 min)</small>
+<small>(~28 min)</small>
 
 --
 
@@ -255,6 +248,24 @@ Same machine. Which of these does it accept?
 ```
 
 <small>**"0110"**: A →0 B →1 A →1 A →0 **B → ACCEPT** (ends in 0). **"111"**: A →1 A →1 A →1 **A → reject**. **""**: never leaves A — **reject** (the empty string doesn't end in 0). The state always equals "did the string so far end in 0?" — that's the machine's whole memory.</small> <!-- .element: class="fragment" -->
+
+--
+
+## 🎬 Demo — run the DFA
+
+<div class="algo-viz" data-algo="dfa">
+<pre class="viz-fallback">
+   (0|1)*0 — two states, one arrow per character:
+     "110"  A →1 A →1 A →0 B   ACCEPT
+     "0110" A →0 B →1 A →1 A →0 B   ACCEPT
+     "111"  never leaves A     reject
+     ""     still in A         reject
+   ONE highlighted state — that is the whole machine's memory.
+[ interactive demo — open this deck on the course site ]
+</pre>
+</div>
+
+<small>**One** state highlighted, never a set — also runs **`(A|B)*B`**, Part 1's regex as a machine.</small>
 
 --
 

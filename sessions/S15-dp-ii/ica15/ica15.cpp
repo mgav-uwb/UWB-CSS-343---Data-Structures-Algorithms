@@ -61,6 +61,34 @@ vector<int> knapsackItems(const vector<int>& value, const vector<int>& weight, i
 }
 
 // ==========================================================================
+// EXTRA CREDIT (optional, +5) — the DISTANCE vs the EDIT SCRIPT.
+// TODO 3 already traces a table back to recover a SET of choices. This does
+// the same walk on the OTHER table, where the choices are operations: what a
+// spell-checker or `diff` actually reports. Skipping it costs you nothing —
+// the battery below still exits 0.
+// ==========================================================================
+
+// ---- EC (+5) — editOps: the operations, not just how many ------------------
+// Fill the same D table as editDistance, then walk BACK from D[m][n] to
+// D[0][0] naming each step (L15 "Edit distance — the edit script"):
+//   diagonal, a[i-1] == b[j-1]           -> 'M'  match, free
+//   diagonal, D[i][j] == D[i-1][j-1] + 1 -> 'R'  replace a[i-1] with b[j-1]
+//   up,       D[i][j] == D[i-1][j]   + 1 -> 'D'  delete a[i-1]
+//   left,     D[i][j] == D[i][j-1]   + 1 -> 'I'  insert b[j-1]
+// At i == 0 only inserts remain; at j == 0 only deletes. The walk finds the
+// ops back to front, so REVERSE before returning.
+//   editOps("kitten","sitting") -> R M M M R M I   (2 replaces + 1 insert = 3)
+//   editOps("abc","abc")        -> M M M           (distance 0 — all matches)
+// Ties are fine: several optimal scripts can exist. The tests REPLAY your ops
+// on `a` and check they produce `b` in exactly editDistance(a,b) real edits,
+// so any optimal script passes.
+vector<char> editOps(const string& a, const string& b) {
+    // TODO — build D as in TODO 2, then the backward walk above. Push one
+    //        char per step, reverse, return.
+    return {};
+}
+
+// ==========================================================================
 // UNIT TESTS + APPLICATION (given — do not edit).
 // ==========================================================================
 #ifndef ICA15_GRADER
@@ -68,6 +96,28 @@ static int passCnt = 0, failCnt = 0;
 static void check(bool ok, const string& what) {
     (ok ? passCnt : failCnt)++;
     cout << (ok ? "  [PASS] " : "  [FAIL] ") << what << '\n';
+}
+
+// Extra credit reports separately and never touches passCnt/failCnt, so
+// leaving the EC TODO empty still gives a clean ./ica15 run (exit 0).
+static void checkEC(bool ok, const string& what) {
+    cout << (ok ? "  [EC PASS] " : "  [ec ....] ") << what << '\n';
+}
+
+// Replays an edit script on `a`: 'M'/'R' consume one char of each, 'D' one of
+// a, 'I' one of b. Returns true iff the ops turn a into b exactly, and sets
+// `edits` to the number of NON-match operations.
+static bool replayOps(const string& a, const string& b, const vector<char>& ops, int& edits) {
+    size_t i = 0, j = 0;
+    edits = 0;
+    for (char op : ops) {
+        if (op == 'M') { if (i >= a.size() || j >= b.size() || a[i] != b[j]) return false; i++; j++; }
+        else if (op == 'R') { if (i >= a.size() || j >= b.size()) return false; i++; j++; edits++; }
+        else if (op == 'D') { if (i >= a.size()) return false; i++; edits++; }
+        else if (op == 'I') { if (j >= b.size()) return false; j++; edits++; }
+        else return false;                       // not one of M/R/D/I
+    }
+    return i == a.size() && j == b.size();       // both strings fully consumed
 }
 
 // sums the value and weight of a chosen set of item indices
@@ -110,6 +160,26 @@ int main() {
     check(knapsack(v1, w1, 0) == 0, "W=0 -> 0");
     check(knapsack({10}, {5}, 5) == 10, "single item that fits exactly -> 10");
     check(knapsack({10}, {5}, 4) == 0, "single item that doesn't fit -> 0");
+
+    cout << "\nEXTRA CREDIT (optional — these do not affect the counts above)\n";
+    cout << "EC · editOps — the edit script itself\n";
+    {
+        // expected distances are literal, so EC does not depend on your editDistance()
+        struct Case { string a, b; int dist; };
+        vector<Case> cases = {{"kitten", "sitting", 3}, {"sunday", "saturday", 3},
+                              {"abc", "abc", 0}, {"", "abc", 3}, {"abc", "", 3}, {"", "", 0}};
+        bool allOk = true;
+        for (auto& c : cases) {
+            int edits = 0;
+            if (!replayOps(c.a, c.b, editOps(c.a, c.b), edits) || edits != c.dist) allOk = false;
+        }
+        checkEC(allOk, "six scripts replay onto the target in the optimal number of edits");
+        vector<char> k = editOps("kitten", "sitting");
+        int mCnt = 0;
+        for (char op : k) if (op == 'M') mCnt++;
+        checkEC(k.size() == 7 && mCnt == 4, "kitten->sitting is 7 ops: 4 matches + 3 real edits");
+        checkEC(editOps("abc", "abc") == vector<char>({'M', 'M', 'M'}), "identical strings are all matches");
+    }
 
     cout << passCnt << " passed, " << failCnt << " failed" << '\n';
     return failCnt ? 1 : 0;

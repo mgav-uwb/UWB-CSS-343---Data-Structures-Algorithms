@@ -71,13 +71,30 @@
     grading requires <strong>“All heap blocks were freed” and “ERROR SUMMARY: 0 errors.”</strong>
     The trie is real heap allocation — the given destroy must reach every node. See the <a href="../../../handouts/valgrind.html"><strong>Valgrind</strong></a> handout.
   </div>
-  <h2>Grading (10 pts)</h2>
+  <h2>Extra credit (+5, optional)</h2>
+  <p><code>search</code> answers “is this key here?” — which a hash table also answers. This is the
+  question the trie answers that a hash table cannot. Skipping it costs you nothing: the
+  extra-credit tests report separately and your battery still exits 0.</p>
+  <ol>
+    <li><strong><code>keysWithPrefix</code> (+5)</strong> — return every stored word beginning with
+    <code>prefix</code>: walk down to the prefix node exactly like <code>startsWith</code>, then
+    explore that whole subtree and record each word-marked node. With
+    <code>{she, shell, shells, sea}</code>, <code>"sh"</code> →
+    <code>{she, shell, shells}</code>; <code>""</code> → every word; <code>"xyz"</code> →
+    <code>{}</code>. Recursion wants a helper — write one.</li>
+  </ol>
+  <p>Order is not graded (the tests compare as sets), though visiting <code>next[0..25]</code> in
+  index order gives alphabetical order for free. This only reads the trie, so it allocates nothing
+  and cannot leak.</p>
+
+  <h2>Grading (10 pts + 5 extra credit)</h2>
   <table>
     <tr><th>Criterion</th><th>Pts</th><th>Notes</th></tr>
     <tr><td>Compiles (<code>g++ -std=c++17</code>, CSS lab)</td><td>gate</td><td>doesn't compile ⇒ 0</td></tr>
     <tr><td>Mechanics (trie , failure , kmp)</td><td>6</td><td>checked against our own test harness</td></tr>
     <tr><td>Your test battery passes (T1–T6)</td><td>2</td><td>all ⇒ 2 · most ⇒ 1</td></tr>
     <tr><td><strong>Valgrind-clean</strong></td><td>2</td><td>0 leaks and 0 errors — all-or-nothing</td></tr>
+    <tr><td><em>Extra credit</em> — <code>keysWithPrefix</code></td><td>+5</td><td>optional; all-or-nothing</td></tr>
   </table>
   <h2>Submit</h2>
   <p>Your finished <code>ica16.cpp</code> in the Canvas ICA 16 quiz (single file upload; resubmits allowed). <strong>Due Fri Aug 14, 11:59 PM.</strong></p>
