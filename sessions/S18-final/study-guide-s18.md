@@ -16,7 +16,7 @@ tags:
 related:
   - path: "./practice-final.md"
     desc: "Practice final (same blueprint as the real final, full worked key)"
-  - path: "./practice-final-guide.md"
+  - path: "./practice-final-guide.html"
     desc: "Worked guide to the practice final — method per question, and why the common wrong answers are wrong"
   - path: "../S10-midterm/study-guide-s10.md"
     desc: "Midterm study guide (S1–S9) — the first-half companion"
