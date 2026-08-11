@@ -527,9 +527,10 @@ fn knapsack_items(n: usize, cap: usize, weight: &amp;[usize], k: &amp;[Vec&lt;i6
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
-        <a href="../lib/demo.html?ds=knapsack">Knapsack demo</a>. The item set is
-        fixed to this section&rsquo;s A(w2/v3) B(w3/v4) C(w4/v5) D(w5/v6); type a
-        capacity \(W\) (1&ndash;12) and press <em>Run knapsack</em> to watch the
+        <a href="../lib/demo.html?ds=knapsack">Knapsack demo</a>. The box holds the
+        whole instance as <code>weight/value</code> pairs followed by the capacity,
+        so this section&rsquo;s set is <code>2/3, 3/4, 4/5, 5/6 -&gt; 5</code>. Edit
+        either side of the arrow and press <em>Run</em> to watch the
         \((n{+}1)\times(W{+}1)\) table fill cell by cell &mdash; each cell the max of
         <em>skip</em> (carried down from the row above) and <em>take</em> (value plus
         the cell a row up and \(w_i\) columns left). The traceback then compares each
@@ -537,7 +538,10 @@ fn knapsack_items(n: usize, cap: usize, weight: &amp;[usize], k: &amp;[Vec&lt;i6
         the table above (A\(+\)B, value \(7\)); then rerun at \(W = 8\) (B\(+\)D,
         value \(10\)) and \(W = 12\) (B\(+\)C\(+\)D, value \(15\) &mdash; A drops
         out). The chosen subset changing with capacity is the greedy counterexample&rsquo;s
-        lesson made visible: no per-item score can decide membership alone.
+        lesson made visible: no per-item score can decide membership alone. To watch a
+        greedy rule actually lose, run <code>1/6, 2/10, 3/12 -&gt; 5</code>: densities
+        \(6, 5, 4\), so taking the densest item first yields \(16\), while the optimum
+        is \(22\).
       </div>
 
       <!-- ============================================================ -->

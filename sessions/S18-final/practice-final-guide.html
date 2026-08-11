@@ -540,9 +540,15 @@
         <span class="tag">Practise it live</span>
         <a href="../../lib/demo.html?ds=knapsack">0/1 knapsack</a> fills the
         take-or-skip table with both source cells highlighted, then traces back the
-        chosen items. Change \(W\) and watch the answer set change &mdash; at
-        \(W=12\) the densest item drops out entirely, which is why greedy has no
-        licence here.
+        chosen items. Type <strong>this question&rsquo;s own instance</strong> into
+        the box &mdash; <code>1/40, 2/80, 3/100, 2/60 -&gt; 5</code>, each item as
+        <code>weight/value</code> &mdash; and check your final row against the one it
+        fills: <code>0,40,80,120,140,180</code>. Then walk the capacity up and watch
+        the answer set refuse to grow tidily: \(W=3\) takes {A,B}, \(W=4\) takes
+        {A,C}, \(W=5\) takes {B,C}. Item A is dropped at \(W=5\) despite being tied
+        for the best value-per-weight, and returns at \(W=6\). A larger sack does not
+        simply add to the previous answer, which is exactly why no per-item score can
+        decide membership and why this needs a table.
       </div>
 
       <h2 id="q8">Q8 &mdash; KMP &amp; tries <span class="pts">(8 pts)</span></h2>
