@@ -399,18 +399,19 @@ So strings live in a **metric space** — you can cluster and nearest-neighbor t
 
 --
 
-## Edit distance — the edit script
+## The edit script
 
-The number is the **distance**; trace back for the **operations**:
+The number is the **distance**; the **path** is the operations.
+
+1. **Start** at `D[M][N]`, the answer cell.
+2. **Look back** at `↖ (i−1,j−1)`, `↑ (i−1,j)`, `← (i,j−1)`.
+3. **Step** to the one that *accounts for* this cell's value.
+4. **Stop** at `(0,0)`; **reverse** the moves.
 
 ```text
-   diagonal, same char → match (no edit)
-   diagonal, diff      → replace
-   up                  → delete from A
-   left                → insert from B
+   ↖ same char → match (free)    ↑ up   → delete from A
+   ↖ differing → replace         ← left → insert from B
 ```
-
-Reverse the path → the sequence of edits.
 
 --
 

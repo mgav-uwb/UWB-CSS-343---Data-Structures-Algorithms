@@ -866,11 +866,39 @@ fn edit_script(a: &amp;[u8], b: &amp;[u8], d: &amp;[Vec&lt;usize&gt;]) -&gt; Vec
         Structurally this is LCS&rsquo;s double loop with the max-of-two swapped for
         a min-of-three and the base-case edges filled with \(i\) and \(j\) instead of
         zeros. The traceback, as always, turns the number into the answer users
-        actually want: each backward step names an operation &mdash; a diagonal step
-        on matching characters is a free <em>match</em>, a diagonal on differing
-        characters a <em>replace</em>, an up-step a <em>delete</em>, a left-step an
-        <em>insert</em> &mdash; and the reversed path is an optimal edit script. For
-        <code>kitten</code> \(\to\) <code>sitting</code>:
+        actually want.
+      </p>
+      <div class="def">
+        <span class="tag">How the traceback works</span>
+        <ol>
+          <li><strong>Start</strong> at the bottom-right cell \(D[M][N]\), which holds
+            the final distance.</li>
+          <li><strong>Look back</strong> at the three cells that could have produced
+            it: the diagonal \((i{-}1, j{-}1)\), up \((i{-}1, j)\), and left
+            \((i, j{-}1)\).</li>
+          <li><strong>Step</strong> to the one that <em>accounts for</em> this
+            cell&rsquo;s value under the recurrence: on a mismatch, a neighbour with
+            \(D[i][j] = 1 + D[\text{neighbour}]\); on a match, the diagonal, taken at
+            cost 0. The rule is <em>not</em> &ldquo;step to the smallest
+            neighbour&rdquo; but &ldquo;step to the one the recurrence used&rdquo;
+            &mdash; on a match the free diagonal is always available, since adjacent
+            cells differ by at most 1.</li>
+          <li><strong>Stop</strong> at \((0,0)\), then <strong>reverse</strong> the
+            collected moves: they were gathered backwards, and reversing is what turns
+            &ldquo;how I got here&rdquo; into &ldquo;what to do&rdquo;.</li>
+        </ol>
+        <p style="margin-bottom:0">
+          Each move names an operation: a diagonal on matching characters is a free
+          <em>match</em>, a diagonal on differing characters a <em>replace</em>, an
+          up-step a <em>delete</em> from \(A\), a left-step an <em>insert</em> from
+          \(B\). Where two neighbours both explain a cell there are several optimal
+          scripts and any one is correct &mdash; <code>ab</code> \(\to\)
+          <code>ba</code> has distance 2 by three distinct routes.
+        </p>
+      </div>
+      <p>
+        For <code>kitten</code> \(\to\) <code>sitting</code> the optimal script is
+        unique:
       </p>
       <pre>  k &rarr; s   replace
   i &rarr; i   match        t &rarr; t   match        t &rarr; t   match
