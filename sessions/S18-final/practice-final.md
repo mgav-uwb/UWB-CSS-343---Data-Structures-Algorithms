@@ -4,6 +4,8 @@
 
 *Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 110 minutes first. It is also on Canvas as an **ungraded practice quiz** with these exact questions — take that version too, so exam-day answer entry is automatic.*
 
+*After you have worked it and checked the key, read the [worked guide](./practice-final-guide.md) — it gives the method for each question and, for each one, the specific wrong answers and why they are wrong.*
+
 ## Q1 — Tight complexity bounds (10 pts)
 
 Choose from: O(1) · O(log n) · O(n) · O(n log n) · O(n²) · O(E log V) · O(n + m) · O(n·m).

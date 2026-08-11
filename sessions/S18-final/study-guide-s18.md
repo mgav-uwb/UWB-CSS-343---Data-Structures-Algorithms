@@ -1,11 +1,11 @@
 ---
 title: "CSS 343 — Final Study Guide"
-version: "1.3"
+version: "1.4"
 status: review
 created_by: "Claude"
 created_at: "2026-07-04T12:00"
 last_modified_by: "Claude"
-last_modified_at: "2026-07-11T23:30"
+last_modified_at: "2026-08-10T12:00"
 contributors:
   - "Dr. Marcel Gavriliu"
   - "Claude"
@@ -16,6 +16,8 @@ tags:
 related:
   - path: "./practice-final.md"
     desc: "Practice final (same blueprint as the real final, full worked key)"
+  - path: "./practice-final-guide.md"
+    desc: "Worked guide to the practice final — method per question, and why the common wrong answers are wrong"
   - path: "../S10-midterm/study-guide-s10.md"
     desc: "Midterm study guide (S1–S9) — the first-half companion"
   - path: "../S17-regex-automata/L17-regex-automata.md"
