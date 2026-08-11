@@ -1,0 +1,876 @@
+<!doctype html>
+<!-- CSS 343 - Worked guide to the practice final.
+     Student-facing. Math renders via MathJax (CDN); each question links to the
+     course demo that runs its exact trace. Styling matches the chapter handouts. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Practice Final: Worked Guide - CSS 343</title>
+    <script>
+      MathJax = {
+        tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+        chtml: { scale: 1.0 },
+      };
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <style>
+      :root {
+        --ink: #1a1c22; --dim: #5c6270; --line: #d7dbe3; --bg: #ffffff;
+        --accent: #0a7d4d; --accentbg: #eaf6ef; --box: #f6f8fb;
+        --warn: #9a5b00; --warnbg: #fff5e6; --demo: #6b40d8; --demobg: #f3efff;
+        --bad: #b3261e; --badbg: #fdeaea;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: #eef0f4; color: var(--ink);
+        font: 16px/1.62 "Charter", "Iowan Old Style", "Palatino", Georgia, serif;
+      }
+      .page {
+        max-width: 820px; margin: 28px auto; background: var(--bg);
+        padding: 48px clamp(20px, 6vw, 64px) 64px;
+        box-shadow: 0 1px 4px #0002; border-radius: 4px;
+      }
+      h1 { font-size: 27px; line-height: 1.25; margin: 0 0 4px; }
+      .subtitle { color: var(--dim); font-size: 15.5px; margin: 0 0 4px; }
+      .src {
+        color: var(--dim); font-size: 13.5px; font-style: italic; margin: 0 0 26px;
+        border-bottom: 1px solid var(--line); padding-bottom: 18px;
+      }
+      h2 {
+        font-size: 20px; margin: 40px 0 10px; padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      h2 .pts { font-size: 14px; color: var(--dim); font-weight: 400; font-family: system-ui, sans-serif; }
+      h3 { font-size: 16.5px; margin: 22px 0 6px; color: #2a2d36; }
+      p { margin: 10px 0; }
+      a { color: var(--accent); }
+      code, .mono {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em;
+        background: #f1f3f7; border-radius: 4px; padding: 0.5px 4px;
+      }
+      pre {
+        font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px;
+        line-height: 1.5; background: #f6f8fb; border: 1px solid var(--line);
+        border-left: 3px solid #b9c0d0; border-radius: 6px; padding: 12px 14px;
+        margin: 14px 0; overflow-x: auto;
+      }
+      .lead { font-size: 16.5px; color: #33363f; }
+      .def, .thm, .ex, .aside, .demo, .bad {
+        border: 1px solid var(--line); border-radius: 8px;
+        padding: 13px 16px; margin: 16px 0; background: var(--box);
+      }
+      .def { border-left: 4px solid var(--accent); background: var(--accentbg); }
+      .thm { border-left: 4px solid #1f5fb0; background: #eef4fc; }
+      .ex { border-left: 4px solid #777; background: #f6f7f9; }
+      .aside { border-left: 4px solid var(--warn); background: var(--warnbg); }
+      .demo { border-left: 4px solid var(--demo); background: var(--demobg); }
+      .bad { border-left: 4px solid var(--bad); background: var(--badbg); }
+      .tag {
+        font-variant: small-caps; letter-spacing: 0.4px; font-weight: 700;
+        font-family: system-ui, sans-serif; font-size: 13px; margin-right: 8px;
+      }
+      .def .tag { color: var(--accent); } .thm .tag { color: #1f5fb0; }
+      .ex .tag { color: #555; } .aside .tag { color: var(--warn); }
+      .demo .tag { color: var(--demo); } .demo a { color: var(--demo); font-weight: 600; }
+      .bad .tag { color: var(--bad); }
+      .aside ul { margin: 6px 0 0; } .aside li { margin: 7px 0; }
+      .wrong { font-family: "SF Mono", Menlo, Consolas, monospace; font-weight: 700; color: var(--bad); }
+      table { border-collapse: collapse; width: 100%; margin: 14px 0; font-family: system-ui, sans-serif; font-size: 14.5px; }
+      th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; }
+      th { background: #f0f2f6; }
+      td.n { text-align: center; font-variant-numeric: tabular-nums; }
+      ul, ol { margin: 8px 0; padding-left: 24px; } li { margin: 5px 0; }
+      footer { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 14px; color: var(--dim); font-size: 13px; font-family: system-ui, sans-serif; }
+      .toc { font-family: system-ui, sans-serif; font-size: 14.5px; background: var(--box); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; margin: 18px 0; }
+      .toc ol { margin: 4px 0; padding-left: 22px; } .toc a { text-decoration: none; }
+      .toc li { margin: 3px 0; }
+      .note { font-size: 13.5px; color: var(--dim); }
+      .up { float: right; font-size: 12px; font-family: system-ui, sans-serif; }
+      @media print {
+        body { background: #fff; }
+        .page { box-shadow: none; margin: 0; max-width: none; }
+        h2 { break-before: auto; }
+        .aside, .thm, .def, .demo { break-inside: avoid; }
+        .demo { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="note">
+        This guide uses MathJax for its complexity notation and links to the
+        course&rsquo;s interactive demos. Read it through the course website (or
+        download the file and open it in a browser); a Canvas inline preview will
+        not render the math or reach the demos.
+      </p>
+
+      <h1>Practice Final &mdash; Worked Guide</h1>
+      <div class="subtitle">
+        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        Companion to the <a href="./practice-final.md">practice final</a> and the
+        <a href="./study-guide-s18.md">final study guide</a>.
+      </div>
+      <div class="src">
+        Work the practice final cold first, on paper, in 110 minutes. Then read
+        this. A guide read <em>before</em> the attempt teaches you to recognize
+        solutions; a guide read <em>after</em> teaches you to produce them, which is
+        what the exam measures. Every question below has the same four parts: what
+        it tests, the method, the answer, and the wrong answers &mdash; with why
+        each is wrong rather than merely different. That last part is the point of
+        this document, and it is the part the answer key cannot give you.
+      </div>
+
+      <div class="toc">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#mech">The mechanics that cost points</a></li>
+          <li><a href="#q1">Q1 &mdash; Tight complexity bounds</a></li>
+          <li><a href="#q2">Q2 &mdash; Union-find &amp; Kruskal</a></li>
+          <li><a href="#q3">Q3 &mdash; Quicksort partition &amp; selection</a></li>
+          <li><a href="#q4">Q4 &mdash; Huffman coding</a></li>
+          <li><a href="#q5">Q5 &mdash; Recurrences</a></li>
+          <li><a href="#q6">Q6 &mdash; LCS</a></li>
+          <li><a href="#q7">Q7 &mdash; 0/1 knapsack</a></li>
+          <li><a href="#q8">Q8 &mdash; KMP &amp; tries</a></li>
+          <li><a href="#q9">Q9 &mdash; Hashing</a></li>
+          <li><a href="#q10">Q10 &mdash; Design</a></li>
+          <li><a href="#q11">Q11 &mdash; Regular expressions</a></li>
+          <li><a href="#q12">Q12 &mdash; DFA</a></li>
+          <li><a href="#q13">Q13 &mdash; Binary heap</a></li>
+          <li><a href="#q14">Q14 &mdash; Dijkstra</a></li>
+          <li><a href="#five">The five errors that cost the most points</a></li>
+        </ol>
+      </div>
+
+      <h2 id="mech">Before anything: the mechanics that cost points</h2>
+
+      <p>
+        The exam is a Canvas quiz, auto-graded. Answers are compared as text, so
+        formatting <em>is</em> correctness:
+      </p>
+      <ul>
+        <li>
+          <strong>Comma-separated, no spaces.</strong> <code>2,3,5,8,9,6</code> &mdash;
+          not <code>2, 3, 5, 8, 9, 6</code>.
+        </li>
+        <li><strong>Ties break alphabetically / ascending</strong> unless the question says otherwise.</li>
+        <li>
+          <strong>Read the determinism rule inside the question.</strong> Union-find
+          and Huffman tie-breaking are stated per question precisely because the
+          unstated version is ambiguous. A correct trace under the wrong tie rule is
+          a wrong answer.
+        </li>
+        <li>
+          <strong>Give what is asked for.</strong> &ldquo;The FINAL row&rdquo; means
+          one row, not the table. &ldquo;The pivot&rsquo;s index&rdquo; means a
+          number, not the array.
+        </li>
+        <li>
+          <strong>0-based or 1-based is always stated.</strong> Q3 says 0-based; Q13
+          says write the heap array 1-indexed. Both appear on the same exam on purpose.
+        </li>
+      </ul>
+      <p>
+        Budget roughly <strong>one minute per point</strong>, which leaves ten
+        minutes of slack. Q1 is 10 points of recall with no computation &mdash; do it
+        first, bank the points, and let the tracing questions have the time.
+      </p>
+
+      <h2 id="q1">Q1 &mdash; Tight complexity bounds <span class="pts">(10 pts)</span></h2>
+
+      <p>
+        <strong>What it tests.</strong> Whether you know the cost of each algorithm
+        <em>and</em> what the variables mean. The word <strong>tight</strong> matters:
+        a true-but-loose bound is wrong.
+      </p>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        For each item ask two questions in order: (1) what does the algorithm
+        actually do, in one phrase? (2) what is the input it does it to? Most wrong
+        answers here come from answering (1) correctly and (2) not at all.
+      </div>
+
+      <table>
+        <tr><th>#</th><th>Item</th><th>Answer</th><th>The phrase that produces it</th></tr>
+        <tr><td class="n">1</td><td>Kruskal, edges unsorted</td><td>\(O(E\log V)\)</td><td><em>sort the edges</em> &mdash; \(E\log E\), and \(\log E \le 2\log V\)</td></tr>
+        <tr><td class="n">2</td><td>Huffman, binary min-heap</td><td>\(O(n\log n)\)</td><td><em>\(n-1\) merges, each two pops and a push</em></td></tr>
+        <tr><td class="n">3</td><td>KMP search</td><td>\(O(n+m)\)</td><td><em>preprocess the pattern, then read the text once</em></td></tr>
+        <tr><td class="n">4</td><td>Fill the LCS table</td><td>\(O(nm)\)</td><td><em>one constant-time cell per pair of prefixes</em></td></tr>
+        <tr><td class="n">5</td><td>quickselect, average</td><td>\(O(n)\)</td><td><em>partition, then recurse on <strong>one</strong> side: \(n + n/2 + n/4 \to 2n\)</em></td></tr>
+        <tr><td class="n">6</td><td>AVL worst-case search</td><td>\(O(\log n)\)</td><td><em>height is bounded by \(\approx 1.44\log n\)</em></td></tr>
+        <tr><td class="n">7</td><td>Find the min in a min-heap</td><td>\(O(1)\)</td><td><em>it is the root &mdash; just look at it</em></td></tr>
+        <tr><td class="n">8</td><td>union, weighted + path compression</td><td>\(O(1)\)</td><td><em>\(\alpha(n)\), &ldquo;effectively constant&rdquo;</em></td></tr>
+        <tr><td class="n">9</td><td>Build the KMP failure function</td><td>see the warning</td><td><em>match the pattern against itself</em> &mdash; \(\Theta(m)\)</td></tr>
+        <tr><td class="n">10</td><td>Comparison-sort lower bound</td><td>\(O(n\log n)\)</td><td><em>\(\log_2(n!)\) leaves in the decision tree</em></td></tr>
+      </table>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>#1 &rarr; <span class="wrong">O(E + V)</span></strong> &mdash; that is Kruskal <em>after</em> someone else sorted the edges. &ldquo;Edges unsorted&rdquo; is exactly the clause that puts the sort inside your cost.</li>
+          <li><strong>#1 &rarr; <span class="wrong">O(V&sup2;)</span></strong> &mdash; that is Prim with an array scan for the minimum. Different algorithm.</li>
+          <li><strong>#2 &rarr; <span class="wrong">O(n)</span></strong> &mdash; counting the merges (\(n-1\)) but not what a merge costs. Each does two <code>delMin</code>s and an <code>insert</code>.</li>
+          <li><strong>#2 &rarr; <span class="wrong">O(n&sup2;)</span></strong> &mdash; that is Huffman with a <em>linear scan</em> for the two smallest. The question names the min-heap; the data structure it names is load-bearing.</li>
+          <li><strong>#3 &rarr; <span class="wrong">O(nm)</span></strong> &mdash; that is brute force. The entire content of KMP is that this does not happen.</li>
+          <li><strong>#5 &rarr; <span class="wrong">O(n log n)</span></strong> &mdash; the commonest error on this bank. Quicksort recurses on <strong>both</strong> sides; quickselect on <strong>one</strong>. If you cannot recall which, re-derive it: \(n + n/2 + n/4 + \dots = 2n\) is faster to reconstruct than to memorize.</li>
+          <li><strong>#6 &rarr; <span class="wrong">O(n)</span></strong> &mdash; that is a plain BST, which an AVL exists to prevent. A linear answer for a <em>balanced</em> structure means you answered for the unbalanced one.</li>
+          <li><strong>#7 &rarr; <span class="wrong">O(log n)</span></strong> &mdash; you answered <em>delete</em>-min. Finding it is free; removing it costs the sink. Read the verb.</li>
+          <li><strong>#8 &rarr; <span class="wrong">O(log n)</span></strong> &mdash; that is weighted quick-union <em>without</em> path compression. The question names the optimization, so it wants the optimized bound.</li>
+          <li><strong>#10 &rarr; <span class="wrong">O(n)</span></strong> &mdash; confusing the <em>comparison</em> lower bound with counting sort, which beats it by not comparing. The bound binds only algorithms whose sole tool is comparison.</li>
+        </ul>
+      </div>
+
+      <div class="bad">
+        <span class="tag">&#9888; Two defects in this question, flagged honestly</span>
+        <p style="margin-top:6px">
+          <strong>#9</strong> is keyed \(O(n+m)\), but building the failure function
+          touches only the pattern &mdash; Lecture 16 says \(\Theta(m)\) three times
+          and Chapter 16 agrees. \(O(n+m)\) is a true <em>upper</em> bound but not a
+          tight one, and this question demands tight bounds. The option list contains
+          no \(O(m)\), so no tight answer is available.
+          <strong>Enter \(O(n+m)\) to match the key</strong>, and know that the honest
+          answer is \(\Theta(m)\): the build never looks at the text.
+        </p>
+        <p>
+          <strong>#10</strong> asks for a <em>lower</em> bound, which is properly
+          \(\Omega(n\log n)\), not \(O\). The option list is all-\(O\), so enter
+          \(O(n\log n)\) &mdash; but write \(\Omega\) on paper and in your head. Both
+          items have been reported for correction.
+        </p>
+      </div>
+
+      <h2 id="q2">Q2 &mdash; Union-find &amp; Kruskal <span class="pts">(10 pts)</span></h2>
+
+      <h3>(a) Weighted quick-union with full path compression</h3>
+
+      <p>
+        <strong>What it tests.</strong> Whether you can execute a data structure
+        exactly as specified, including the parts that are easy to skip.
+      </p>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Keep <code>parent[]</code> and <code>size[]</code>. For each <code>union(p,q)</code>:
+        <ol>
+          <li><code>find(p)</code> and <code>find(q)</code> &mdash; <strong>and these compress.</strong> This is the step people skip.</li>
+          <li>Compare the roots&rsquo; <strong>sizes</strong> (not heights, not depths &mdash; the question says size).</li>
+          <li>Larger root wins; the smaller tree&rsquo;s root points at it, and the winner&rsquo;s size grows by the loser&rsquo;s.</li>
+          <li><strong>On a tie</strong>, the question&rsquo;s rule: p&rsquo;s root goes under q&rsquo;s root.</li>
+        </ol>
+      </div>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <code>find(1) = 3</code>, <code>find(7) = 7</code>, and
+        <code>parent[] = 3,3,3,3,5,7,7,7,9,3</code>
+      </div>
+
+      <pre>  the four small unions all hit the size tie:
+     parent[0]=1  parent[2]=3  parent[4]=5  parent[6]=7
+  union(0,2)  ties at size 2 → parent[1]=3
+  union(4,6)  ties at size 2 → parent[5]=7
+  union(8,9)                 → parent[8]=9
+  union(0,8)  find(0) walks 0→1→3 AND COMPRESSES 0 straight to 3;
+              size 4 beats size 2 → parent[9]=3</pre>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Forgetting that <code>union</code> compresses.</strong> <code>union(0,8)</code> calls <code>find(0)</code>, which repoints 0 directly at 3. Compress only during the two explicit finds at the end and you get <code>parent[0]=1</code> &mdash; one slot wrong, whole answer wrong. <em>Every</em> find compresses, including the ones inside union.</li>
+          <li><strong>Getting the tie backwards</strong> (<code>parent[q_root] = p_root</code>). Four of the eight unions are ties here, so this one misreading corrupts most of the array.</li>
+          <li><strong>Linking by height instead of size.</strong> They agree for a while and then diverge. The question defines <em>tree size</em>.</li>
+          <li><strong>Reporting the array before the final finds.</strong> Here <code>find(1)</code> and <code>find(7)</code> happen to change nothing &mdash; 1 already points at 3, and 7 is a root &mdash; but verify that rather than assume it.</li>
+          <li><strong>Expecting one component.</strong> The final array has 3 <em>and</em> 7 as roots; the sequence never unions them. &ldquo;It must all be connected&rdquo; is an assumption, not a given.</li>
+        </ul>
+      </div>
+
+      <h3>(b) Kruskal</h3>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Sort edges by weight ascending. Walk the list; accept an edge iff its
+        endpoints are in different components; stop after \(V-1 = 8\) accepted edges.
+      </div>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        accepted <code>2-8,7-6,0-1,5-6,7-8,2-3,1-2,3-4</code> &middot; first skip
+        <code>4-5</code> &middot; weight <strong>36</strong>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Listing the accepted edges in graph order.</strong> The question says &ldquo;in the order Kruskal accepts them&rdquo;, which is weight order. Problem-statement order scores zero on a string match.</li>
+          <li><strong>Leaving the skip blank</strong> because the MST was already complete. After 8 accepts every vertex is joined, so the next edge <code>(4,5,9)</code> is rejected &mdash; that is the first skip, and it necessarily comes after some accepts.</li>
+          <li><strong>Summing all twelve weights.</strong> The MST weight is the sum of the <em>accepted</em> eight: \(1+2+3+4+5+6+7+8 = 36\).</li>
+          <li><strong>Sorting by vertex label.</strong> Kruskal is greedy by <em>weight</em>; nothing else orders the list.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=union-find">Union-find</a> shows the tree
+        flattening as compression fires &mdash; the step this question is really
+        about &mdash; and
+        <a href="../../lib/demo.html?ds=kruskal">Kruskal</a> highlights each edge as
+        it is accepted or rejected, with the running MST weight.
+      </div>
+
+      <h2 id="q3">Q3 &mdash; Quicksort partition &amp; selection <span class="pts">(8 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Pivot is the last element (5). Set <code>i = -1</code>. Scan <code>j</code>
+        from the left up to the element before the pivot; whenever
+        <code>a[j] &lt; pivot</code>, increment <code>i</code> and swap
+        <code>a[i]</code> with <code>a[j]</code>. At the end swap
+        <code>a[i+1]</code> with the pivot.
+      </div>
+
+      <pre>  6,9,2,8,3,5   pivot 5, i = −1
+  j=0: 6&lt;5? no          j=1: 9&lt;5? no
+  j=2: 2&lt;5? yes → i=0, swap a[0],a[2] → 2,9,6,8,3,5
+  j=3: 8&lt;5? no
+  j=4: 3&lt;5? yes → i=1, swap a[1],a[4] → 2,3,6,8,9,5
+  end: swap a[2],a[5]                 → 2,3,5,8,9,6</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        (a) <code>2,3,5,8,9,6</code> &middot; (b) pivot index <strong>2</strong>
+        &middot; (c) <strong>done</strong> &middot; (d) <strong>5</strong>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Forgetting the final swap.</strong> Stopping at <code>2,3,6,8,9,5</code> leaves the pivot at the end &mdash; the partition has not happened. The pivot&rsquo;s whole job is to reach its sorted position.</li>
+          <li><strong>Using <code>&lt;=</code> instead of <code>&lt;</code>.</strong> Changes which elements move and, with duplicates, the pivot&rsquo;s final index. Use the comparison the question writes.</li>
+          <li><strong>Partitioning around the <em>first</em> element.</strong> A valid convention this question does not use &mdash; that is Hoare&rsquo;s scheme from L13. Do not mix the two.</li>
+          <li><strong>Answering (c) &ldquo;recurse left&rdquo;.</strong> The 3rd smallest sits at 0-based index <strong>2</strong>, and the pivot landed at index <strong>2</strong>. They coincide, so the search is <em>done</em>. The comparison is \(k-1 = \text{pivotIndex}\), and that off-by-one is exactly what the question probes.</li>
+          <li><strong>Answering (d) with 3.</strong> The value at index 2 is <strong>5</strong>. Check it against the sorted array <code>2,3,5,6,8,9</code> &mdash; third element, 5.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=quicksort">Quicksort</a> steps the Lomuto
+        partition with <code>i</code> and <code>j</code> highlighted;
+        <a href="../../lib/demo.html?ds=quickselect">Quickselect</a> shows the
+        one-sided recursion, which is also the answer to Q1&nbsp;#5.
+      </div>
+
+      <h2 id="q4">Q4 &mdash; Huffman coding <span class="pts">(8 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Repeatedly merge the two lowest-frequency nodes. Both rules matter:
+        <strong>which two to merge</strong> &mdash; lowest frequency, ties to the
+        node whose alphabetically-first contained symbol comes first; and
+        <strong>which becomes the 0 (left) child</strong> &mdash; the smaller of the
+        two, by that same rule.
+      </div>
+
+      <pre>  g3 f4                   → gf7      (g left)
+  c7 gf7   tie → c first  → cgf14    (c left, so c=…0, g=…10, f=…11)
+  b12 cgf14               → bcfg26   (b left)
+  e14 a25                 → ae39     (e left)
+  bcfg26 d28              → bcdfg54  (bcfg left)
+  ae39 bcdfg54            → root 93  (ae left)</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <code>a=01</code> &middot; <code>c=1010</code> &middot; <code>d=11</code>
+        &middot; <code>f=10111</code> &middot; <code>g=10110</code><br />
+        <code>fade</code> = 10111 + 01 + 11 + 00 =
+        <strong><code>10111011100</code></strong>, <strong>11 bits</strong>
+      </div>
+
+      <div class="ex">
+        <span class="tag">Two sanity checks before you commit</span>
+        Sort your symbols by frequency; the code lengths must not increase:
+        <pre style="margin:8px 0 4px">  d 28 → 2 bits    a 25 → 2    e 14 → 2    b 12 → 3
+  c  7 → 4         f  4 → 5    g  3 → 5</pre>
+        If a frequent symbol ends up longer than a rare one, you merged wrong.
+        Second: no code may be a prefix of another &mdash; scan your five answers
+        for that before writing them down.
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Ignoring the tie rules.</strong> The <code>c7</code> vs <code>gf7</code> tie is placed deliberately. Break it the other way and every code below it changes. The answer is not &ldquo;a valid Huffman tree&rdquo;, it is <em>the</em> tree the rules produce.</li>
+          <li><strong>Swapping 0 and 1.</strong> Also yields an optimal code with the same lengths &mdash; and is still marked wrong, because the question fixes the convention so the answer is unique.</li>
+          <li><strong>Reading codes leaf-to-root.</strong> Codes are read from the root down; the other direction gives every code reversed.</li>
+          <li><strong>Counting bits as symbols.</strong> <code>fade</code> is four characters but <strong>11 bits</strong> &mdash; the entire point of a variable-length code. Add the code lengths: \(5+2+2+2\).</li>
+          <li><strong>Encoding in sorted order.</strong> <code>fade</code> is f, a, d, e &mdash; not a, d, e, f.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=huffman">Huffman</a> takes your own
+        frequencies (<code>SYM-FRQ(a:25, b:12, …)</code>), builds the trie merge by
+        merge, and reports the codes &mdash; the fastest way to check a tie-break by
+        hand against a machine.
+      </div>
+
+      <h2 id="q5">Q5 &mdash; Recurrences <span class="pts">(6 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        For \(T(n) = a\,T(n/b) + f(n)\), compute \(n^{\log_b a}\) and compare it to
+        \(f(n)\): if \(n^{\log_b a}\) is bigger &rarr; case 1, \(\Theta(n^{\log_b a})\);
+        equal &rarr; case 2, multiply by \(\log n\); \(f(n)\) bigger (and regular)
+        &rarr; case 3, \(\Theta(f(n))\).
+      </div>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <ol style="margin:6px 0">
+          <li>\(2T(n/2)+1\): \(n^{\log_2 2}=n\) vs \(1\) &rarr; case 1, \(\Theta(n)\)</li>
+          <li>\(T(n/2)+1\): \(n^{\log_2 1}=1\) vs \(1\) &rarr; case 2, \(\Theta(\log n)\)</li>
+          <li>\(3T(n/2)+n\): \(n^{\log_2 3}\approx n^{1.58}\) vs \(n\) &rarr; case 1, \(\Theta(n^{\log_2 3})\)</li>
+        </ol>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Comparing \(a\) to \(b\).</strong> The comparison is between \(n^{\log_b a}\) and \(f(n)\), never between the constants.</li>
+          <li><strong>#1 &rarr; <span class="wrong">Θ(n log n)</span></strong> &mdash; pattern-matching to mergesort, which is \(2T(n/2)+n\). Here \(f=1\), so the leaves dominate instead of the levels sharing equally. That difference <em>is</em> case 1 versus case 2.</li>
+          <li><strong>#2 &rarr; <span class="wrong">Θ(1)</span> or <span class="wrong">Θ(n)</span></strong> &mdash; this is binary search: constant work per level, \(\log n\) levels, and the answer is their product.</li>
+          <li><strong>#3 &rarr; <span class="wrong">Θ(n log n)</span></strong> &mdash; only correct if the two sides were equal, and \(1.58 > 1\). Leave the answer as \(n^{\log_2 3}\); that <em>is</em> the answer, not an unfinished one.</li>
+          <li><strong>Giving the case without the bound, or the bound without the case.</strong> The question asks for both.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=recurrence">Master theorem</a> draws one bar
+        per recursion-tree level: growing bars mean case 3, flat means case 2,
+        shrinking means case 1. Type any of the three and read the case off the shape.
+      </div>
+
+      <h2 id="q6">Q6 &mdash; LCS <span class="pts">(8 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Rows are A = <code>ABDCBA</code>, columns B = <code>BDACB</code>, with an
+        &epsilon; row and column of zeros. Match &rarr; diagonal + 1; mismatch &rarr;
+        max(up, left).
+      </div>
+
+      <pre>       ε  B  D  A  C  B
+  ε    0  0  0  0  0  0
+  A    0  0  0  1  1  1
+  AB   0  1  1  1  1  2
+  ABD  0  1  2  2  2  2
+  ABDC 0  1  2  2  3  3     ← the row asked for
+  ABDCB 0 1  2  2  3  4
+  ABDCBA 0 1 2  3  3  4     ← the final row</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        row <code>ABDC</code> = <code>0,1,2,2,3,3</code> &middot; final row =
+        <code>0,1,2,3,3,4</code> &middot; length <strong>4</strong> &middot; e.g.
+        <code>BDCB</code>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Omitting the &epsilon; column.</strong> The question says &ldquo;its 6 values, &epsilon;-column first&rdquo;. Five values is an automatic zero even when the numbers are right.</li>
+          <li><strong>Counting the wrong row.</strong> &ldquo;The prefix <code>ABDC</code>&rdquo; is row 4 &mdash; the row <em>after</em> four characters. Label your rows with the prefix, not a number.</li>
+          <li><strong>Adding 1 on a mismatch.</strong> Only a match adds. A mismatch inherits the better neighbour unchanged; the table never grows on a mismatch.</li>
+          <li><strong>Taking the max of the wrong pair.</strong> The mismatch case is max(<strong>up</strong>, <strong>left</strong>) &mdash; never the diagonal. The diagonal is for matches only.</li>
+          <li><strong>A traceback that is not a subsequence.</strong> Verify before writing: <code>BDCB</code> must appear in order (not contiguously) in <code>ABDCBA</code> <em>and</em> in <code>BDACB</code>. Any valid LCS of length 4 is accepted, so check rather than guess.</li>
+          <li><strong>Assuming the LCS is unique.</strong> It need not be; the <em>length</em> is.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=lcs">LCS</a> fills this exact table cell by
+        cell &mdash; type <code>ABDCBA</code> and <code>BDACB</code> &mdash; and the
+        green traceback spells a valid answer. For <em>why</em> the recurrence is
+        what it is, <a href="../../lib/demo.html?ds=lcs-tree">the LCS recursion tree</a>
+        shows the exponential search the table replaces.
+      </div>
+
+      <h2 id="q7">Q7 &mdash; 0/1 knapsack <span class="pts">(7 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        <code>K[i][w] = max(skip = K[i-1][w], take = value[i] + K[i-1][w - weight[i]])</code>,
+        with &ldquo;take&rdquo; available only if the item fits. Fill row by row; the
+        final row is item 4&rsquo;s.
+      </div>
+
+      <pre>  items (v/w):  1: 40/1   2: 80/2   3: 100/3   4: 60/2      W = 5
+  after item 1: 0,40,40,40,40,40
+  after item 2: 0,40,80,120,120,120
+  after item 3: 0,40,80,120,140,180
+  after item 4: 0,40,80,120,140,180     ← the final row</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        final row <code>0,40,80,120,140,180</code> &middot; optimal <strong>180</strong>
+        &middot; e.g. {2,3} (weight 5) or {1,2,4} (weight 5)
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Reading the same row for &ldquo;take&rdquo;.</strong> It must read <code>K[i-1][…]</code> &mdash; the row <em>above</em>. Reading <code>K[i][…]</code> lets you take an item twice, which is <em>unbounded</em> knapsack: a different problem, and the difference is exactly this index.</li>
+          <li><strong>Going greedy by value-per-weight.</strong> The ratios are 40, 40, 33.3, 30, and greedy happens to reach 180 on <em>this</em> data &mdash; which is luck, not method. L15 breaks it in one slide. Fill the table.</li>
+          <li><strong>Forgetting the fit check</strong> and computing <code>K[i-1][negative]</code>.</li>
+          <li><strong>Giving the whole table</strong> when one row is asked for, or the row without the \(w = 0\) entry.</li>
+          <li><strong>Assuming the optimal set is unique.</strong> Two different sets reach 180; either is accepted.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=knapsack">0/1 knapsack</a> fills the
+        take-or-skip table with both source cells highlighted, then traces back the
+        chosen items. Change \(W\) and watch the answer set change &mdash; at
+        \(W=12\) the densest item drops out entirely, which is why greedy has no
+        licence here.
+      </div>
+
+      <h2 id="q8">Q8 &mdash; KMP &amp; tries <span class="pts">(8 pts)</span></h2>
+
+      <h3>(a) The failure function of <code>ababab</code></h3>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        <code>fail[j]</code> is the length of the longest <strong>proper</strong>
+        prefix of <code>P[0..j]</code> that is also a suffix of it. Build it by
+        matching the pattern against itself: <code>fail[0] = 0</code>; then for each
+        j, if <code>P[j] == P[k]</code> the overlap grows, otherwise fall back to
+        <code>k = fail[k-1]</code> and retry.
+      </div>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <code>0,0,1,2,3,4</code>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong><span class="wrong">0,1,2,3,4,5</span></strong> &mdash; forgetting <strong>proper</strong>. <code>fail[j]</code> can never equal \(j+1\); the whole string is not a proper prefix of itself. If your last value equals the pattern length, this is the error.</li>
+          <li><strong>Starting at <code>fail[0] = 1</code>.</strong> A single character has no proper prefix, so it is always 0.</li>
+          <li><strong>Giving the DFA table instead.</strong> L16 shows both views; this asks for the failure function, one value per position.</li>
+        </ul>
+      </div>
+
+      <h3>(b) The trie</h3>
+
+      <pre>  s ─ u ─ n ─ g          nodes (excluding root): s,u,n,g,k,a,d,i,p = 9
+    │       └ k          depth: root→s→u→n→g = 4
+    ├ a ─ d
+    └ i ─ p</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <strong>9</strong> nodes &middot; depth <strong>4</strong> &middot;
+        <code>su</code> is <strong>not</strong> a stored word
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Counting the root</strong> (10) when the question says not to.</li>
+          <li><strong>Counting words</strong> (5), or <strong>counting characters across all words</strong> (17) &mdash; which misses that <code>sun</code>, <code>sung</code> and <code>sunk</code> share the <code>s-u-n</code> path. Prefix sharing is the whole reason a trie is compact.</li>
+          <li><strong><code>su</code> &rarr; &ldquo;yes, it&rsquo;s in there&rdquo;.</strong> The <em>path</em> exists, on the way to <code>sun</code>; the <em>word-end flag</em> is false. This is the most-tested trie idea in the course and the commonest bug in ICA 16.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=kmp-fail">Building fail[]</a> constructs the
+        table cell by cell, including the fall-back chain &mdash; run
+        <code>ababab</code>.
+        <a href="../../lib/demo.html?ds=trie">Trie</a> takes your own word list;
+        search <code>sun</code> then <code>su</code> to see the word-end flag decide.
+      </div>
+
+      <h2 id="q9">Q9 &mdash; Hashing <span class="pts">(7 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        \(\text{conv}(x) = \text{length}(x) + \sum \text{ord}(c)\) with a = 1 &hellip;
+        z = 26; \(h = \text{conv} \bmod 7\); collisions probe forward, wrapping
+        6 &rarr; 0.
+      </div>
+
+      <pre>  ml  = 2 + (13+12) = 27 → 27 mod 7 = 6
+  ai  = 2 + (1+9)   = 12 → 5
+  db  = 2 + (4+2)   = 8  → 1
+  os  = 2 + (15+19) = 36 → 1
+  ux  = 2 + (21+24) = 47 → 5
+  api = 3 + (1+16+9)= 29 → 1
+
+  insert in order:
+    ml→6 · ai→5 · db→1 · os→1 taken→2 · ux→5,6 taken, wrap→0 · api→1,2 taken→3</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        homes <code>6,5,1,1,5,1</code> &middot; table
+        <code>ux,db,os,api,_,ai,ml</code>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Dropping the <code>length(x)</code> term.</strong> It is in the definition precisely to catch reading past it. Without it every home slot shifts.</li>
+          <li><strong>Using ASCII.</strong> <code>ord(a) = 1</code>, not 97. The question defines its own mapping.</li>
+          <li><strong>Not wrapping.</strong> <code>ux</code> probes 5, 6, then <strong>0</strong> &mdash; the table is circular. Stopping at 6 and declaring it full loses the rest.</li>
+          <li><strong>Probing from the wrong start.</strong> Each key probes from <em>its own</em> home slot, not from where the previous key landed.</li>
+          <li><strong>Inserting in a different order.</strong> The given order produces this table; sorting the keys first produces a different, wrong one.</li>
+          <li><strong>Reporting homes after probing.</strong> (a) asks where each key <em>hashes</em>, (b) where it <em>ends up</em>. <code>os</code> homes to 1 and lands at 2 &mdash; both are on the page and they are different answers.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=hash-lp">Hash table (linear probing)</a>
+        animates the probe walk and the wrap; watch how one cluster makes the next
+        insertion longer, which is also the answer to Q10(a).
+      </div>
+
+      <h2 id="q10">Q10 &mdash; Design <span class="pts">(6 pts)</span></h2>
+
+      <p>
+        <strong>What it tests.</strong> Whether you can match a structure to a query
+        type and say <em>why</em> &mdash; the course&rsquo;s through-line, not a fact
+        to recall.
+      </p>
+
+      <div class="thm">
+        <span class="tag">A full-credit shape</span>
+        <p style="margin-top:6px">
+          <strong>(a)</strong> At high load factor, <strong>separate chaining</strong>
+          degrades <em>gracefully</em>: buckets lengthen, a search scans a chain, cost
+          is \(\Theta(\alpha)\), and \(\alpha > 1\) is legal.
+          <strong>Linear probing</strong> degrades <em>sharply</em>: clusters merge and
+          grow, so each insert both takes longer and makes the next cluster bigger; as
+          \(\alpha \to 1\) the probe count explodes, and the table cannot exceed
+          \(\alpha = 1\) at all. Deletion is also harder under probing &mdash; you
+          cannot blank a slot without breaking the probe chains through it
+          (tombstones, or reinsert the cluster).
+        </p>
+        <p>
+          <strong>(b)</strong> Date <strong>ranges</strong> &rarr; a
+          <strong>balanced BST / B+ tree</strong>: it keeps keys in order, so a range
+          query is &ldquo;find the low end, then walk in order to the high end&rdquo;
+          &mdash; output-sensitive, no full scan. Title <strong>prefixes</strong>
+          &rarr; a <strong>trie</strong>: a prefix is a path from the root, and every
+          completion is exactly the subtree beneath it.
+        </p>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Naming a hash table for the range query.</strong> The most common wrong answer, and the reason is worth saying: hashing deliberately destroys order, so neighbouring keys land in unrelated buckets and a range means scanning everything. The property that makes it fast for point lookups is the property that makes it useless here.</li>
+          <li><strong>Naming a BST for the prefix query.</strong> Not worthless &mdash; an ordered structure <em>can</em> find a prefix range &mdash; but a trie is better and the justification is the discriminator. Say why: prefix = path, completions = subtree.</li>
+          <li><strong>Defining chaining and probing</strong> without answering &ldquo;where do they degrade&rdquo;. The question asks about behaviour under load.</li>
+          <li><strong>Claiming chaining &ldquo;never degrades&rdquo;.</strong> It does &mdash; \(\Theta(\alpha)\) per search. The contrast is graceful versus sharp, not immune versus fragile.</li>
+        </ul>
+      </div>
+
+      <h2 id="q11">Q11 &mdash; Regular expressions <span class="pts">(6 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Build from the four operations only: concatenation, <code>|</code>,
+        <code>*</code>, <code>()</code>. Then test your answer against three strings:
+        a typical member, a boundary member, and a near-miss non-member.
+      </div>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        (1) <code>(a|b)(a|b)</code> &middot; (2) <code>(0|1)*0</code>. Equivalents
+        accepted.
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>(1) &rarr; <span class="wrong">(a|b)*</span></strong> &mdash; accepts every length including 0 and 1. &ldquo;Exactly two&rdquo; means concatenate two choices, not star them.</li>
+          <li><strong>(1) &rarr; <span class="wrong">ab</span></strong> &mdash; one specific string, not the four (<code>aa</code>, <code>ab</code>, <code>ba</code>, <code>bb</code>).</li>
+          <li><strong>(2) &rarr; <span class="wrong">1*0</span></strong> &mdash; rejects <code>00</code>, which does end in 0. Anything may precede the final 0, including more 0s.</li>
+          <li><strong>(2) &rarr; <span class="wrong">(0|1)*0*</span></strong> &mdash; accepts <code>01</code>, which does not end in 0, and accepts the empty string. The final <code>0</code> must be mandatory and last.</li>
+          <li><strong>(2) &rarr; <span class="wrong">(0|1)*</span></strong> &mdash; accepts everything.</li>
+          <li><strong>Reaching for <code>{2}</code>, <code>+</code>, <code>?</code>, <code>\d</code>.</strong> Sugar, and fine if equivalents are accepted &mdash; but the exam tests the four primitives, so be sure you could expand whatever you write.</li>
+        </ul>
+      </div>
+
+      <h2 id="q12">Q12 &mdash; DFA <span class="pts">(10 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Ask what the machine must <em>remember</em>. &ldquo;Even number of
+        a&rsquo;s&rdquo; needs one bit &mdash; the parity so far &mdash; so two
+        states suffice, and <code>b</code> never changes it.
+      </div>
+
+      <pre>  → S0 (accepting) | a → S1 | b → S0
+    S1             | a → S0 | b → S1</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        The table above, and: <code>aa</code> Yes &middot; <code>aba</code> Yes
+        &middot; <code>b</code> Yes &middot; <code>abab</code> Yes &middot;
+        <code>a</code> No &middot; <code>baab</code> Yes &middot; <code>bb</code> Yes
+        &middot; <code>&epsilon;</code> Yes
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Making S0 non-accepting.</strong> Zero is even, so the empty string is accepted and the start state must accept. <strong>Seven of the eight</strong> test strings depend on this &mdash; every one except <code>a</code>.</li>
+          <li><strong><code>&epsilon;</code> &rarr; No.</strong> The same error in its purest form. If you got <code>&epsilon;</code> wrong you almost certainly got <code>b</code> and <code>bb</code> wrong too; they are one fact.</li>
+          <li><strong>Sending <code>b</code> to the other state.</strong> Only <code>a</code> flips parity. A <code>b</code> self-loops.</li>
+          <li><strong>Building four states</strong>, one per a/b combination. Not wrong, just unnecessary &mdash; and more states mean more chances to mis-fill the table. Remember only what must be remembered.</li>
+          <li><strong>Forgetting to mark the start state.</strong> Six of the ten points are the table, and the start marker is part of it.</li>
+          <li><strong>Mis-counting the a&rsquo;s.</strong> <code>baab</code> has two &rarr; Yes. These four points are free.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=dfa">DFA</a> runs exactly this kind of
+        machine &mdash; pick <code>even-As</code> and feed it the eight test strings;
+        one highlighted state is the machine&rsquo;s entire memory. Then
+        <a href="../../lib/demo.html?ds=nfa-sim">the NFA simulator</a> for the
+        contrast: a whole <em>set</em> of states at once.
+      </div>
+
+      <h2 id="q13">Q13 &mdash; Binary heap <span class="pts">(3 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        Append at the end, then <strong>swim</strong>: while the node beats its
+        parent, swap up (parent of <code>i</code> is <code>i/2</code>, 1-indexed).
+        For <code>delMax</code>: the root leaves, the <strong>last</strong> element
+        moves to the root, then <strong>sink</strong> &mdash; swap with the
+        <em>larger</em> child while it beats you.
+      </div>
+
+      <pre>  12               → 12
+  19  swims        → 19,12
+  6                → 19,12,6
+  24  swims twice  → 24,19,6,12
+  10               → 24,19,6,12,10
+  28  swims twice  → 28,19,24,12,10,6
+  8                → 28,19,24,12,10,6,8</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        (a) <code>28,19,24,12,10,6,8</code> &middot; (b) <code>24,19,8,12,10,6</code>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>0-indexing.</strong> The question says 1-indexed; with 0-indexing the parent is <code>(i-1)/2</code> and your swim targets shift. The contents can be right while the answer string is wrong.</li>
+          <li><strong>Sorting the array.</strong> A heap is <em>not</em> sorted &mdash; it satisfies only parent &ge; child. <code>28,19,24,…</code> is correct and is not descending.</li>
+          <li><strong>On <code>delMax</code>, promoting the larger child repeatedly.</strong> That leaves a hole in the middle and an array of the wrong shape. Last element to the root, <em>then</em> sink.</li>
+          <li><strong>Sinking against the wrong child.</strong> Swap with the <em>larger</em> of the two, or you break the heap property with the other one.</li>
+          <li><strong>Forgetting the array shrinks.</strong> After <code>delMax</code> there are six entries, not seven.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=heap">Binary heap (max)</a> shows the swim
+        and sink paths on both the tree and the array &mdash; insert
+        <code>12,19,6,24,10,28,8</code> and then delete the max.
+      </div>
+
+      <h2 id="q14">Q14 &mdash; Dijkstra <span class="pts">(3 pts)</span></h2>
+
+      <div class="def">
+        <span class="tag">The method</span>
+        All distances &infin; except the source at 0. Repeatedly finalize the
+        unfinalized vertex with the smallest tentative distance, then relax its
+        outgoing edges.
+      </div>
+
+      <pre>  finalize 0 (0):  dist[1]=1, dist[2]=6
+  finalize 1 (1):  0+1+2 = 3 &lt; 6 → dist[2]=3 ;  dist[3]=1+9=10
+  finalize 2 (3):  3+3 = 6 &lt; 10  → dist[3]=6
+  finalize 3 (6):  dist[4]=7
+  finalize 4 (7)</pre>
+
+      <div class="thm">
+        <span class="tag">The answer</span>
+        <code>0,1,3,6,7</code>
+      </div>
+
+      <div class="aside">
+        <span class="tag">Where people go wrong</span>
+        <ul>
+          <li><strong>Leaving <code>dist[2] = 6</code>.</strong> The direct edge 0&rarr;2 costs 6, but 0&rarr;1&rarr;2 costs 3. Taking the first value you write and never improving it is the classic Dijkstra error &mdash; relaxation exists to overwrite it.</li>
+          <li><strong>Leaving <code>dist[3] = 10</code>.</strong> The same error one step later: 1&rarr;3 gives 10, 2&rarr;3 gives 6.</li>
+          <li><strong>Relaxing from a vertex before it is finalized.</strong> Process vertices in order of finalized distance; that ordering is what makes the algorithm correct with non-negative weights.</li>
+          <li><strong>Treating the graph as undirected.</strong> The edges are directed &mdash; there is no 2&rarr;0 or 3&rarr;1.</li>
+          <li><strong>Reporting the path</strong> instead of the distances.</li>
+        </ul>
+      </div>
+
+      <div class="demo">
+        <span class="tag">Practise it live</span>
+        <a href="../../lib/demo.html?ds=dijkstra">Dijkstra</a> shows each relaxation
+        overwriting a tentative distance &mdash; exactly the step this question
+        punishes you for skipping.
+      </div>
+
+      <h2 id="five">The five errors that cost the most points</h2>
+
+      <ol>
+        <li>
+          <strong>Ignoring a stated determinism rule</strong> (Q2 and Q4
+          tie-breaking). Your trace can be flawless and still wrong. Read the rule,
+          and re-read it before you commit.
+        </li>
+        <li>
+          <strong>Answering the wrong verb.</strong> find-min vs delete-min
+          (Q1&nbsp;#7), homes vs final slots (Q9), value vs index (Q3), path vs
+          distances (Q14).
+        </li>
+        <li>
+          <strong>Off-by-one between an ordinal and an index.</strong> &ldquo;3rd
+          smallest&rdquo; is index 2 (Q3); &ldquo;the prefix <code>ABDC</code>&rdquo;
+          is row 4 (Q6); 1-indexed heaps (Q13).
+        </li>
+        <li>
+          <strong>Not improving a first estimate.</strong> Dijkstra&rsquo;s
+          <code>dist[2]</code> (Q14) and the mismatch branch in LCS (Q6) both punish
+          taking the first number you wrote.
+        </li>
+        <li>
+          <strong>Formatting.</strong> Comma-separated, no spaces; exactly what was
+          asked for; the &epsilon; column included. Free points, lost every term.
+        </li>
+      </ol>
+
+      <footer>
+        CSS 343 &middot; Summer 2026 &middot; practice-final worked guide v1.0
+        &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
+        demos in the course library. Every mechanical answer here was recomputed
+        independently of the exam&rsquo;s own solver and matched the published key.
+      </footer>
+    </div>
+  </body>
+</html>
