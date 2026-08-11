@@ -4,11 +4,11 @@
 
 *Same structure, length, and rules as the real final — only the data differs. Full key at the end; work it cold, on paper, in 110 minutes first. It is also on Canvas as an **ungraded practice quiz** with these exact questions — take that version too, so exam-day answer entry is automatic.*
 
-*After you have worked it and checked the key, read the [worked guide](./practice-final-guide.html) — it gives the method for each question and, for each one, the specific wrong answers and why they are wrong.*
+*After you have worked it: the [**solution guide**](./practice-final-guide.html) walks every question — the method, the answer, and the wrong turns that produce each near-miss.*
 
 ## Q1 — Tight complexity bounds (10 pts)
 
-Choose from: O(1) · O(log n) · O(n) · O(n log n) · O(n²) · O(E log V) · O(n + m) · O(n·m).
+Choose from: O(1) · O(log n) · O(n) · O(n log n) · O(n²) · O(m) · O(E log V) · O(n + m) · O(n·m).
 
 1. Kruskal's algorithm on a connected graph (E edges, V vertices), edges unsorted = ______
 
@@ -28,7 +28,7 @@ Choose from: O(1) · O(log n) · O(n) · O(n log n) · O(n²) · O(E log V) · O
 
 9. Build the KMP failure function for a pattern of length m = ______
 
-10. Comparison-sorting lower bound (any algorithm), n items = ______
+10. Comparison sorting: the best worst-case any comparison sort can achieve, n items = ______
 
 ## Q2 — Union-find & Kruskal (10 pts)
 
@@ -72,7 +72,7 @@ Solve with the master theorem (state the case):
 
 Fill the LCS table for **A = ABDCBA** (rows) vs **B = BDACB** (columns) on scratch paper, then give:
 
-**(a)** the table ROW for the prefix `ABDC` (its 6 values, ε-column first, comma-separated) (2 pts) · the FINAL row (2 pts) · **(b)** the LCS **length** (1 pt) · **(c)** one longest common subsequence via traceback (3 pts — any valid LCS accepted).
+**(a)** Label the rows ε, A, B, D, C, B, A (one character of A per row, as in the demos) and the columns ε, B, D, A, C, B. Give **row 4** — the row for A's 4th character, `C` — as its 6 values, ε-column first, comma-separated (2 pts) · the FINAL row (2 pts) · **(b)** the LCS **length** (1 pt) · **(c)** one longest common subsequence via traceback (3 pts — any valid LCS accepted).
 
 ## Q7 — 0/1 knapsack (7 pts)
 
@@ -131,7 +131,7 @@ Run **Dijkstra from vertex 0**. Give `dist[v]`, the shortest-path distance, for 
 
 ## Answer key
 
-**Q1.** (1) O(E log V) · (2) O(n log n) · (3) O(n + m) · (4) O(n·m) · (5) O(n) · (6) O(log n) · (7) O(1) · (8) O(1) · (9) O(n + m) · (10) O(n log n)
+**Q1.** (1) O(E log V) · (2) O(n log n) · (3) O(n + m) · (4) O(n·m) · (5) O(n) · (6) O(log n) · (7) O(1) · (8) O(1) · (9) O(m) · (10) O(n log n)
 
 **Q2.** (a) find(1)=3, find(7)=7 · parent[] = `[3, 3, 3, 3, 5, 7, 7, 7, 9, 3]`
 (b) accepted: `2-8,7-6,0-1,5-6,7-8,2-3,1-2,3-4` · first skip: `4-5` (endpoints already connected) · weight **36**
