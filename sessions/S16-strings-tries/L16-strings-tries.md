@@ -131,13 +131,15 @@ Insert is the same walk, creating nodes and setting `isWord` at the end.
 
 ## Trie — a worked search
 
-Trie holding `{she, shell, shells}`. Search `"shell"`:
+Trie holding `{she, shell, shells}` — all three lie on **one path**. Search `"shell"`:
 
 ```text
    s → h → e → l → l   (follow 5 chars)
    reached the node for "shell", isWord = true → FOUND
    search "shel": same path 4 chars, isWord = false → NOT a word
 ```
+
+`she` and `shell` are words **with children**: the flag says *a key ends here*, not *the tree ends here*.
 
 Cost = 5 character steps — regardless of how many keys the trie holds.
 

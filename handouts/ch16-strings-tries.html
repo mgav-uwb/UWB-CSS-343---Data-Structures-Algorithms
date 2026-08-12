@@ -211,7 +211,9 @@
         labeled with one character, and each node carries an
         <strong>is-word flag</strong> marking whether some stored key ends
         there. A key is present exactly when its character path exists
-        <em>and</em> the final node is word-marked. In an
+        <em>and</em> the node it ends on is word-marked &mdash; &ldquo;ends
+        on&rdquo; meaning the node reached after the key&rsquo;s last character,
+        which is <em>not</em> necessarily a leaf. In an
         <strong>R-way trie</strong> each node holds an array of \(R\) child
         pointers, one per character of the alphabet (\(R = 26\) for lowercase
         letters, \(R = 256\) for bytes).
@@ -278,11 +280,11 @@
         <strong>Search</strong> follows <code>next[c]</code> for each character
         of the key in turn. If a needed child is missing, the walk
         <em>falls off</em> the trie and the key is absent. If the walk survives
-        to the end of the key, the key is present <em>iff the final node is
+        to the end of the key, the key is present <em>iff the node it ends on is
         word-marked</em> &mdash; the path might exist only as a prefix of a
         longer key. <strong>Insert</strong> is the identical walk, except that
         it <em>creates</em> each missing node along the way and sets the
-        is-word flag on the last one. Neither operation ever compares two keys;
+        is-word flag on the node the key ends on. Neither operation ever compares two keys;
         the structure has encoded all the comparisons. Following a character is
         a single array index &mdash; <code>t = t-&gt;next[c]</code> &mdash; so
         both operations cost \(\Theta(L)\) for a key of length \(L\),
@@ -306,7 +308,7 @@ struct Node {
 };
 
 // search: follow next[c] for each character. Fall off -&gt; absent; reach the
-// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+// end -&gt; present iff the node it ENDS ON is word-marked (not necessarily a leaf).
 bool search(Node* t, const string&amp; key) {
     for (char ch : key) {
         int c = ch - &#x27;a&#x27;;
@@ -360,7 +362,7 @@ static class Node {
 }
 
 // search: follow next[c] for each character. Fall off -&gt; absent; reach the
-// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+// end -&gt; present iff the node it ENDS ON is word-marked (not necessarily a leaf).
 static boolean search(Node t, String key) {
     for (char ch : key.toCharArray()) {
         int c = ch - &#x27;a&#x27;;
@@ -413,7 +415,7 @@ class Node:
         self.is_word = False
 
 # search: follow next[c] for each character. Fall off -&gt; absent; reach the
-# end -&gt; present iff the final node is word-marked (a path is NOT a key).
+# end -&gt; present iff the node it ENDS ON is word-marked (not necessarily a leaf).
 def search(t, key):
     for ch in key:
         c = ord(ch) - ord(&#x27;a&#x27;)
@@ -465,7 +467,7 @@ fn new_node() -&gt; Box&lt;Node&gt; {
 }
 
 // search: follow next[c] for each character. Fall off -&gt; absent; reach the
-// end -&gt; present iff the final node is word-marked (a path is NOT a key).
+// end -&gt; present iff the node it ENDS ON is word-marked (not necessarily a leaf).
 fn search(mut t: &amp;Node, key: &amp;str) -&gt; bool {
     for ch in key.bytes() {
         match &amp;t.next[(ch - b&#x27;a&#x27;) as usize] {
@@ -519,17 +521,40 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         Take the trie holding \(\{\)<code>she</code>, <code>shell</code>,
         <code>shells</code>\(\}\) and search for <code>shell</code>:
         <pre>  search "shell":  s &rarr; h &rarr; e &rarr; l &rarr; l     (follow 5 characters)
-                   final node is word-marked &rarr; FOUND
+                   the node it ends on is word-marked &rarr; FOUND
   search "shel":   s &rarr; h &rarr; e &rarr; l           (the path exists&hellip;)
                    &hellip;but its node is NOT word-marked &rarr; not a key</pre>
         <code>shel</code> is a perfectly good <em>path</em> &mdash; it lies on
         the way to <code>shell</code> and <code>shells</code> &mdash; but no
         stored key ends there, so the flag correctly rejects it. Returning
         &ldquo;did I reach the end of the path&rdquo; instead of
-        <code>isWord</code> is the classic trie-implementation bug. And note the
-        cost: five character steps for <code>shell</code>, whether the trie
-        holds these three keys or three million &mdash; adding keys never slows
-        a search, only longer <em>keys</em> do.
+        <code>isWord</code> is the classic trie-implementation bug.
+        <p>
+          All three keys here lie on a <em>single</em> root-to-leaf path, which
+          makes the converse just as visible: the nodes for <code>she</code> and
+          <code>shell</code> are word-marked <em>and have children</em>. So the
+          two facts are independent, and both matter:
+        </p>
+        <ul>
+          <li>a node on a path need not be a key &mdash; <code>shel</code>;</li>
+          <li>a key need not sit at a leaf &mdash; <code>she</code>, whose node
+            has an <code>l</code> child.</li>
+        </ul>
+        <p>
+          That second one is why <code>isWord</code> is a stored bit rather than
+          a computed test: if every key ended at a leaf you could just ask
+          &ldquo;does this node have no children?&rdquo; and drop the flag. It
+          also fixes the vocabulary &mdash; &ldquo;the node the key ends
+          on&rdquo; is right, &ldquo;the final node&rdquo; or &ldquo;the
+          leaf&rdquo; is not. Only one direction does hold unconditionally:
+          every leaf <em>is</em> word-marked, since nothing but an inserted key
+          would have created it.
+        </p>
+        <p style="margin-bottom:0">
+          And note the cost: five character steps for <code>shell</code>,
+          whether the trie holds these three keys or three million &mdash;
+          adding keys never slows a search, only longer <em>keys</em> do.
+        </p>
       </div>
       <div class="ex">
         <span class="tag">Example (a worked insert)</span>
@@ -567,8 +592,8 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
       </p>
       <div class="aside">
         <span class="tag">Deletion, and shared structure</span>
-        Deleting a key takes two steps: <strong>unmark</strong> its final node
-        (<code>isWord = false</code>), then <strong>prune</strong> bottom-up
+        Deleting a key takes two steps: <strong>unmark</strong> the node it ends
+        on (<code>isWord = false</code>), then <strong>prune</strong> bottom-up
         &mdash; a node with no children that is not itself a word is useless,
         so remove it and reconsider its parent, stopping at the first node
         still needed. The care is in the stopping: never remove a node
@@ -576,7 +601,10 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         \(\{\)<code>shell</code>, <code>shells</code>\(\}\) only clears a flag
         &mdash; every node on its path is still on <code>shells</code>&rsquo;s
         path. This shared-structure trap is deletion&rsquo;s version of the
-        is-word subtlety.
+        is-word subtlety. The pruning step is also what preserves the invariant
+        noted above, that every leaf is word-marked: an unmarked childless node
+        is precisely what pruning removes, so it never survives to become a
+        leaf.
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
