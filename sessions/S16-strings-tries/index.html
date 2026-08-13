@@ -51,9 +51,8 @@
   <script src="../../lib/grid-review.js"></script>
   <!-- Unified library — stage-scoped interactive demos:
          trie          (P1/P2)  starts with {she, sells, sea, shells, shell};
-                                Insert / Search / Delete / Prefix ops take a
-                                word in the value box (Prefix = keysWithPrefix
-                                walk; Delete = unmark •, then prune bottom-up)
+                                Insert / Search / Prefix ops take a word in the
+                                value box (Prefix = keysWithPrefix walk)
          string-search (P4)     value box takes "TEXT PATTERN" (one word ⇒
                                 pattern over the default text); run Brute
                                 force, then KMP on the same pair and compare
@@ -73,14 +72,13 @@
         noBuild: true,
         valPlaceholder: "word",
         renderer: (c) => new TrieRenderer(c, { rowH: 44 }),
-        stateMsg: (t) => `${t.inorder()} — type a word: Insert / Search / Delete / Prefix`,
+        stateMsg: (t) => `${t.inorder()} — type a word: Insert / Search / Prefix`,
         ops: [
           { name: "Insert", arg: "string", run: (s, v) => s.insert(String(v).trim().toLowerCase()) },
           { name: "Search", arg: "string", run: (s, v) => s.search(String(v).trim().toLowerCase()) },
-          { name: "Delete", arg: "string", run: (s, v) => s.delete(String(v).trim().toLowerCase()) },
           { name: "Prefix", arg: "string", run: (s, v) => s.prefix(String(v).trim().toLowerCase()) },
         ],
-        costs: ["compare", "visit", "alloc", "free"], chrome: { showCosts: true }, width: 840, height: 195,
+        costs: ["read", "compare"], chrome: { showCosts: true }, width: 840, height: 195,
       },
       "kmp-fail": {
         make: () => new StringSearch(),
