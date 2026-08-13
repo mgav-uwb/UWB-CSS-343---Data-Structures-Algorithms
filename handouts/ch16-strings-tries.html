@@ -1557,6 +1557,11 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
             pruning stops at <code>e</code>, which is word-marked
             (<code>she</code> survives). Forgetting the stop condition and
             pruning into shared/marked nodes is the classic deletion bug.
+            You can run this pair live in the
+            <a href="../lib/demo.html?ds=trie">trie demo</a>: build
+            <code>she, shell, shells</code>, then <strong>Delete</strong>
+            <code>shell</code> and <code>shells</code> in that order &mdash;
+            the <code>free</code> counter reads \(0\), then \(3\).
           </details>
         </li>
         <li>
