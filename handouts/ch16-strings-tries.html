@@ -654,16 +654,268 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         <strong>compressed trie</strong> (also <em>radix tree</em>) collapses
         every such chain into one edge labeled with the whole substring:
       </p>
-      <pre>  {she, shells}:   "sh" &#9472;&#9472;&#9654; "e" (word) &#9472;&#9472;&#9654; "lls" (word)
-  (no separate s, h, e, l, l, s nodes &mdash; three nodes total)</pre>
+      <pre>  {she, shells}          root &#9472;&#9472;"she"&#9472;&#9472;&#9654; &#9679; &#9472;&#9472;"lls"&#9472;&#9472;&#9654; &#9679;
+                         3 nodes counting the root, not 6 characters' worth
+
+  add "shore" and the "she" edge must SPLIT, because keys now diverge there:
+
+                         root &#9472;&#9472;"sh"&#9472;&#9472;&#9654; &#9898; &#9472;&#9472;"e"&#9472;&#9472;&#9654;   &#9679; &#9472;&#9472;"lls"&#9472;&#9472;&#9654; &#9679;
+                                             &#9492;&#9472;"ore"&#9472;&#9472;&#9654; &#9679;
+                         5 nodes      (&#9679; = a key ends here, &#9898; = a branch)</pre>
       <p>
-        Now nodes exist only where keys <em>branch</em> or <em>end</em>, so the
-        node count is bounded by the number of keys rather than the number of
-        characters &mdash; far fewer nodes and far fewer pointer hops, with the
-        same trie semantics. <strong>Patricia tries</strong> apply this idea to
-        binary keys; they are the structure inside IP (Internet Protocol)
-        routing tables and many key&ndash;value stores.
+        Nodes now exist only where keys <em>branch</em> or <em>end</em>. That is
+        not a rule imposed from outside, it is forced: a node with one child and
+        no key ending at it would have a chain through it, and the whole point is
+        that such a chain gets merged into its parent edge. The consequence is
+        the bound worth remembering &mdash; <strong>at most \(2n-1\) nodes for
+        \(n\) keys</strong>, since a tree whose internal nodes all have at least
+        two children has fewer internal nodes than leaves. The node count is
+        governed by the number of <em>keys</em>, not by their length.
       </p>
+      <div class="aside">
+        <span class="tag">Two things the compression changes, and one name to keep straight</span>
+        <ul>
+          <li><strong>A search must match a whole edge label.</strong> In an
+            R-way trie every step consumes exactly one character, so a miss shows
+            up as a missing child. Here a miss can happen <em>inside</em> an
+            edge: looking up <code>shy</code> above follows <code>"sh"</code>,
+            then finds an edge labelled <code>"ore"</code> whose first character
+            already disagrees. Comparing only the first character of each label
+            is the classic bug &mdash; it would accept <code>shy</code> as
+            <code>shore</code>.</li>
+          <li><strong>An insert may have to split an edge</strong>, which a plain
+            trie never does. When the new key and an existing label agree on a
+            proper prefix, that edge is cut at the divergence point, a new
+            branch node goes in the middle, and the old child hangs off the
+            remainder &mdash; exactly what happened to <code>"she"</code> when
+            <code>"shore"</code> arrived. If the new key <em>ends</em> at the
+            split, the new node is simply marked; no leaf is added.</li>
+          <li><strong>The names.</strong> &ldquo;Compressed trie&rdquo; and
+            &ldquo;radix tree&rdquo; are the same idea as above, over whatever
+            alphabet you like. <strong>PATRICIA</strong> (Morrison, 1968 &mdash;
+            <em>Practical Algorithm To Retrieve Information Coded In
+            Alphanumeric</em>) is the same compression applied to <em>bit</em>
+            strings, where each node stores the bit index to test next rather
+            than a substring. In modern usage the three names are thrown around
+            interchangeably; what matters is the shared idea, path compression,
+            and it is why these structures sit inside IP (Internet Protocol)
+            routing tables and many key&ndash;value stores.</li>
+        </ul>
+      </div>
+      <p>
+        Search and insert, with the edge split written out. The two loops that
+        matter are the whole-label comparison and the longest-common-prefix scan
+        that decides where to cut:
+      </p>
+      <div class="code-tabs" data-snippet="strings/radix">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Compressed trie (radix tree). A node exists only where keys BRANCH or END,
+// so the node count is bounded by the number of KEYS, not by their length.
+// Each edge carries a whole substring, filed under its first character.
+struct RadNode {
+    bool isWord = false;
+    map&lt;char, pair&lt;string, RadNode*&gt;&gt; kids;    // first char -&gt; (edge label, child)
+};
+
+RadNode* leaf() { RadNode* n = new RadNode(); n-&gt;isWord = true; return n; }
+
+// Search must match a WHOLE edge label. Falling off mid-edge is a miss, which
+// is the difference from an R-way trie: there, every step is one character.
+bool search(RadNode* t, const string&amp; key) {
+    size_t i = 0;
+    while (i &lt; key.size()) {
+        auto it = t-&gt;kids.find(key[i]);
+        if (it == t-&gt;kids.end()) return false;
+        const string&amp; label = it-&gt;second.first;
+        // a mismatch INSIDE an edge is a miss, not just a missing child
+        if (key.compare(i, label.size(), label) != 0) return false;
+        i += label.size();
+        t = it-&gt;second.second;
+    }
+    return t-&gt;isWord;
+}
+
+// Insert walks the same way, but where the key and an edge label agree on only
+// a PREFIX it must SPLIT that edge -- the one operation a plain trie never needs.
+void insert(RadNode* t, const string&amp; key, size_t i) {
+    if (i == key.size()) { t-&gt;isWord = true; return; }
+    char c = key[i];
+    auto it = t-&gt;kids.find(c);
+    if (it == t-&gt;kids.end()) {                           // no edge starts with c
+        t-&gt;kids[c] = { key.substr(i), leaf() };
+        return;
+    }
+    string label = it-&gt;second.first;
+    RadNode* child = it-&gt;second.second;
+    size_t j = 0;                                        // longest common prefix
+    while (j &lt; label.size() &amp;&amp; i + j &lt; key.size() &amp;&amp; label[j] == key[i + j]) j++;
+    // the whole label matched -- descend and keep going
+    if (j == label.size()) { insert(child, key, i + j); return; }
+    RadNode* mid = new RadNode();                        // SPLIT the edge at j
+    t-&gt;kids[c] = { label.substr(0, j), mid };
+    mid-&gt;kids[label[j]] = { label.substr(j), child };
+    if (i + j == key.size()) mid-&gt;isWord = true;   // key ends AT the split
+    else {
+        mid-&gt;kids[key[i + j]] = { key.substr(i + j), leaf() };
+    }
+}</pre>
+<pre class="ct-pane" data-lang="java">// Compressed trie (radix tree). A node exists only where keys BRANCH or END,
+// so the node count is bounded by the number of KEYS, not by their length.
+// Each edge carries a whole substring, filed under its first character.
+static class RadNode {
+    boolean isWord;
+    // first char -&gt; {edge label, child}
+    TreeMap&lt;Character, Object[]&gt; kids = new TreeMap&lt;&gt;();
+}
+
+// Search must match a WHOLE edge label. Falling off mid-edge is a miss, which
+// is the difference from an R-way trie: there, every step is one character.
+static boolean search(RadNode t, String key) {
+    int i = 0;
+    while (i &lt; key.length()) {
+        Object[] e = t.kids.get(key.charAt(i));
+        if (e == null) return false;
+        String label = (String) e[0];
+        if (i + label.length() &gt; key.length()
+            || !key.startsWith(label, i)) return false;  // mismatch INSIDE an edge
+        i += label.length();
+        t = (RadNode) e[1];
+    }
+    return t.isWord;
+}
+
+// Insert walks the same way, but where the key and an edge label agree on only
+// a PREFIX it must SPLIT that edge -- the one operation a plain trie never needs.
+static void insert(RadNode t, String key, int i) {
+    if (i == key.length()) { t.isWord = true; return; }
+    char c = key.charAt(i);
+    Object[] e = t.kids.get(c);
+    if (e == null) {                                     // no edge starts with c
+        RadNode leaf = new RadNode(); leaf.isWord = true;
+        t.kids.put(c, new Object[]{ key.substring(i), leaf });
+        return;
+    }
+    String label = (String) e[0];
+    RadNode child = (RadNode) e[1];
+    int j = 0;                                           // longest common prefix
+    while (j &lt; label.length() &amp;&amp; i + j &lt; key.length()
+           &amp;&amp; label.charAt(j) == key.charAt(i + j)) j++;
+    // the whole label matched -- descend and keep going
+    if (j == label.length()) { insert(child, key, i + j); return; }
+    RadNode mid = new RadNode();                         // SPLIT the edge at j
+    t.kids.put(c, new Object[]{ label.substring(0, j), mid });
+    mid.kids.put(label.charAt(j), new Object[]{ label.substring(j), child });
+    if (i + j == key.length()) mid.isWord = true;  // key ends AT the split
+    else {
+        RadNode leaf = new RadNode(); leaf.isWord = true;
+        mid.kids.put(key.charAt(i + j), new Object[]{key.substring(i + j), leaf});
+    }
+}</pre>
+<pre class="ct-pane" data-lang="py"># Compressed trie (radix tree). A node exists only where keys BRANCH or END,
+# so the node count is bounded by the number of KEYS, not by their length.
+# Each edge carries a whole substring, filed under its first character.
+class RadNode:
+    def __init__(self):
+        self.is_word = False
+        self.kids = {}                  # first char -&gt; [edge label, child]
+
+# Search must match a WHOLE edge label. Falling off mid-edge is a miss, which
+# is the difference from an R-way trie: there, every step is one character.
+def search(t, key):
+    i = 0
+    while i &lt; len(key):
+        e = t.kids.get(key[i])
+        if e is None: return False
+        label, child = e
+        if key[i:i + len(label)] != label: return False   # mismatch INSIDE an edge
+        i += len(label)
+        t = child
+    return t.is_word
+
+# Insert walks the same way, but where the key and an edge label agree on only
+# a PREFIX it must SPLIT that edge -- the one operation a plain trie never needs.
+def insert(t, key, i):
+    if i == len(key): t.is_word = True; return
+    c = key[i]
+    if c not in t.kids:                                   # no edge starts with c
+        leaf = RadNode(); leaf.is_word = True
+        t.kids[c] = [key[i:], leaf]
+        return
+    label, child = t.kids[c]
+    j = 0                                                 # longest common prefix
+    while j &lt; len(label) and i + j &lt; len(key) and label[j] == key[i + j]: j += 1
+    if j == len(label):                                   # whole label matched
+        insert(child, key, i + j); return
+    mid = RadNode()                                       # SPLIT the edge at j
+    t.kids[c] = [label[:j], mid]
+    mid.kids[label[j]] = [label[j:], child]
+    if i + j == len(key): mid.is_word = True       # key ends AT the split
+    else:
+        leaf = RadNode(); leaf.is_word = True
+        mid.kids[key[i + j]] = [key[i + j:], leaf]</pre>
+<pre class="ct-pane" data-lang="rs">// Compressed trie (radix tree). A node exists only where keys BRANCH or END,
+// so the node count is bounded by the number of KEYS, not by their length.
+// Each edge carries a whole substring, filed under its first character.
+#[derive(Default)]
+struct RadNode {
+    is_word: bool,
+    // first byte -&gt; (edge label, child)
+    kids: BTreeMap&lt;u8, (String, Box&lt;RadNode&gt;)&gt;,
+}
+
+// Search must match a WHOLE edge label. Falling off mid-edge is a miss, which
+// is the difference from an R-way trie: there, every step is one character.
+fn search(root: &amp;RadNode, key: &amp;str) -&gt; bool {
+    let (kb, mut t, mut i) = (key.as_bytes(), root, 0usize);
+    while i &lt; kb.len() {
+        let e = match t.kids.get(&amp;kb[i]) { Some(e) =&gt; e, None =&gt; return false };
+        let lb = e.0.as_bytes();
+        // a mismatch INSIDE an edge is a miss, not just a missing child
+        if i + lb.len() &gt; kb.len() || &amp;kb[i..i + lb.len()] != lb {
+            return false;
+        }
+        i += lb.len();
+        t = &amp;e.1;
+    }
+    t.is_word
+}
+
+// Insert walks the same way, but where the key and an edge label agree on only
+// a PREFIX it must SPLIT that edge -- the one operation a plain trie never needs.
+fn insert(t: &amp;mut RadNode, key: &amp;str, i: usize) {
+    let kb = key.as_bytes();
+    if i == kb.len() { t.is_word = true; return; }
+    let c = kb[i];
+    if !t.kids.contains_key(&amp;c) {                        // no edge starts with c
+        let leaf = Box::new(RadNode { is_word: true, ..Default::default() });
+        t.kids.insert(c, (key[i..].to_string(), leaf));
+        return;
+    }
+    let label = t.kids[&amp;c].0.clone();
+    let lb = label.as_bytes();
+    let mut j = 0usize;                                  // longest common prefix
+    while j &lt; lb.len() &amp;&amp; i + j &lt; kb.len() &amp;&amp; lb[j] == kb[i + j] { j += 1; }
+    if j == lb.len() {                                   // whole label matched
+        insert(&amp;mut t.kids.get_mut(&amp;c).unwrap().1, key, i + j);
+        return;
+    }
+    let (_, child) = t.kids.remove(&amp;c).unwrap();         // SPLIT the edge at j
+    let mut mid = Box::new(RadNode::default());
+    mid.kids.insert(lb[j], (label[j..].to_string(), child));
+    if i + j == kb.len() { mid.is_word = true; }   // key ends AT the split
+    else {
+        let leaf = Box::new(RadNode { is_word: true, ..Default::default() });
+        mid.kids.insert(kb[i + j], (key[i + j..].to_string(), leaf));
+    }
+    t.kids.insert(c, (label[..j].to_string(), mid));
+}</pre>
+<!--/ct--></div>
+
       <h3>Ternary search tries</h3>
       <div class="def">
         <span class="tag">Definition (ternary search trie)</span>
@@ -741,6 +993,153 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
       Node *left, *mid, *right;   <span class="cm">// &lt; c,   == c (next char),   &gt; c</span>
       bool isWord;
   };</pre>
+      <div class="code-tabs" data-snippet="strings/tst">
+<div class="ct-tabs" role="tablist">
+  <button class="ct-tab" data-lang="cpp">C++</button>
+  <button class="ct-tab" data-lang="java">Java</button>
+  <button class="ct-tab" data-lang="py">Python</button>
+  <button class="ct-tab" data-lang="rs">Rust</button>
+</div>
+<pre class="ct-pane" data-lang="cpp">// Ternary search trie. ONE character per node and three links, so a node is
+// three pointers instead of an R-slot array. left/right search among the
+// characters used at THIS position (that is the little BST); mid ADVANCES one
+// position, landing on the root of the next position's BST -- which is where
+// the following characters live. Only mid consumes a character.
+struct TstNode {
+    char c;
+    TstNode *left, *mid, *right;
+    bool isWord;
+    TstNode(char ch) : c(ch), left(0), mid(0), right(0), isWord(false) {}
+};
+
+// put -- the same walk as get, creating what is missing. Keys are non-empty.
+TstNode* put(TstNode* x, const string&amp; key, size_t d) {
+    char c = key[d];
+    if (!x) x = new TstNode(c);
+    if      (c &lt; x-&gt;c)            x-&gt;left  = put(x-&gt;left,  key, d);
+    else if (c &gt; x-&gt;c)            x-&gt;right = put(x-&gt;right, key, d);
+    else if (d + 1 &lt; key.size())  x-&gt;mid   = put(x-&gt;mid,   key, d + 1);
+    else                         x-&gt;isWord = true;      // the node the key ends on
+    return x;
+}
+
+bool get(TstNode* x, const string&amp; key) {
+    size_t d = 0;
+    while (x) {
+        char c = key[d];
+        if      (c &lt; x-&gt;c)           x = x-&gt;left;        // still position d
+        else if (c &gt; x-&gt;c)           x = x-&gt;right;       // still position d
+        else if (d + 1 &lt; key.size()) { x = x-&gt;mid; d++; }// the only character step
+        else return x-&gt;isWord;      // path exists -- but does a key END here?
+    }
+    return false;                   // fell off the tree
+}</pre>
+<pre class="ct-pane" data-lang="java">// Ternary search trie. ONE character per node and three links, so a node is
+// three pointers instead of an R-slot array. left/right search among the
+// characters used at THIS position (that is the little BST); mid ADVANCES one
+// position, landing on the root of the next position's BST -- which is where
+// the following characters live. Only mid consumes a character.
+static class TstNode {
+    char c;
+    TstNode left, mid, right;
+    boolean isWord;
+    TstNode(char ch) { c = ch; }
+}
+
+// put -- the same walk as get, creating what is missing. Keys are non-empty.
+static TstNode put(TstNode x, String key, int d) {
+    char c = key.charAt(d);
+    if (x == null) x = new TstNode(c);
+    if      (c &lt; x.c)              x.left  = put(x.left,  key, d);
+    else if (c &gt; x.c)              x.right = put(x.right, key, d);
+    else if (d + 1 &lt; key.length()) x.mid   = put(x.mid,   key, d + 1);
+    else                          x.isWord = true;      // the node the key ends on
+    return x;
+}
+
+static boolean get(TstNode x, String key) {
+    int d = 0;
+    while (x != null) {
+        char c = key.charAt(d);
+        if      (c &lt; x.c)              x = x.left;        // still position d
+        else if (c &gt; x.c)              x = x.right;       // still position d
+        else if (d + 1 &lt; key.length()) { x = x.mid; d++; }// the only char step
+        else return x.isWord;       // path exists -- but does a key END here?
+    }
+    return false;                   // fell off the tree
+}</pre>
+<pre class="ct-pane" data-lang="py"># Ternary search trie. ONE character per node and three links, so a node is
+# three pointers instead of an R-slot array. left/right search among the
+# characters used at THIS position (that is the little BST); mid ADVANCES one
+# position, landing on the root of the next position's BST -- which is where
+# the following characters live. Only mid consumes a character.
+class TstNode:
+    def __init__(self, c):
+        self.c = c
+        self.left = self.mid = self.right = None
+        self.is_word = False
+
+# put -- the same walk as get, creating what is missing. Keys are non-empty.
+def put(x, key, d):
+    c = key[d]
+    if x is None: x = TstNode(c)
+    if   c &lt; x.c:            x.left  = put(x.left,  key, d)
+    elif c &gt; x.c:            x.right = put(x.right, key, d)
+    elif d + 1 &lt; len(key):   x.mid   = put(x.mid,   key, d + 1)
+    else:                    x.is_word = True       # the node the key ends on
+    return x
+
+def get(x, key):
+    d = 0
+    while x:
+        c = key[d]
+        if   c &lt; x.c:          x = x.left            # still position d
+        elif c &gt; x.c:          x = x.right           # still position d
+        elif d + 1 &lt; len(key): x, d = x.mid, d + 1   # the only character step
+        else: return x.is_word  # path exists -- but does a key END here?
+    return False                # fell off the tree</pre>
+<pre class="ct-pane" data-lang="rs">// Ternary search trie. ONE character per node and three links, so a node is
+// three pointers instead of an R-slot array. left/right search among the
+// characters used at THIS position (that is the little BST); mid ADVANCES one
+// position, landing on the root of the next position's BST -- which is where
+// the following characters live. Only mid consumes a character.
+struct TstNode {
+    c: u8,
+    left: Option&lt;Box&lt;TstNode&gt;&gt;,
+    mid: Option&lt;Box&lt;TstNode&gt;&gt;,
+    right: Option&lt;Box&lt;TstNode&gt;&gt;,
+    is_word: bool,
+}
+
+impl TstNode {
+    fn new(c: u8) -&gt; Self {
+        TstNode { c, left: None, mid: None, right: None, is_word: false }
+    }
+}
+
+// put -- the same walk as get, creating what is missing. Keys are non-empty.
+fn put(x: Option&lt;Box&lt;TstNode&gt;&gt;, key: &amp;[u8], d: usize) -&gt; Option&lt;Box&lt;TstNode&gt;&gt; {
+    let c = key[d];
+    let mut n = x.unwrap_or_else(|| Box::new(TstNode::new(c)));
+    if c &lt; n.c            { n.left  = put(n.left.take(),  key, d); }
+    else if c &gt; n.c       { n.right = put(n.right.take(), key, d); }
+    else if d + 1 &lt; key.len() { n.mid = put(n.mid.take(), key, d + 1); }
+    else                 { n.is_word = true; }          // the node the key ends on
+    Some(n)
+}
+
+fn get(root: &amp;Option&lt;Box&lt;TstNode&gt;&gt;, key: &amp;[u8]) -&gt; bool {
+    let (mut x, mut d) = (root, 0usize);
+    while let Some(n) = x {
+        let c = key[d];
+        if c &lt; n.c            { x = &amp;n.left; }            // still position d
+        else if c &gt; n.c       { x = &amp;n.right; }           // still position d
+        else if d + 1 &lt; key.len() { x = &amp;n.mid; d += 1; } // the only char step
+        else { return n.is_word; }  // path exists -- but does a key END here?
+    }
+    false                           // fell off the tree
+}</pre>
+<!--/ct--></div>
       <p>
         A lookup, at each position of the key, walks <code>left</code>/<code>right</code>
         links to find the current character among the node&rsquo;s siblings
