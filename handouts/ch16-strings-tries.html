@@ -1318,12 +1318,16 @@ fn get(root: &amp;Option&lt;Box&lt;TstNode&gt;&gt;, key: &amp;[u8]) -&gt; bool {
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=trie">Trie demo</a>, again &mdash; now the
         <strong>Prefix</strong> operation. Type <code>sh</code>: the walk
-        highlights the prefix path, and the status line reports both queries at
-        once &mdash; <code>longestPrefixOf("sh")</code> (none;
-        <code>sh</code> passes no word-marked node) and
+        highlights the prefix path one character at a time, and on its
+        <em>closing</em> frame the status line reports both queries at once
+        &mdash; <code>longestPrefixOf("sh")</code> (none; <code>sh</code> passes
+        no word-marked node) and
         <code>keysWithPrefix("sh") = {she, shell, shells}</code>, the
-        subtree of the figure above. Try <code>she</code> (now the longest
-        prefix is <code>she</code> itself) and <code>sea</code>. Load the
+        subtree of the figure above. Let the animation finish, or press
+        <strong>&#9197;</strong> to jump to that last frame: the intermediate
+        frames narrate the walk, and only the final one carries the answers.
+        Try <code>she</code> (now the longest prefix is <code>she</code> itself)
+        and <code>sea</code>. Load the
         <em>shared prefixes</em> preset (<code>to, tea, ted, ten, in,
         inn</code>) and query <code>te</code> for a three-way autocomplete.
       </div>
