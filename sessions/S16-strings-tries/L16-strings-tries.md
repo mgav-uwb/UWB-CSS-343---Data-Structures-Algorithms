@@ -180,13 +180,15 @@ Insert `to, tea, ten` into an empty trie:
 <pre class="viz-fallback">
    insert she, sells, sea, shells, shell — sharing prefixes.
    search "she" (a word ✓), "sh" (a path but NOT a word ✗).
+   delete "shells" — unmark its •, prune the freed node,
+   stop at shell• (its own word). delete "she" frees nothing.
    each step follows one character down the tree; word-end
    nodes are marked. cost = key length, not # of keys.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Type a word: **Insert** (only the missing suffix appears), **Search** (`shells` ✓ vs `shel` ✗), **Prefix** (`sh` → the subtree). Starts with the five sample words.</small>
+<small>Type a word: **Insert** (only the missing suffix appears), **Search** (`shells` ✓ vs `shel` ✗), **Delete** (`shells` frees one node, `she` frees none — unmark, then prune only what no key needs), **Prefix** (`sh` → the subtree). Starts with the five sample words.</small>
 
 --
 
@@ -194,7 +196,7 @@ Insert `to, tea, ten` into an empty trie:
 
 | operation | cost |
 |---|---|
-| search / insert | **Θ(L)** (key length) |
+| search / insert / delete | **Θ(L)** (key length) |
 | search miss | often < L (fall off early) |
 | space | up to Θ(R · N · L) pointers |
 
@@ -217,7 +219,7 @@ Far fewer nodes and pointer-hops. **Patricia tries** do this for IP routing tabl
 
 ## Ternary search tries (TSTs)
 
-Store the R children as a **little BST** per node — each trie node becomes 3 links:
+One R-way node → a **little BST** over just the characters used there, one BST node per character:
 
 ```text
    struct Node {
@@ -226,6 +228,8 @@ Store the R children as a **little BST** per node — each trie node becomes 3 l
        bool isWord;
    };
 ```
+
+`left`/`right` **are** the BST — they replace the array. `mid` is what the array *returned*.
 
 **Θ(L·log R)** worst-case search (**~Θ(L)** in practice), far less space than R-way.
 

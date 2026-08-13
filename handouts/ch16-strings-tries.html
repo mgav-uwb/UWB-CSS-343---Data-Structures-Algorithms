@@ -574,7 +574,7 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
       <h3>The cost, and the catch</h3>
       <table>
         <tr><th>operation</th><th>cost</th></tr>
-        <tr><td>search / insert</td><td>\(\Theta(L)\) &mdash; the key&rsquo;s length</td></tr>
+        <tr><td>search / insert / delete</td><td>\(\Theta(L)\) &mdash; the key&rsquo;s length</td></tr>
         <tr><td>search miss</td><td>often \(&lt; L\) &mdash; the walk falls off at the first missing child</td></tr>
         <tr><td>space</td><td>up to \(\Theta(R \cdot N \cdot L)\) pointers for \(N\) keys</td></tr>
       </table>
@@ -617,6 +617,14 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         exists, the flag does not &mdash; the subtlety live). <strong>Insert</strong>
         <code>sun</code> and watch only the missing suffix appear &mdash; the
         <code>alloc</code> counter tells you exactly how many nodes were new.
+        Then run the aside above live: <strong>Delete</strong>
+        <code>shells</code> unmarks its &bull; and frees exactly one node,
+        because pruning stops at <code>shell</code>, itself a stored word
+        (the <code>free</code> counter reads \(1\)); <strong>Delete</strong>
+        <code>she</code> frees nothing at all &mdash; its node just loses the
+        &bull;, since <code>shell</code> and <code>shells</code> still pass
+        through it. In the no-sharing preset (<code>cat, dog, fox</code>),
+        deleting <code>cat</code> prunes the whole branch back to the root.
         Every operation&rsquo;s counters total the key&rsquo;s length, no
         matter how many words the trie holds.
       </div>
@@ -661,11 +669,34 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         <span class="tag">Definition (ternary search trie)</span>
         A <strong>ternary search trie (TST)</strong> replaces each R-way
         node&rsquo;s child <em>array</em> with a small binary search tree over
-        only the characters actually used at that position. Each node stores
-        one character \(c\) and <strong>three</strong> links:
+        only the characters actually used at that position. Each node of that
+        BST stores one character \(c\) and <strong>three</strong> links:
         <code>left</code> (query character \(&lt; c\)), <code>right</code>
         (\(&gt; c\)), and <code>mid</code> (\(= c\) &mdash; advance to the
         key&rsquo;s next character), plus the usual is-word flag.
+      </div>
+      <div class="aside">
+        <span class="tag">Why a <em>binary</em> search tree, when each node has three links?</span>
+        Because the old child array did two jobs, and the TST splits them
+        between different links. Looking a character up is
+        <code>left</code>/<code>right</code> only &mdash; those two form the BST,
+        and that is what replaces the array. <code>mid</code> is the
+        <em>answer</em> that lookup returns: the subtrie for the rest of the
+        key, exactly what <code>next[c]</code> used to hand you. So
+        <code>mid</code> is the array&rsquo;s payload, not part of the search
+        structure over the alphabet, and only <code>mid</code> consumes a
+        character. Keep the two axes apart and everything about TSTs follows:
+        <strong>within one character position you are in a BST; crossing to the
+        next position you are in a trie.</strong> Hence ternary search
+        <em>trie</em>. &ldquo;Ternary&rdquo; counts the links a node carries, it
+        does not describe the search over the characters at a position.
+        <p style="margin-bottom:0">
+          One more granularity trap: a single R-way node does <em>not</em> become
+          a single TST node. It becomes a whole little BST, with one TST node per
+          character actually used at that position &mdash; \(k\) characters used
+          means \(k\) nodes of three pointers each, in place of one array of
+          \(R\).
+        </p>
       </div>
       <pre>  struct Node {
       char c;
