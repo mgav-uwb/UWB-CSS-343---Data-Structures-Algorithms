@@ -59,7 +59,7 @@
                                 force, then KMP on the same pair and compare
                                 the compare counters -->
   <script type="module">
-    import { initDeckDemos, Trie, StringSearch, TrieRenderer, ArrayRenderer, MatrixRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, Trie, TST, StringSearch, TrieRenderer, TreeRenderer, ArrayRenderer, MatrixRenderer } from "../../lib/deck.js";
     import { expandRepeats } from "../../lib/core/sequence.js";
     const pair = (s, v) => {   // "TEXT PATTERN" | "PATTERN" → set text/pattern
       // A^11B shorthand works, like the gallery — the note's adversarial pair
@@ -81,6 +81,22 @@
           { name: "Prefix", arg: "string", run: (s, v) => s.prefix(String(v).trim().toLowerCase()) },
         ],
         costs: ["compare", "visit", "alloc", "free"], chrome: { showCosts: true }, width: 840, height: 195,
+      },
+      "tst": {
+        // Pre-built on the same keys as the slide's ASCII fallback. The point of
+        // this mount is the two link kinds, so the only ops are the two that
+        // make the distinction visible.
+        make: () => { const t = new TST(); t.build(["she", "sells", "sea", "shells", "by", "the", "shore"]); return t; },
+        noBuild: true,
+        valPlaceholder: "prefix / word",
+        valInitial: "sh",
+        renderer: (c) => new TreeRenderer(c, { labels: "sym", R: 13 }),
+        stateMsg: (s) => `${s.keys().length} keys · ${s.nodeCount()} nodes — the number under a node is its character POSITION`,
+        ops: [
+          { name: "What follows?", arg: "string", run: (s, v) => s.position(v) },
+          { name: "Search", arg: "string", run: (s, v) => s.search(v) },
+        ],
+        costs: ["compare", "visit"], chrome: { showCosts: true }, width: 860, height: 225,
       },
       "kmp-fail": {
         make: () => new StringSearch(),

@@ -227,7 +227,7 @@ One R-way node → a **little BST** over just the characters used there, one BST
    };
 ```
 
-`left`/`right` **are** the BST — they replace the array. `mid` is what the array *returned*.
+`left`/`right` stay at **this** position — they are the BST. `mid` advances to the **next** position's BST.
 
 **Θ(L·log R)** worst-case search (**~Θ(L)** in practice), far less space than R-way.
 
@@ -235,16 +235,22 @@ One R-way node → a **little BST** over just the characters used there, one BST
 
 ## TST — how a lookup works
 
-Three links per node: `left` (< c), `mid` (== c → next char), `right` (> c).
+<div class="algo-viz" data-algo="tst">
+<pre class="viz-fallback">
+  keys: she sells sea shells by the shore      19 nodes, 3 pointers each
+  the number under a node is its CHARACTER POSITION
 
-```text
-   search "sea":
-     at a node, compare query char to c:
-       < c → go left      > c → go right      == c → go MID (advance query)
-   only 'mid' consumes a character; left/right pick among siblings
-```
+     position 0 (the root's own BST):   b   s   t
+     after "s"   → one mid link →       e   h
+     after "sh"  → one mid link →       e   o
+     after "she" → one mid link →       l
 
-**Θ(L·log R)** worst case — a log R sibling search **once per character** (~Θ(L) in practice: most nodes have few children).
+  < c → left      > c → right     (same position — just picking a character)
+  = c → MID       (the ONLY link that consumes a character)
+</pre>
+</div>
+
+**Θ(L·log R)** worst case, **~Θ(L)** in practice.
 
 --
 

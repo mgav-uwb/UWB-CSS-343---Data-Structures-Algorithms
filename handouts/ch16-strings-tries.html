@@ -676,27 +676,65 @@ fn keys_with_prefix(mut t: &amp;Node, prefix: &amp;str) -&gt; Vec&lt;String&gt; 
         key&rsquo;s next character), plus the usual is-word flag.
       </div>
       <div class="aside">
-        <span class="tag">Why a <em>binary</em> search tree, when each node has three links?</span>
-        Because the old child array did two jobs, and the TST splits them
-        between different links. Looking a character up is
-        <code>left</code>/<code>right</code> only &mdash; those two form the BST,
-        and that is what replaces the array. <code>mid</code> is the
-        <em>answer</em> that lookup returns: the subtrie for the rest of the
-        key, exactly what <code>next[c]</code> used to hand you. So
-        <code>mid</code> is the array&rsquo;s payload, not part of the search
-        structure over the alphabet, and only <code>mid</code> consumes a
-        character. Keep the two axes apart and everything about TSTs follows:
-        <strong>within one character position you are in a BST; crossing to the
-        next position you are in a trie.</strong> Hence ternary search
-        <em>trie</em>. &ldquo;Ternary&rdquo; counts the links a node carries, it
-        does not describe the search over the characters at a position.
-        <p style="margin-bottom:0">
+        <span class="tag">Is it a <em>binary</em> search tree or a <em>ternary</em> tree?</span>
+        Both, at different levels, and the two answers do not compete.
+        <strong>Structurally a TST is one ternary tree</strong>: all three links
+        point to another node of the same kind, which is exactly what
+        &ldquo;ternary&rdquo; names. The BST language describes what two of those
+        links <em>do</em>, not a different kind of object. Read the links by what
+        they change:
+        <ul>
+          <li><code>left</code>/<code>right</code> &mdash; keep the character
+            position <em>fixed</em>, searching among the characters used there.
+            That little BST is what replaces the array.</li>
+          <li><code>mid</code> &mdash; <em>advances</em> one position. It points
+            at the <strong>root of the next position&rsquo;s BST</strong>, so the
+            following characters hang under it.</li>
+        </ul>
+        <p>
+          So the array lookup becomes two steps: BST-search on
+          <code>left</code>/<code>right</code> for \(c\), then follow that
+          node&rsquo;s <code>mid</code>. That pair is what <code>next[c]</code>
+          used to do in one array index, and only <code>mid</code> consumes a
+          character. Keep the two axes apart and everything about TSTs follows:
+          <strong>within one character position you are in a BST; crossing to the
+          next position you are in a trie.</strong> Hence ternary search
+          <em>trie</em> &mdash; &ldquo;ternary&rdquo; counts a node&rsquo;s links,
+          it does not describe the search over the characters at a position.
+        </p>
+        <p>
           One more granularity trap: a single R-way node does <em>not</em> become
           a single TST node. It becomes a whole little BST, with one TST node per
           character actually used at that position &mdash; \(k\) characters used
           means \(k\) nodes of three pointers each, in place of one array of
           \(R\).
         </p>
+        <p style="margin-bottom:0">
+          Concretely, on \(\{\)<code>she</code>, <code>sells</code>,
+          <code>sea</code>, <code>shells</code>, <code>by</code>, <code>the</code>,
+          <code>shore</code>\(\}\) &mdash; 19 nodes in total &mdash; following a
+          prefix and then one <code>mid</code> link lands on exactly the
+          characters that may come next:
+        </p>
+        <pre>  position 0 (the root's own BST)   {b, s, t}   every first character
+  after "s"    -> one mid link  ->  {e, h}
+  after "sh"   -> one mid link  ->  {e, o}      she/shells vs shore
+  after "she"  -> one mid link  ->  {l}</pre>
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=tst">TST demo</a>, built on these exact keys.
+        Every node prints its <strong>character position</strong> underneath, so
+        the nodes sharing a number are one BST and an <code>=</code> edge is
+        visibly the only thing that changes it. Run <strong>What follows?</strong>
+        on <code>sh</code> to highlight the BST that <code>mid</code> lands on
+        (<code>{e, o}</code> above), then <strong>Search</strong>
+        <code>shore</code> and watch the caption alternate between &ldquo;still
+        position \(d\)&rdquo; for a left/right step and &ldquo;follow MID &rarr;
+        position \(d{+}1\)&rdquo; for a match. <strong>Search</strong>
+        <code>shel</code> for the is-word subtlety again, and compare the whole
+        thing with <a href="../lib/demo.html?ds=trie">the R-way trie</a> on the
+        same keys.
       </div>
       <pre>  struct Node {
       char c;
