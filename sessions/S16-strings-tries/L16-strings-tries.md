@@ -627,7 +627,7 @@ The pattern matches **itself** — Θ(m).
 </pre>
 </div>
 
-<small>Two rows: the **pattern**, and **fail[]** filling in. Run `ABABAC` (the your-turn) and watch the final **C fall back three times**.</small>
+<small>Three rows: the **pattern**, **fail[]** filling in, and the two pointers — **j** (the cell being filled) and **k** (the overlap length). Run `ABABAC` and watch **j stand still while k falls back three times**.</small>
 
 --
 
