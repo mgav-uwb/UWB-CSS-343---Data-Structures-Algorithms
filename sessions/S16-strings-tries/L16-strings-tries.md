@@ -728,7 +728,7 @@ Compare the pattern **right-to-left**; on a mismatch, use the **bad character** 
 
 ```text
    text:    … X Y Z …
-   pattern:     A B C   Z not in pattern → skip PAST it
+   pattern:   A B C   Z not in pattern → skip PAST it
 ```
 
 Often **sublinear** — the standard for `grep`/editors.
@@ -739,8 +739,8 @@ Often **sublinear** — the standard for `grep`/editors.
 
 ```text
    text:    … S T R I N G   S E A R C H …
-   pattern:       S E A R C H
-                            ↑ compare RIGHT to LEFT
+   pattern:   S E A R C H
+                        ↑ compare RIGHT to LEFT
    text char 'G' aligns under pattern[5]='H': mismatch, and
    'G' is NOT in "SEARCH" → skip the pattern PAST 'G' entirely
 ```
