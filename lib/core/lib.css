@@ -98,6 +98,13 @@
 .u-srch-ch.is-cur { background: #7c5cff; color: #fff; font-weight: 800; }
 .u-srch-ch.is-cur.is-bad { background: #b3261e; }
 .u-srch-ch.is-fb { background: #fff6e0; color: #9a5b00; font-weight: 800; }
+/* the alignment window — a thin frame around the m text cells the pattern
+   currently covers; -a / -z close its left/right ends. Drawn with inset
+   box-shadows so it composes with any chip background (tint, green, purple) */
+.u-srch-ch.is-win { box-shadow: 0 1.5px 0 #8b93a7 inset, 0 -1.5px 0 #8b93a7 inset; border-radius: 0; }
+.u-srch-ch.is-win.is-win-a { box-shadow: 0 1.5px 0 #8b93a7 inset, 0 -1.5px 0 #8b93a7 inset, 1.5px 0 0 #8b93a7 inset; border-radius: 3px 0 0 3px; }
+.u-srch-ch.is-win.is-win-z { box-shadow: 0 1.5px 0 #8b93a7 inset, 0 -1.5px 0 #8b93a7 inset, -1.5px 0 0 #8b93a7 inset; border-radius: 0 3px 3px 0; }
+.u-srch-ch.is-win.is-win-a.is-win-z { box-shadow: 0 1.5px 0 #8b93a7 inset, 0 -1.5px 0 #8b93a7 inset, 1.5px 0 0 #8b93a7 inset, -1.5px 0 0 #8b93a7 inset; border-radius: 3px; }
 
 /* stats strip, under the transport (core/info-bar.js, place: "below") */
 .u-infobar.u-below { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 14px;

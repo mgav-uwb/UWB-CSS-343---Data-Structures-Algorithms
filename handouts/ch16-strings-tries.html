@@ -1788,35 +1788,42 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         Three tests, one per border of <code>ABABA</code> &mdash; the loop
         proved no border extends by <code>C</code>, so \(0\) is not a guess
         but an exhaustive check.
-        <em>A shorter candidate wins.</em> Pattern <code>AABAAAB</code>, step
-        \(j = 5\), \(k\) entering as \(\mathit{fail}[4] = 2\) (the borders of
-        <code>AABAA</code> are <code>AA</code>, <code>A</code>, \(\epsilon\)):
-        <pre>  k = 2:  P[2] = B &ne; A   &rarr; fall back, k = fail[1] = 1
-  k = 1:  P[1] = A = A    &rarr; extends: fail[5] = k + 1 = 2
+        <em>A shorter candidate wins.</em> Pattern
+        <code>AABAAABAAAABAAAB</code>, whose finished table is
+        \(\mathit{fail} = [0,1,0,1,2,2,3,4,5,6,2,3,4,5,6,7]\). The
+        interesting step is \(j = 10\): \(k\) enters holding
+        \(\mathit{fail}[9] = 6\), and the borders of the ten matched
+        characters <code>AABAAABAAA</code> are <code>AABAAA</code> (6),
+        <code>AA</code> (2), <code>A</code> (1), \(\epsilon\) &mdash; lengths
+        \(3, 4, 5\) are not borders, and the chain never touches them:
+        <pre>  k = 6:  P[6] = B &ne; A   &rarr; fall back, k = fail[5] = 2
+  k = 2:  P[2] = B &ne; A   &rarr; fall back, k = fail[1] = 1
+  k = 1:  P[1] = A = A    &rarr; extends: fail[10] = k + 1 = 2
 
-  (j = 6, k enters as fail[5] = 2)
-  k = 2:  P[2] = B = B    &rarr; extends: fail[6] = k + 1 = 3</pre>
+  (j = 11, k enters as fail[10] = 2)
+  k = 2:  P[2] = B = B    &rarr; extends: fail[11] = k + 1 = 3</pre>
         Drawn as alignments &mdash; each candidate \(k\) slides a fresh copy
         of the pattern so that its first \(k\) characters sit under the last
         \(k\) already matched, and the cell compared is \(P[k]\) under
         \(P[j]\):
-        <pre>  P:        A A B A A A B
-                      &uarr; j = 5
-  k = 2:          A A B          AA re-aligned under P[3..4]; P[2] = B &ne; A  &#10007;
-  k = 1:            A A          A  re-aligned under P[4];    P[1] = A = A  &#10003;
-                        &uarr; j = 6
-  k = 2:            A A B        AA (= fail[5]) under P[4..5]; P[2] = B = B  &#10003;</pre>
-        At \(j = 5\) the fall-back does <em>not</em> run to \(k = 0\): the
-        longest border of <code>AABAA</code> refuses to extend, its own
-        longest border accepts, and \(\mathit{fail}[5] = 2\) is the longest
-        border of <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends
-        with <code>AA</code>, its first two characters, and nothing longer
-        works. And keeping that \(k = 2\) pays off on the very next step:
-        \(j = 6\) enters with the <code>AA</code> border in hand, compares
-        \(P[6] = \)<code>B</code> with \(P[2] = \)<code>B</code> &mdash; one
-        comparison, no fall-back &mdash; and grows it to <code>AAB</code>:
-        \(\mathit{fail}[6] = 3\), and <code>AABAAAB</code> indeed ends with
-        its own first three characters.
+        <pre>  P:        A A B A A A B A A A A B A A A B
+                                &uarr; j = 10
+  k = 6:            A A B A A A B      AABAAA re-aligned; P[6] = B &ne; A  &#10007;
+  k = 2:                    A A B      AA re-aligned; P[2] = B &ne; A  &#10007;
+  k = 1:                      A A      A  re-aligned; P[1] = A = A  &#10003;
+                                  &uarr; j = 11
+  k = 2:                      A A B    AA (= fail[10]); P[2] = B = B  &#10003;</pre>
+        TWO fall-backs, and neither runs to \(k = 0\): the border
+        <code>AABAAA</code> refuses to extend, so does <code>AA</code>, and
+        <code>A</code> accepts &mdash; \(\mathit{fail}[10] = 2\), reached by
+        visiting exactly the borders \(6 \to 2 \to 1\) and skipping
+        \(5, 4, 3\) on the Lemma&rsquo;s authority, not on faith. And keeping
+        that \(k\) pays off immediately: \(j = 11\) enters with the
+        <code>AA</code> border in hand, one comparison grows it to
+        <code>AAB</code>, and the next four steps ride the same wave with one
+        comparison each &mdash; \(\mathit{fail}[12..15] = 4, 5, 6, 7\).
+        Check the end of it: the pattern indeed ends with
+        <code>AABAAAB</code>, its own first seven characters.
       </div>
       <div class="thm">
         <span class="tag">Proposition (the search loop is correct)</span>
@@ -1901,10 +1908,10 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         occurrence at index \(4\): <em>exactly the alignment the second
         fall-back chose</em>. The shorter border was not a consolation prize;
         it was the real occurrence, and \(i\) never moved backward while the
-        loop found it. (This is the search-side twin of the
-        <code>AABAAAB</code> build example&rsquo;s \(j = 5\) step above
-        &mdash; the same walk down the borders of <code>AABAA</code>,
-        stopping at the first that fits.)
+        loop found it. (This is the search-side twin of the build
+        example&rsquo;s \(j = 10\) step above &mdash; the same walk down a
+        matched prefix&rsquo;s borders, longest first, stopping at the first
+        that fits.)
       </div>
       <div class="thm">
         <span class="tag">Proposition (KMP cost)</span>
@@ -1994,9 +2001,10 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         into the left panel</strong> (long prose is fine; <code>A^40B</code>
         expands), the value box takes only the <strong>pattern</strong> —
         spaces allowed, case ignored — and the KMP panel draws
-        <code>fail[]</code> under the pattern. Playback paces itself: it
-        hurries over first-letter misses and slows wherever a partial match is
-        being extended or torn down. The bold filled chip is
+        <code>fail[]</code> under the pattern. A thin frame outlines the
+        window of text the pattern currently covers, and playback paces
+        itself: it hurries over first-letter misses and slows wherever a
+        partial match is being extended or torn down. The bold filled chip is
         the comparison in flight &mdash; at \(t[i]\) and \(P[j]\)
         simultaneously &mdash; and the tinted run is the current partial
         match, highlighted in the text <em>and</em> the pattern; on a
@@ -2010,9 +2018,16 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         re-scanning. The <strong>examples&hellip;</strong> menu loads both of
         &sect;6&rsquo;s drawn diagrams &mdash; including
         <code>AABAAABAAB</code>&nbsp;/&nbsp;<code>AABAAB</code>, the
-        shorter-border rescue &mdash; and an overlapping-matches case
+        shorter-border rescue &mdash; an overlapping-matches case
         (<code>AA</code> in <code>A^6</code>: five hits, because a full match
-        continues with \(j = \mathit{fail}[m-1]\)).
+        continues with \(j = \mathit{fail}[m-1]\)), and a <strong>DNA</strong>
+        run on real data: <code>GATC</code> &mdash; the Sau3AI restriction
+        site &mdash; in the first \(1150\) bases of the human mitochondrial
+        reference sequence (rCRS, NC_012920), \(3\) cut sites found. Its
+        near-even counters (\(1364\) against \(1315\)) make an honest point:
+        <code>GATC</code> has no self-overlap
+        (\(\mathit{fail} = [0,0,0,0]\)), and KMP&rsquo;s advantage comes from
+        self-overlap, not magic.
       </div>
       <p>
         Scaled up, the gap is not academic: on an all-<code>A</code>s text with

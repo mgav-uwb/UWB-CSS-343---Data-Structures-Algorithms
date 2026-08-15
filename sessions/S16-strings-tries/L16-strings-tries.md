@@ -629,18 +629,19 @@ Is `2` skipped unfairly? No: a border of length 2 would be a border of `ABA` —
 
 ## The build's while loop, drawn
 
-`AABAAAB`, step `j = 5` — the fall-back stops **partway**, and the kept `k` pays off at once:
+`AABAAABAAAABAAAB`, step `j = 10` — **two** partial fall-backs, and the kept `k` pays off at once:
 
 ```text
-  P:        A A B A A A B
-                      ↑ j = 5
-  k = 2:          A A B      B ≠ A ✗ → k = fail[1] = 1
-  k = 1:            A A      A = A ✓ → fail[5] = 2
-                        ↑ j = 6
-  k = 2:            A A B    B = B ✓ → fail[6] = 3
+  P:        A A B A A A B A A A A B A A A B
+                                ↑ j = 10
+  k = 6:            A A B A A A B     B ≠ A ✗ → k = 2
+  k = 2:                    A A B     B ≠ A ✗ → k = 1
+  k = 1:                      A A     A = A ✓ → fail[10] = 2
+                                  ↑ j = 11
+  k = 2:                      A A B   B = B ✓ → fail[11] = 3
 ```
 
-Each candidate `k` slides the prefix under the last `k` matched; the compared cell `P[k]` sits under `P[j]`.
+The chain visits the borders of `AABAAABAAA` — 6, 2, 1 — and never touches 5, 4, 3; then `fail[12..15]` regrow 4, 5, 6, 7, one comparison each.
 
 --
 
