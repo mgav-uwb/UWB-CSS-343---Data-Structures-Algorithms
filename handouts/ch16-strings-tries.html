@@ -1788,25 +1788,35 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         Three tests, one per border of <code>ABABA</code> &mdash; the loop
         proved no border extends by <code>C</code>, so \(0\) is not a guess
         but an exhaustive check.
-        <em>A shorter candidate wins.</em> Pattern <code>AABAAA</code>, step
+        <em>A shorter candidate wins.</em> Pattern <code>AABAAAB</code>, step
         \(j = 5\), \(k\) entering as \(\mathit{fail}[4] = 2\) (the borders of
         <code>AABAA</code> are <code>AA</code>, <code>A</code>, \(\epsilon\)):
         <pre>  k = 2:  P[2] = B &ne; A   &rarr; fall back, k = fail[1] = 1
-  k = 1:  P[1] = A = A    &rarr; extends: fail[5] = k + 1 = 2</pre>
+  k = 1:  P[1] = A = A    &rarr; extends: fail[5] = k + 1 = 2
+
+  (j = 6, k enters as fail[5] = 2)
+  k = 2:  P[2] = B = B    &rarr; extends: fail[6] = k + 1 = 3</pre>
         Drawn as alignments &mdash; each candidate \(k\) slides a fresh copy
         of the pattern so that its first \(k\) characters sit under the last
         \(k\) already matched, and the cell compared is \(P[k]\) under
         \(P[j]\):
-        <pre>  P:        A A B A A A
+        <pre>  P:        A A B A A A B
                       &uarr; j = 5
-  k = 2:          A A B        AA re-aligned under P[3..4]; P[2] = B &ne; A  &#10007;
-  k = 1:            A A        A  re-aligned under P[4];    P[1] = A = A  &#10003;</pre>
-        The fall-back does <em>not</em> run to \(k = 0\): the longest border
-        of <code>AABAA</code> refuses to extend, its own longest border
-        accepts, and \(\mathit{fail}[5] = 2\) is the longest border of
-        <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends with
-        <code>AA</code>, its first two characters, and nothing longer
-        works.
+  k = 2:          A A B          AA re-aligned under P[3..4]; P[2] = B &ne; A  &#10007;
+  k = 1:            A A          A  re-aligned under P[4];    P[1] = A = A  &#10003;
+                        &uarr; j = 6
+  k = 2:            A A B        AA (= fail[5]) under P[4..5]; P[2] = B = B  &#10003;</pre>
+        At \(j = 5\) the fall-back does <em>not</em> run to \(k = 0\): the
+        longest border of <code>AABAA</code> refuses to extend, its own
+        longest border accepts, and \(\mathit{fail}[5] = 2\) is the longest
+        border of <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends
+        with <code>AA</code>, its first two characters, and nothing longer
+        works. And keeping that \(k = 2\) pays off on the very next step:
+        \(j = 6\) enters with the <code>AA</code> border in hand, compares
+        \(P[6] = \)<code>B</code> with \(P[2] = \)<code>B</code> &mdash; one
+        comparison, no fall-back &mdash; and grows it to <code>AAB</code>:
+        \(\mathit{fail}[6] = 3\), and <code>AABAAAB</code> indeed ends with
+        its own first three characters.
       </div>
       <div class="thm">
         <span class="tag">Proposition (the search loop is correct)</span>
@@ -1892,8 +1902,9 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         fall-back chose</em>. The shorter border was not a consolation prize;
         it was the real occurrence, and \(i\) never moved backward while the
         loop found it. (This is the search-side twin of the
-        <code>AABAAA</code> build step above &mdash; the same walk down the
-        borders of <code>AABAA</code>, stopping at the first that fits.)
+        <code>AABAAAB</code> build example&rsquo;s \(j = 5\) step above
+        &mdash; the same walk down the borders of <code>AABAA</code>,
+        stopping at the first that fits.)
       </div>
       <div class="thm">
         <span class="tag">Proposition (KMP cost)</span>
