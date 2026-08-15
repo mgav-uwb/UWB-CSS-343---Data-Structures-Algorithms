@@ -1793,10 +1793,19 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         <code>AABAA</code> are <code>AA</code>, <code>A</code>, \(\epsilon\)):
         <pre>  k = 2:  P[2] = B &ne; A   &rarr; fall back, k = fail[1] = 1
   k = 1:  P[1] = A = A    &rarr; extends: fail[5] = k + 1 = 2</pre>
-        The longest border of <code>AABAA</code> refuses to extend, its own
-        longest border accepts, and \(\mathit{fail}[5] = 2\) is the longest
-        border of <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends
-        with <code>AA</code>, its first two characters, and nothing longer
+        Drawn as alignments &mdash; each candidate \(k\) slides a fresh copy
+        of the pattern so that its first \(k\) characters sit under the last
+        \(k\) already matched, and the cell compared is \(P[k]\) under
+        \(P[j]\):
+        <pre>  P:        A A B A A A
+                      &uarr; j = 5
+  k = 2:          A A B        AA re-aligned under P[3..4]; P[2] = B &ne; A  &#10007;
+  k = 1:            A A        A  re-aligned under P[4];    P[1] = A = A  &#10003;</pre>
+        The fall-back does <em>not</em> run to \(k = 0\): the longest border
+        of <code>AABAA</code> refuses to extend, its own longest border
+        accepts, and \(\mathit{fail}[5] = 2\) is the longest border of
+        <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends with
+        <code>AA</code>, its first two characters, and nothing longer
         works.
       </div>
       <div class="thm">
@@ -1857,6 +1866,34 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         fact about the pattern. That is the whole trick of KMP &mdash; the
         table is a precomputed proof about \(P\), spent one mismatch at a
         time against \(t\).
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a shorter border rescues the search)</span>
+        Above, the loop&rsquo;s <em>first</em> stop already matched. It need
+        not: a stop is only a <em>candidate</em>, judged by comparing
+        \(t[i]\) against the new \(P[j]\), and when it fails the loop falls
+        to the next shorter border &mdash; without moving \(i\). Pattern
+        <code>AABAAB</code> (table \(\mathit{fail} = [0,1,0,1,2,3]\)) in text
+        <code>AABAAABAAB</code>. The scan matches <code>AABAA</code> at
+        alignment \(0\), then hits \(t[5] = \)<code>A</code> \(\ne\)
+        <code>B</code>\( = P[5]\) &mdash; and the matched prefix is again
+        <code>AABAA</code>, borders \(2, 1, 0\):
+        <pre>  text:      A A B A A A B A A B
+  align 0:   A A B A A B           &#10007; matched AABAA, then B &ne; A at text[5]
+  align 3:         A A B A A B     border AA: P[2] = B vs A  &#10007; &mdash; fall again
+  align 4:           A A B A A B   border A:  P[1] = A vs A  &#10003; &mdash; j = 2, scan on</pre>
+        Two stops this time: the longest border&rsquo;s candidate
+        (alignment \(3\)) fails on the very next character, the loop falls
+        once more to \(j = \mathit{fail}[1] = 1\), and the shorter
+        border&rsquo;s candidate (alignment \(4\)) accepts \(t[5]\), leaving
+        \(j = 2\). The scan then just keeps going &mdash; \(t[6..9] = \)
+        <code>BAAB</code> matches \(P[2..5]\) &mdash; and completes the
+        occurrence at index \(4\): <em>exactly the alignment the second
+        fall-back chose</em>. The shorter border was not a consolation prize;
+        it was the real occurrence, and \(i\) never moved backward while the
+        loop found it. (This is the search-side twin of the
+        <code>AABAAA</code> build step above &mdash; the same walk down the
+        borders of <code>AABAA</code>, stopping at the first that fits.)
       </div>
       <div class="thm">
         <span class="tag">Proposition (KMP cost)</span>
