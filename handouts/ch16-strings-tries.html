@@ -1692,6 +1692,172 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
 }</pre>
 <p class="ct-src">source: <code>code/strings/kmp.cpp &middot; code/strings/kmp.java &middot; code/strings/kmp.py &middot; code/strings/kmp.rs</code></p>
 <!--/ct--></div>
+      <p>
+        Both loops contain the same suspicious-looking move: on a mismatch,
+        jump to \(\mathit{fail}[k-1]\) and try again. Why is <em>that</em> the
+        right amount to fall back &mdash; why not one less, and how do we know
+        nothing in between was skipped that could have worked? Both questions
+        have the same answer, and it is worth naming the object it rests on.
+      </p>
+      <div class="def" id="border">
+        <span class="tag">Definition (border)</span>
+        A <strong>border</strong> of a string is a <em>proper</em> prefix that
+        is also a suffix. In this vocabulary the failure function reads:
+        \(\mathit{fail}[j]\) is the length of the <em>longest border</em> of
+        \(P[0..j]\). One string can have several borders &mdash;
+        <code>ABABA</code> has three: <code>ABA</code>, <code>A</code>, and the
+        empty string &mdash; and both correctness arguments below come down to
+        enumerating <em>all</em> of them.
+      </div>
+      <div class="thm">
+        <span class="tag">Lemma (the fall-back chain visits every border)</span>
+        Let \(S\) be a string whose longest border \(C\) has length \(k\).
+        Then the borders of \(S\) are exactly: \(C\) itself, and the borders
+        of \(C\). Consequently the chain
+        \[
+          k,\;\; \mathit{fail}[k-1],\;\; \mathit{fail}[\mathit{fail}[k-1]-1],\;\;
+          \dots,\;\; 0
+        \]
+        lists <em>all</em> border lengths of \(S\), in strictly decreasing
+        order &mdash; no length strictly between two consecutive chain values
+        can be a border.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Two directions.
+        <em>A border of \(C\) is a border of \(S\):</em> a prefix of \(C\) is
+        a prefix of \(S\) (prefix of a prefix), and a suffix of \(C\) is a
+        suffix of \(S\) (suffix of a suffix). <em>Every border of \(S\)
+        shorter than \(C\) is a border of \(C\):</em> let \(B\) be such a
+        border, \(|B| &lt; k\). \(B\) and \(C\) are both prefixes of \(S\), so
+        the shorter is a prefix of the longer: \(B\) is a prefix of \(C\).
+        \(B\) and \(C\) are both suffixes of \(S\), so likewise \(B\) is a
+        suffix of \(C\). Hence \(B\) is a border of \(C\). So below \(C\), the
+        borders of \(S\) and of \(C\) are the same set &mdash; and repeating
+        the argument inside \(C\) (whose longest border has length
+        \(\mathit{fail}[k-1]\)) walks down through every border and nothing
+        else. <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (the chain, checked by hand)</span>
+        Take \(S = \) <code>ABABA</code> &mdash; the first five characters of
+        the exam-classic pattern <code>ABABAC</code>, whose table row reads
+        \(\mathit{fail} = [0, 0, 1, 2, 3, 0]\). The chain starts at its
+        longest border, \(\mathit{fail}[4] = 3\):
+        <pre>  chain:  3  &rarr;  fail[2] = 1  &rarr;  fail[0] = 0
+  ABABA&rsquo;s borders:   ABA (3)    A (1)    &epsilon; (0)</pre>
+        Exactly the three borders, longest first. And the lemma says why
+        length \(2\) is <em>legitimately</em> absent from the chain: a border
+        of length \(2\) would have to be a border of <code>ABA</code> (every
+        shorter border lives inside the longest one), and <code>ABA</code>&rsquo;s
+        longest border is <code>A</code>, length \(1\) &mdash; so no border of
+        length \(2\) exists, and skipping from \(3\) to \(1\) skips nothing
+        real.
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (the build loop is correct)</span>
+        In <code>failureFn</code>, the while loop
+        <code>while (k &gt; 0 &amp;&amp; p[j] != p[k]) k = fail[k-1]</code>
+        computes \(\mathit{fail}[j]\) exactly.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> What could \(\mathit{fail}[j]\) be? A nonzero
+        border of \(P[0..j]\) ends at \(P[j]\), so it is some border of
+        \(P[0..j-1]\) <em>extended by one character</em> &mdash; a border of
+        length \(\ell\) extends precisely when \(P[\ell] = P[j]\), giving a
+        border of length \(\ell + 1\). So the candidates for
+        \(\mathit{fail}[j]\) are: <em>(some border \(\ell\) of
+        \(P[0..j-1]\) with \(P[\ell] = P[j]\)) \(+ 1\)</em>, or \(0\) if no
+        border extends. Entering iteration \(j\), the variable \(k\) holds
+        \(\mathit{fail}[j-1]\) &mdash; the longest border of \(P[0..j-1]\)
+        &mdash; and the while loop walks the chain of the Lemma: it tests the
+        borders of \(P[0..j-1]\) <strong>in strictly decreasing order,
+        missing none</strong>, and stops at the first one that extends. The
+        first to extend is the longest that extends, so
+        \(\mathit{fail}[j] = k+1\) is the longest border of \(P[0..j]\).
+        (If the chain bottoms out at \(k=0\) and even \(P[0] \ne P[j]\), no
+        border extends and \(\mathit{fail}[j] = 0\).)
+        <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (one build step, both outcomes)</span>
+        <em>All candidates die.</em> Pattern <code>ABABAC</code>, last step
+        \(j = 5\), where \(k\) enters holding \(\mathit{fail}[4] = 3\):
+        <pre>  k = 3:  P[3] = B &ne; C   &rarr; fall back, k = fail[2] = 1
+  k = 1:  P[1] = B &ne; C   &rarr; fall back, k = fail[0] = 0
+  k = 0:  P[0] = A &ne; C   &rarr; no border extends: fail[5] = 0</pre>
+        Three tests, one per border of <code>ABABA</code> &mdash; the loop
+        proved no border extends by <code>C</code>, so \(0\) is not a guess
+        but an exhaustive check.
+        <em>A shorter candidate wins.</em> Pattern <code>AABAAA</code>, step
+        \(j = 5\), \(k\) entering as \(\mathit{fail}[4] = 2\) (the borders of
+        <code>AABAA</code> are <code>AA</code>, <code>A</code>, \(\epsilon\)):
+        <pre>  k = 2:  P[2] = B &ne; A   &rarr; fall back, k = fail[1] = 1
+  k = 1:  P[1] = A = A    &rarr; extends: fail[5] = k + 1 = 2</pre>
+        The longest border of <code>AABAA</code> refuses to extend, its own
+        longest border accepts, and \(\mathit{fail}[5] = 2\) is the longest
+        border of <code>AABAAA</code> &mdash; check: <code>AABAAA</code> ends
+        with <code>AA</code>, its first two characters, and nothing longer
+        works.
+      </div>
+      <div class="thm">
+        <span class="tag">Proposition (the search loop is correct)</span>
+        In <code>kmpSearch</code>, suppose the scan has matched \(j &gt; 0\)
+        characters &mdash; the pattern is aligned at text position
+        \(i - j\), and \(t[i]\ne P[j]\). Then any occurrence of \(P\) starting
+        after the current alignment, up to and including \(i\), must begin at
+        \(i - \ell\) for some <em>border length</em> \(\ell\) of
+        \(P[0..j-1]\); the while loop
+        <code>while (j &gt; 0 &amp;&amp; t[i] != p[j]) j = fail[j-1]</code>
+        tries exactly those alignments, nearest first, and every alignment it
+        jumps over is impossible.
+      </div>
+      <div class="proof">
+        <strong>Proof.</strong> Consider a candidate alignment
+        \(s'\) with \(i - j &lt; s' \le i\), and suppose an occurrence starts
+        there. Its first \(i - s'\) characters occupy text positions
+        \(s' .. i-1\) &mdash; all inside the region the scan already matched,
+        where \(t[i-j..i-1] = P[0..j-1]\). So the occurrence needs
+        \(P[0..i-s'-1]\) (a prefix of the pattern) to equal
+        \(t[s'..i-1]\) (a suffix of the matched region, i.e.&nbsp;a suffix of
+        \(P[0..j-1]\)): the length \(\ell = i - s'\) must be a
+        <strong>border</strong> of \(P[0..j-1]\). Setting
+        \(j = \mathit{fail}[j-1]\) moves the alignment to
+        \(i - \mathit{fail}[j-1]\) &mdash; the candidate given by the
+        <em>longest</em> border, the smallest possible forward slide &mdash;
+        and repeating walks the Lemma&rsquo;s chain: all viable alignments,
+        in left-to-right order. Each is then judged by comparing
+        \(t[i]\) with the new \(P[j]\); on failure the next border is tried.
+        Alignments between two chain stops correspond to lengths that are not
+        borders, so they cannot even agree with the text already read &mdash;
+        the loop skips them without a single comparison, on evidence computed
+        from the pattern alone at build time. If the chain reaches
+        \(j = 0\), every alignment up to \(i\) is ruled out and the scan
+        continues by comparing \(t[i]\) with \(P[0]\) (alignment \(i\)
+        itself); alignments beyond \(i\) are untouched and remain available
+        to later iterations. <span class="qed">&#8718;</span>
+      </div>
+      <div class="ex">
+        <span class="tag">Example (the skipped alignments, drawn)</span>
+        Pattern <code>AABAAC</code> in text <code>AABAABAAC</code> &mdash; the
+        same pair as the full run below. The scan matches
+        <code>AABAA</code> at alignment \(0\), then hits
+        \(t[5] = \)<code>B</code> \(\ne\) <code>C</code>\( = P[5]\):
+        <pre>  text:      A A B A A B A A C
+  align 0:   A A B A A C           &#10007; matched AABAA, then C &ne; B at text[5]
+  align 1:     A A B A A C         is AABA a border of AABAA? no &mdash; skipped
+  align 2:       A A B A A C       is AAB a border? no &mdash; skipped
+  align 3:         A A B A A C     is AA a border? YES &mdash; the loop&rsquo;s first stop</pre>
+        The borders of <code>AABAA</code> are \(2, 1, 0\), so the only
+        alignments worth trying are \(5-2=3\), \(5-1=4\), \(5-0=5\). The loop
+        takes one step, \(j = \mathit{fail}[4] = 2\) (alignment \(3\)),
+        compares \(t[5] = \)<code>B</code> with \(P[2] = \)<code>B</code>
+        &mdash; match &mdash; and the scan carries on to find the occurrence
+        at index \(3\). Alignments \(1\) and \(2\) were rejected without
+        reading a single text character: their impossibility was already a
+        fact about the pattern. That is the whole trick of KMP &mdash; the
+        table is a precomputed proof about \(P\), spent one mismatch at a
+        time against \(t\).
+      </div>
       <div class="thm">
         <span class="tag">Proposition (KMP cost)</span>
         KMP makes at most \(2n\) character comparisons in the scan, after a
