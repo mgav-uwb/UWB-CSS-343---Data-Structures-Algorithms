@@ -2009,25 +2009,35 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         simultaneously &mdash; and the tinted run is the current partial
         match, highlighted in the text <em>and</em> the pattern; on a
         fall-back it shortens in place while \(i\)&rsquo;s chip stands still,
-        with the consulted <code>fail[]</code> cell in amber. On this
+        with the consulted <code>fail[]</code> cell in amber. The counting is
+        deliberately honest: KMP&rsquo;s panel splits its total into
+        <strong>cmp + tbl</strong> &mdash; character comparisons plus
+        failure-table consultations &mdash; because a fall-back is a memory
+        read and a jump, work a compare-only counter would hide. On this
         chapter&rsquo;s running pair
         <code>ABABABCABABABCAB</code>&nbsp;/&nbsp;<code>ABABC</code> both find
-        \(2\) matches, at \(32\) comparisons against \(18\); the adversarial
-        <code>A^40B</code>&nbsp;/&nbsp;<code>A^6B</code> reads \(245\) against
-        \(75\), and KMP freezes, finished, while brute force is still
-        re-scanning. The <strong>examples&hellip;</strong> menu loads both of
-        &sect;6&rsquo;s drawn diagrams &mdash; including
+        \(2\) matches, at \(32\) total ops against \(18 + 4 = 22\); the
+        adversarial <code>A^40B</code>&nbsp;/&nbsp;<code>A^6B</code> reads
+        \(245\) against \(75 + 35 = 110\) &mdash; a \(2.2\times\) win even on
+        honest totals &mdash; and KMP freezes, finished, while brute force is
+        still re-scanning. The <strong>examples&hellip;</strong> menu loads
+        both of &sect;6&rsquo;s drawn diagrams &mdash; including
         <code>AABAAABAAB</code>&nbsp;/&nbsp;<code>AABAAB</code>, the
         shorter-border rescue &mdash; an overlapping-matches case
         (<code>AA</code> in <code>A^6</code>: five hits, because a full match
         continues with \(j = \mathit{fail}[m-1]\)), and a <strong>DNA</strong>
         run on real data: <code>GATC</code> &mdash; the Sau3AI restriction
         site &mdash; in the first \(1150\) bases of the human mitochondrial
-        reference sequence (rCRS, NC_012920), \(3\) cut sites found. Its
-        near-even counters (\(1364\) against \(1315\)) make an honest point:
-        <code>GATC</code> has no self-overlap
-        (\(\mathit{fail} = [0,0,0,0]\)), and KMP&rsquo;s advantage comes from
-        self-overlap, not magic.
+        reference sequence (rCRS, NC_012920), \(3\) cut sites found. On the
+        DNA, <strong>KMP loses on total work</strong>: \(1364\) against
+        \(1315 + 168 = 1483\). A 4-letter alphabet starts a partial match at
+        a quarter of all positions, every teardown costs KMP a table read
+        that brute force never pays, and <code>GATC</code>&rsquo;s lack of
+        self-overlap (\(\mathit{fail} = [0,0,0,0]\)) means the table never
+        saves a comparison. That is the honest shape of KMP: on typical text
+        brute force is already \(\approx n\) and KMP&rsquo;s constant is
+        worse; what it buys is the <em>worst-case guarantee</em> and the
+        never-back-up property the next paragraph turns into streaming.
       </div>
       <p>
         Scaled up, the gap is not academic: on an all-<code>A</code>s text with

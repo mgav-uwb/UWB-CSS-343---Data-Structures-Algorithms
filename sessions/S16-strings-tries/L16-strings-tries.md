@@ -720,7 +720,7 @@ The scan then completes the occurrence at index **4** — exactly the alignment 
 </pre>
 </div>
 
-<small>**Race both**: 2 matches, **32 vs 18** compares; adversarial `A^40B` / `A^6B`: **245 vs 75**; the **examples…** menu has both handout diagrams.</small>
+<small>**Race both**: 2 matches, **32 vs 22** total ops; adversarial `A^40B` / `A^6B`: **245 vs 110**; DNA: KMP **loses**, **1364 vs 1483** — the KMP title counts **cmp + tbl**, because a fall-back is work too.</small>
 
 --
 
