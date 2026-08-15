@@ -1988,12 +1988,15 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=string-search">Substring-search race</a>.
-        Brute force and KMP run the <em>same</em> text in lockstep, one
-        comparison per tick, and both find <em>every</em> occurrence with a
-        live match count. The <strong>text is typed straight into the top
-        panel</strong> (long input is fine; <code>A^40B</code> expands), the
-        value box takes only the <strong>pattern</strong>, and the KMP panel
-        draws <code>fail[]</code> under the pattern. The bold filled chip is
+        Brute force and KMP run the <em>same</em> text side by side in
+        lockstep, one comparison per tick, and both find <em>every</em>
+        occurrence with a live match count. The <strong>text is typed straight
+        into the left panel</strong> (long prose is fine; <code>A^40B</code>
+        expands), the value box takes only the <strong>pattern</strong> —
+        spaces allowed, case ignored — and the KMP panel draws
+        <code>fail[]</code> under the pattern. Playback paces itself: it
+        hurries over first-letter misses and slows wherever a partial match is
+        being extended or torn down. The bold filled chip is
         the comparison in flight &mdash; at \(t[i]\) and \(P[j]\)
         simultaneously &mdash; and the tinted run is the current partial
         match, highlighted in the text <em>and</em> the pattern; on a
