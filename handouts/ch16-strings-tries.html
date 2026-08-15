@@ -1988,20 +1988,28 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=string-search">Substring-search race</a>.
-        Brute force and KMP run the <em>same</em> text/pattern pair in
-        lockstep, one comparison per tick, with live compare counters. On the
-        default pair &mdash; this chapter&rsquo;s running example
-        <code>ABABABCABABABCAB</code>&nbsp;/&nbsp;<code>ABABC</code> &mdash;
-        both find the match at index \(2\), but watch the pointers: brute
-        force&rsquo;s text index jumps backward after each partial match
-        (\(11\) compares), while KMP&rsquo;s only ever advances (\(8\)
-        compares, one fall-back \(j: 4 \to 2\), exactly the
-        <code>ABAB</code> insight above). Then type the adversarial pair
-        <code>A^11B A^3B</code> (repeat shorthand for
-        <code>AAAAAAAAAAAB AAAB</code>): brute force pays \(36\) comparisons to
-        KMP&rsquo;s \(20\), and KMP finishes and freezes while brute force is
-        still re-scanning. The failure table rides along in the KMP
-        panel&rsquo;s status line.
+        Brute force and KMP run the <em>same</em> text in lockstep, one
+        comparison per tick, and both find <em>every</em> occurrence with a
+        live match count. The <strong>text is typed straight into the top
+        panel</strong> (long input is fine; <code>A^40B</code> expands), the
+        value box takes only the <strong>pattern</strong>, and the KMP panel
+        draws <code>fail[]</code> under the pattern. The bold filled chip is
+        the comparison in flight &mdash; at \(t[i]\) and \(P[j]\)
+        simultaneously &mdash; and the tinted run is the current partial
+        match, highlighted in the text <em>and</em> the pattern; on a
+        fall-back it shortens in place while \(i\)&rsquo;s chip stands still,
+        with the consulted <code>fail[]</code> cell in amber. On this
+        chapter&rsquo;s running pair
+        <code>ABABABCABABABCAB</code>&nbsp;/&nbsp;<code>ABABC</code> both find
+        \(2\) matches, at \(32\) comparisons against \(18\); the adversarial
+        <code>A^40B</code>&nbsp;/&nbsp;<code>A^6B</code> reads \(245\) against
+        \(75\), and KMP freezes, finished, while brute force is still
+        re-scanning. The <strong>examples&hellip;</strong> menu loads both of
+        &sect;6&rsquo;s drawn diagrams &mdash; including
+        <code>AABAAABAAB</code>&nbsp;/&nbsp;<code>AABAAB</code>, the
+        shorter-border rescue &mdash; and an overlapping-matches case
+        (<code>AA</code> in <code>A^6</code>: five hits, because a full match
+        continues with \(j = \mathit{fail}[m-1]\)).
       </div>
       <p>
         Scaled up, the gap is not academic: on an all-<code>A</code>s text with

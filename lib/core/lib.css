@@ -61,6 +61,44 @@
 .u-cx-it.is-lit-a { border-top-left-radius: 3px; border-bottom-left-radius: 3px; padding-left: 2px; }
 .u-cx-it.is-lit-z { border-top-right-radius: 3px; border-bottom-right-radius: 3px; padding-right: 2px; }
 
+/* substring-search panels (core/renderers/search.js) — codec-style DOM view:
+   an (optionally editable) text box of per-character chips, with the pattern
+   and its failure function as aligned rows underneath. Indices are shown by
+   colour + weight: bold filled chip = the cell being compared (accent match /
+   red mismatch), tinted bold run = the current partial match in BOTH text and
+   pattern, green = a completed occurrence. */
+.u-srch { display: flex; flex-direction: column; min-width: 0; text-align: left; }
+.u-srch-head { display: flex; align-items: center; gap: 8px; padding: 0 3px 3px;
+  min-height: 20px; font: 600 11px ui-monospace, Menlo, monospace; color: #8a93a6; }
+.u-srch-name { flex: none; white-space: nowrap; }
+.u-srch-hint { font-size: 10px; color: #b6bccb; white-space: nowrap; }
+.u-srch-stat { margin-left: auto; white-space: nowrap; color: #5c6270; }
+.u-srch-ex { font: 600 10.5px system-ui, sans-serif; color: #4b3ccc;
+  background: #f3f0ff; border: 1px solid #ddd6ff; border-radius: 999px;
+  padding: 1px 6px; max-width: 190px; }
+.u-srch-text { border: 1px solid #e3e7ee; border-radius: 8px; padding: 6px 8px;
+  overflow-y: auto; background: #fff; white-space: pre-wrap; word-break: break-all;
+  font: 600 16px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: #1a1c22; }
+.u-srch-text.is-edit { cursor: text; background: #fcfcff; }
+.u-srch-text.is-edit:focus { outline: none; border-color: #7c5cff; }
+.u-srch-text.is-edit:empty::before { content: "type the text to search"; color: #c3c9d4; font-weight: 500; }
+.u-srch-rows { padding: 5px 8px 0; overflow-x: auto;
+  font: 600 15px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.u-srch-row { white-space: nowrap; }
+.u-srch-row.is-fail { color: #8a93a6; }
+.u-srch-ch { display: inline-block; min-width: 0.72em; text-align: center;
+  padding: 0 0.5px; border-radius: 3px; }
+/* the pattern row and the fail row must stay column-aligned, so every row
+   chip gets ONE fixed width (wide enough for a two-digit fail value) */
+.u-srch-row .u-srch-ch { width: 1.25em; min-width: 1.25em; padding: 0; }
+.u-srch-ch.is-lab { color: #b6bccb; font-size: 10.5px; width: 3.4em; min-width: 3.4em;
+  text-align: right; padding-right: 6px; box-sizing: content-box; }
+.u-srch-ch.is-pre { background: #f3f0ff; color: #4b3ccc; font-weight: 800; }
+.u-srch-ch.is-found { background: #e7f7ee; color: #0a5c39; }
+.u-srch-ch.is-cur { background: #7c5cff; color: #fff; font-weight: 800; }
+.u-srch-ch.is-cur.is-bad { background: #b3261e; }
+.u-srch-ch.is-fb { background: #fff6e0; color: #9a5b00; font-weight: 800; }
+
 /* stats strip, under the transport (core/info-bar.js, place: "below") */
 .u-infobar.u-below { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 14px;
   color: #3a3f4d; background: #f7f8fb; border-color: #e6e9f0; }

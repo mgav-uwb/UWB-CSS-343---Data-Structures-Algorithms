@@ -614,6 +614,36 @@ The pattern matches **itself** — Θ(m).
 
 --
 
+## Why fall back to fail[k−1]?
+
+A **border** = a proper prefix that is also a suffix. The fall-back chain visits **every border, longest first**:
+
+```text
+   ABABA's borders:  ABA (3)   A (1)   ε (0)
+   the chain:  k = 3  →  fail[2] = 1  →  fail[0] = 0
+```
+
+Is `2` skipped unfairly? No: a border of length 2 would be a border of `ABA` — whose longest border is `A`, length **1**.
+
+--
+
+## The build's while loop, drawn
+
+`AABAAAB`, step `j = 5` — the fall-back stops **partway**, and the kept `k` pays off at once:
+
+```text
+  P:        A A B A A A B
+                      ↑ j = 5
+  k = 2:          A A B      B ≠ A ✗ → k = fail[1] = 1
+  k = 1:            A A      A = A ✓ → fail[5] = 2
+                        ↑ j = 6
+  k = 2:            A A B    B = B ✓ → fail[6] = 3
+```
+
+Each candidate `k` slides the prefix under the last `k` matched; the compared cell `P[k]` sits under `P[j]`.
+
+--
+
 ## 🎬 Demo — building fail[]
 
 <div class="algo-viz" data-algo="kmp-fail">
@@ -649,6 +679,21 @@ int kmp(const string& t, const string& p, vector<int>& fail) {
 
 --
 
+## The search's while loop, drawn
+
+`AABAAB` in `AABAAABAAB` — the **first** stop fails; a **shorter border** rescues the search:
+
+```text
+  text:      A A B A A A B A A B
+  align 0:   A A B A A B            ✗ B ≠ A at text[5]
+  align 3:         A A B A A B      AA: B vs A ✗ fall again
+  align 4:           A A B A A B    A:  A vs A ✓ j = 2, go
+```
+
+The scan then completes the occurrence at index **4** — exactly the alignment the second fall-back chose. `i` never moved.
+
+--
+
 ## First match or all matches?
 
 - **first** occurrence — stop at the first full match (the code above)
@@ -665,16 +710,16 @@ int kmp(const string& t, const string& p, vector<int>& fail) {
 
 <div class="algo-viz" data-algo="string-search">
 <pre class="viz-fallback">
-   brute force: align the pattern, compare, and on a mismatch
-   slide by ONE — re-examining text characters.
-   KMP: on a mismatch, jump the pattern via the failure table
-   and NEVER move the text pointer back. watch the compare
-   count: brute-force Θ(nm) vs KMP Θ(n+m).
+   brute force vs KMP on the SAME text, in lockstep — both
+   find EVERY occurrence and count matches. the text box is
+   editable (A^40B expands); the value box takes the PATTERN.
+   bold chips = the two indices · tinted run = the current
+   partial match in text AND pattern · green = found matches.
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>Run **Brute force**, then **KMP** on the same pair and compare the **compare counters**. The default is the intro example; then `A^40B A^6B` — brute force's worst case: **245 compares against KMP's 75**.</small>
+<small>**Race both**: 2 matches, **32 vs 18** compares; adversarial `A^40B` / `A^6B`: **245 vs 75**; the **examples…** menu has both handout diagrams.</small>
 
 --
 
