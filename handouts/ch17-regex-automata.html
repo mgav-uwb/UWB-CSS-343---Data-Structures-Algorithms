@@ -118,14 +118,13 @@
         not render the math or reach the demos.
       </p>
 
-      <h1>Chapter 17 &mdash; Regular Expressions &amp; Automata</h1>
+      <h1>Chapter 17: Regular Expressions &amp; Automata</h1>
       <div class="subtitle">
-        CSS 343 &mdash; Data Structures, Algorithms &amp; Discrete Mathematics II.
+        CSS 343 &middot; Data Structures, Algorithms &amp; Discrete Mathematics II.
         Course text, primary reading for Lecture 17.
       </div>
       <div class="src">
-        A regular expression is a pattern that describes a <em>language</em> &mdash;
-        a whole set of strings &mdash; using concatenation, <code>|</code> (or),
+        A regular expression is a pattern that describes a <em>language</em> (a whole set of strings) using concatenation, <code>|</code> (or),
         <code>*</code> (closure), and parentheses. A finite automaton is a machine
         that recognizes such a language, and the two are equivalent: Thompson&rsquo;s
         construction turns any regex into a nondeterministic finite automaton (NFA)
@@ -140,16 +139,14 @@
         <a href="ch16-strings-tries.html">Chapter 16</a> searched a text for one
         <em>fixed</em> pattern. This chapter generalizes the pattern itself: a
         <strong>regular expression</strong> describes not one string but a whole
-        <em>set</em> of strings &mdash; all binary numerals, all valid phone numbers,
-        all strings ending in <code>B</code> &mdash; and the matching question becomes
+        <em>set</em> of strings (all binary numerals, all valid phone numbers,
+        all strings ending in <code>B</code>), and the matching question becomes
         &ldquo;is this string <em>in the set</em>?&rdquo; The beautiful result is that
         every such pattern can be compiled into a <strong>machine</strong>: a finite
         automaton that reads the string once and answers yes or no. We build that
-        machine (Thompson&rsquo;s construction), run it (by tracking a set of states
-        &mdash; graph reachability from <a href="ch08-graphs.html">Chapter 8</a>,
+        machine (Thompson&rsquo;s construction), run it (by tracking a set of states: graph reachability from <a href="ch08-graphs.html">Chapter 8</a>,
         reused), and close with Kleene&rsquo;s theorem, which says the pattern and the
-        machine have exactly the same expressive power. Pattern in, machine out
-        &mdash; theory meets practice.
+        machine have exactly the same expressive power. Pattern in, machine out: theory meets practice.
       </p>
 
       <div class="toc">
@@ -171,26 +168,25 @@
         <span class="tag">Definition (regular expression; language)</span>
         A <strong>regular expression</strong> (regex) over an alphabet is a pattern
         built from single characters and four operations:
-        <strong>concatenation</strong> (<code>AB</code> &mdash; an <code>A</code>
-        then a <code>B</code>), <strong>or</strong> (<code>A|B</code> &mdash; an
+        <strong>concatenation</strong> (<code>AB</code>: an <code>A</code>
+        then a <code>B</code>), <strong>or</strong> (<code>A|B</code>: an
         <code>A</code> or a <code>B</code>), <strong>closure</strong>
-        (<code>A*</code> &mdash; zero or more <code>A</code>&rsquo;s), and
+        (<code>A*</code>: zero or more <code>A</code>&rsquo;s), and
         <strong>grouping</strong> (<code>(&hellip;)</code>). A regex denotes a
-        <strong>language</strong> \(L\) &mdash; the set of all strings it matches
-        &mdash; and a string <strong>matches</strong> the regex if and only if it is
+        <strong>language</strong> \(L\) (the set of all strings it matches), and a string <strong>matches</strong> the regex if and only if it is
         <em>in</em> that language.
       </div>
       <p>
-        You use regexes daily &mdash; <code>grep</code>, editor find, input
-        validation &mdash; and the four operations generate everything:
+        You use regexes daily (<code>grep</code>, editor find, input
+        validation), and the four operations generate everything:
       </p>
       <pre>  AB       matches exactly &quot;AB&quot;
   A|B      matches &quot;A&quot; or &quot;B&quot;
   A*       matches &quot;&quot;, &quot;A&quot;, &quot;AA&quot;, &quot;AAA&quot;, &hellip;
   (AB)*    matches &quot;&quot;, &quot;AB&quot;, &quot;ABAB&quot;, &hellip;</pre>
       <p>
-        Thinking in terms of the set of accepted strings &mdash; not the
-        character-by-character syntax &mdash; is what connects regexes to automata,
+        Thinking in terms of the set of accepted strings (not the
+        character-by-character syntax) is what connects regexes to automata,
         which are membership testers for these sets:
       </p>
       <pre>  L(A*B)     = { B, AB, AAB, AAAB, &hellip; }    (any run of A&#x27;s, then a B)
@@ -198,8 +194,7 @@
   L((0|1)*)  = every binary string (any length, including &quot;&quot;)
   L(A(B|C)*D) = A, then any mix of B&#x27;s and C&#x27;s, then D</pre>
       <p>
-        The reading skill is to decompose at the outermost operator first &mdash;
-        break the regex at its top-level <code>|</code> and <code>*</code>, then
+        The reading skill is to decompose at the outermost operator first: break the regex at its top-level <code>|</code> and <code>*</code>, then
         recurse into the groups. That recursive structure is exactly what the
         machine construction of &sect;3 will follow.
       </p>
@@ -207,23 +202,20 @@
         <span class="tag">Example (does it match?)</span>
         Which of <code>&quot;ABAB&quot;</code>, <code>&quot;ABA&quot;</code>, and
         <code>&quot;&quot;</code> does <code>(AB)*</code> match?
-        <code>&quot;ABAB&quot;</code> is two copies of <code>AB</code> &mdash;
-        match. <code>&quot;ABA&quot;</code> has a dangling <code>A</code> that no
-        whole number of copies covers &mdash; no match. And the empty string
-        <em>matches</em>, because <code>*</code> allows <em>zero</em> copies &mdash;
-        the case students forget. Read <code>*</code> as &ldquo;any number,
+        <code>&quot;ABAB&quot;</code> is two copies of <code>AB</code>: match. <code>&quot;ABA&quot;</code> has a dangling <code>A</code> that no
+        whole number of copies covers: no match. And the empty string
+        <em>matches</em>, because <code>*</code> allows <em>zero</em> copies, the case students forget. Read <code>*</code> as &ldquo;any number,
         including none.&rdquo;
       </div>
       <div class="ex">
         <span class="tag">Example (write the regex)</span>
         Over the alphabet \(\{\texttt{A},\texttt{B}\}\), describe all strings that
-        <em>end in</em> <code>B</code>. Answer: <code>(A|B)*B</code> &mdash;
-        anything, then one final <code>B</code>. Check it against boundary strings:
+        <em>end in</em> <code>B</code>. Answer: <code>(A|B)*B</code>, anything, then one final <code>B</code>. Check it against boundary strings:
         <code>&quot;B&quot;</code> matches (the star contributes zero characters),
         <code>&quot;AB&quot;</code> and <code>&quot;AABB&quot;</code> match;
         <code>&quot;BA&quot;</code> fails (ends in <code>A</code>) and
         <code>&quot;&quot;</code> fails (there must be at least the final
-        <code>B</code>). The common wrong answer is <code>A*B</code> &mdash; it
+        <code>B</code>). The common wrong answer is <code>A*B</code>: it
         describes &ldquo;<code>A</code>&rsquo;s then a <code>B</code>,&rdquo; which
         rejects <code>&quot;BAB&quot;</code> even though that string does end in
         <code>B</code>. Testing a proposed pattern against the empty string, single
@@ -231,10 +223,10 @@
         test real-world regexes too.
       </div>
       <div class="aside">
-        <span class="tag">Precedence &mdash; the #1 source of regex bugs</span>
+        <span class="tag">Precedence: the #1 source of regex bugs</span>
         Binding tightest to loosest: <code>*</code>, then concatenation, then
         <code>|</code>. So <code>AB|C = (AB)|C</code>, <code>A|BC = A|(BC)</code>,
-        and <code>AB* = A(B*)</code> &mdash; which is <em>not</em>
+        and <code>AB* = A(B*)</code>, which is <em>not</em>
         <code>(AB)*</code>: the first is one <code>A</code> followed by any number
         of <code>B</code>&rsquo;s, the second any number of <code>AB</code> pairs.
         When in doubt, parenthesize. This is the same operator-precedence discipline
@@ -245,60 +237,75 @@
         <span class="tag">Everything else is sugar</span>
         The rest of practical regex syntax is shorthand over the four
         operations. Here <strong>\(\varepsilon\) is the <em>empty
-        string</em></strong> <code>&quot;&quot;</code> &mdash; the
-        theory-book name for it, and the same \(\varepsilon\) that labels the
-        free moves of &sect;2&rsquo;s automata:
+        string</em></strong>: zero characters, the theory-book name for
+        <code>&quot;&quot;</code>, and the same \(\varepsilon\) that labels
+        the free moves of &sect;2&rsquo;s automata:
         <pre>  A+     =  AA*             one or more
-  A?     =  (A|&epsilon;)           optional: an A, or nothing
+  A?     =  (A|&epsilon;)           optional: an A, or nothing at all
   A{3}   =  AAA             exactly 3 copies
   [abc]  =  (a|b|c)         any ONE of a, b, c
   \d     =  [0123456789]    one digit   &middot;   .  = any one character
   \(     =  a literal (     \ turns an operator into a plain character</pre>
         Because it is all sugar, machinery for the four core operations
-        handles every regex.
+        handles every regex. Two practical symbols are <em>not</em> sugar,
+        because they change what &ldquo;match&rdquo; means rather than
+        describing strings: <code>^</code> anchors the match to the start of
+        the text, <code>$</code> to the end. In the theory of this section a
+        regex always describes <em>whole</em> strings; a practical engine
+        instead <em>searches</em> for the pattern anywhere inside the text,
+        and <code>^&hellip;$</code> turns that back into whole-string
+        matching. A validator should anchor (or call a whole-string primitive
+        such as Python&rsquo;s <code>re.fullmatch</code>): without anchors,
+        <code>\d{3}</code> happily &ldquo;validates&rdquo;
+        <code>abc123xyz</code> by finding the <code>123</code> inside it.
       </div>
       <div class="ex">
-        <span class="tag">Example (a real pattern, decoded &mdash; and boundary-checked)</span>
+        <span class="tag">Example (a real pattern, decoded and boundary-checked)</span>
         The phone validator
         <code>\(?\d{3}\)?[- ]?\d{3}-?\d{4}</code> matches
         <code>(206)&nbsp;555-1234</code>, <code>206-555-1234</code>, and
         <code>2065551234</code>. Piece by piece:
-        <pre>  \(?     an optional literal (   &mdash; \( is ONE token; ? applies to it
+        <pre>  \(?     an optional literal (      \( is ONE token; ? applies to it
   \d{3}   exactly three digits
   \)?     an optional literal )
   [- ]?   an optional dash OR space
   \d{3}   three digits
-  -?      an optional dash &mdash; NO space allowed here
+  -?      an optional dash (no space allowed here)
   \d{4}   four digits</pre>
         The piece that trips readers is <code>\(?</code>: the backslash binds
         first, making <code>\(</code> a single ordinary-character token, and
-        <em>then</em> <code>?</code> makes that token optional &mdash; it
-        desugars to <code>( ( | &epsilon; )</code>, a choice between a literal
+        <em>then</em> <code>?</code> makes that token optional. It desugars
+        to <code>( ( | &epsilon; )</code>, a choice between a literal
         parenthesis and nothing, and has nothing to do with grouping. Now
         boundary-check the pattern the way &sect;1&rsquo;s exercise taught.
         Does it match <code>(206-555&nbsp;1234</code>? Walk it:
         <code>\(?</code> takes <code>(</code>, <code>\d{3}</code> takes
-        <code>206</code>, <code>\)?</code> matches nothing, <code>[- ]?</code>
-        takes the dash, <code>\d{3}</code> takes <code>555</code> &mdash; and
-        then <code>-?</code> cannot take a <em>space</em>, so
-        <code>\d{4}</code> faces <code>&nbsp;1234</code> and fails.
+        <code>206</code>, <code>\)?</code> matches nothing,
+        <code>[- ]?</code> takes the dash, and <code>\d{3}</code> takes
+        <code>555</code>. Then <code>-?</code> cannot take a <em>space</em>,
+        so <code>\d{4}</code> faces <code>&nbsp;1234</code> and fails.
         <strong>No match</strong>: the two separators are not symmetric, and
-        only the first allows a space. The opposite embarrassment also holds:
-        <code>(206-5551234</code> <strong>does</strong> match, unbalanced
-        parenthesis and all, because <code>\(?</code> and <code>\)?</code> are
-        independent choices. The repair is a choice at the top:
-        <code>(\(\d{3}\)|\d{3})[- ]?\d{3}-?\d{4}</code> &mdash; both
-        behaviours verified against a real engine. Test a pattern against
-        near-misses in <em>both</em> directions: strings that should fail,
-        and sneaky ones that should not pass. It also illustrates the
-        readability tax &mdash; regexes get cryptic fast, which is why
-        understanding the underlying automaton matters.
+        only the first allows a space. Next try
+        <code>(206-5551234</code>: it <strong>does</strong> match, unbalanced
+        parenthesis and all, because <code>\(?</code> and <code>\)?</code>
+        are independent choices. That case is worth pausing on. A simple
+        regex can accept strings it was never meant to accept, and nothing
+        warns you; the only defense is writing the pattern that says what you
+        mean. Here that is a choice between the two paren forms at the top:
+        <code>(\(\d{3}\)|\d{3})[- ]?\d{3}-?\d{4}</code>. Test a pattern
+        against near-misses in <em>both</em> directions: strings that should
+        fail, and strings that should not pass. One more step for a real
+        validator: <em>anchor</em> it, <code>^&hellip;$</code>, so the engine
+        cannot &ldquo;validate&rdquo; a phone number it merely found inside a
+        longer string. The example also shows the readability tax: regexes
+        get cryptic fast, which is why understanding the underlying automaton
+        matters.
       </div>
-      <h3>Regular languages &mdash; and what a regex cannot say</h3>
+      <h3>Regular languages, and what a regex cannot say</h3>
       <div class="def">
         <span class="tag">Definition (regular language)</span>
         The languages describable by regular expressions are the
-        <strong>regular languages</strong> &mdash; a fundamental class in the theory
+        <strong>regular languages</strong>, a fundamental class in the theory
         of computation. Regular: \(L(\texttt{A*B})\), \(L(\texttt{(AB)*})\),
         &ldquo;an even number of <code>A</code>&rsquo;s.&rdquo; <em>Not</em> regular:
         balanced parentheses; \(\texttt{A}^n\texttt{B}^n\) (\(n\) <code>A</code>&rsquo;s
@@ -307,10 +314,10 @@
       <p>
         Why the ceiling? To match \(\texttt{A}^n\texttt{B}^n\) you must
         <em>count</em> \(n\), and (as &sect;2 makes precise) a finite automaton has
-        <em>finite</em> memory &mdash; no fixed number of states can count to
+        <em>finite</em> memory: no fixed number of states can count to
         arbitrary \(n\). The pumping lemma turns this intuition into a proof.
-        Anything with unbounded counting or nesting &mdash; balanced brackets,
-        HTML tags, arithmetic expressions &mdash; is inherently beyond regex and
+        Anything with unbounded counting or nesting (balanced brackets,
+        HTML tags, arithmetic expressions) is inherently beyond regex and
         needs more machinery (a stack, a grammar; &sect;5 places these on the
         ladder). The famous advice &ldquo;don&rsquo;t parse HTML with a regex&rdquo;
         is this theorem in disguise. Knowing the <em>limits</em> of regex is as
@@ -331,7 +338,7 @@
         <strong>recognizes</strong>.
       </div>
       <p>
-        This is the simplest computer &mdash; and it is the machine counterpart to a
+        This is the simplest computer, and it is the machine counterpart to a
         regex: one describes a language, the other decides membership in it. A
         concrete example first, in the easy <em>deterministic</em> flavor.
       </p>
@@ -339,7 +346,7 @@
         <span class="tag">Example (a DFA for <code>(0|1)*0</code>)</span>
         A <strong>deterministic finite automaton</strong> (DFA) has exactly
         <em>one</em> transition per (state, character) pair. This two-state DFA
-        recognizes binary strings ending in <code>0</code> &mdash; the same
+        recognizes binary strings ending in <code>0</code>: the same
         &ldquo;ends in&hellip;&rdquo; language you wrote a regex for in &sect;1, one
         alphabet over:
       </div>
@@ -381,19 +388,17 @@
           A DFA recognizing \(L(\texttt{(0|1)*0})\), binary strings ending in
           \(\texttt{0}\). State \(A\) means &ldquo;the input so far does not end in
           0,&rdquo; state \(B\) (double circle = accepting) means &ldquo;it
-          does&rdquo; &mdash; the state <em>is</em> the machine&rsquo;s entire
+          does&rdquo;: the state <em>is</em> the machine&rsquo;s entire
           memory, one bit here. Exactly one arrow per (state, character): running it
           is a pointer walk.
         </figcaption>
       </figure>
       <p>
         Run <code>&quot;110&quot;</code>: \(A \xrightarrow{1} A \xrightarrow{1} A
-        \xrightarrow{0} B\) &mdash; accept. Run <code>&quot;0110&quot;</code>:
-        \(A \xrightarrow{0} B \xrightarrow{1} A \xrightarrow{1} A \xrightarrow{0} B\)
-        &mdash; accept. Run <code>&quot;111&quot;</code>: \(A \to A \to A \to A\)
-        &mdash; reject. And the empty string never leaves \(A\) &mdash; reject (it
+        \xrightarrow{0} B\): accept. Run <code>&quot;0110&quot;</code>:
+        \(A \xrightarrow{0} B \xrightarrow{1} A \xrightarrow{1} A \xrightarrow{0} B\): accept. Run <code>&quot;111&quot;</code>: \(A \to A \to A \to A\): reject. And the empty string never leaves \(A\): reject (it
         does not end in <code>0</code>). Each step follows exactly one arrow, so a
-        DFA processes an \(n\)-character string in \(O(n)\) &mdash; and the invariant
+        DFA processes an \(n\)-character string in \(O(n)\), and the invariant
         &ldquo;state \(B\) \(\iff\) the input so far ends in <code>0</code>&rdquo;
         is the correctness argument, a loop invariant like every other one this
         course. It is also the finite-memory point of &sect;1 made concrete: two
@@ -404,7 +409,7 @@
       <div class="def">
         <span class="tag">Definition (NFA; \(\varepsilon\)-transition)</span>
         A <strong>nondeterministic finite automaton</strong> (NFA) may have
-        <em>several</em> transitions &mdash; or none &mdash; for a (state,
+        <em>several</em> transitions (or none) for a (state,
         character) pair, plus <strong>\(\varepsilon\)-transitions</strong>: moves
         between states that consume <em>no</em> input (&ldquo;free&rdquo; moves,
         after \(\varepsilon\), the empty string). An NFA <strong>accepts</strong> a
@@ -415,12 +420,12 @@
         &ldquo;Nondeterministic&rdquo; does not mean random. Picture the machine
         cloning itself to pursue every option in parallel: at any moment it occupies
         a <em>set</em> of states, not one, and it accepts if <em>any</em> clone
-        ends accepting. That picture is not just intuition &mdash; &sect;4 turns
+        ends accepting. That picture is not just intuition: &sect;4 turns
         &ldquo;track the set of states&rdquo; into the actual, deterministic
         algorithm that runs an NFA on a real computer. The
         \(\varepsilon\)-transitions, meanwhile, are the construction&rsquo;s
-        superpower: they let you glue small machines together &mdash; offer a choice
-        (<code>|</code>), loop back (<code>*</code>) &mdash; without reading a
+        superpower: they let you glue small machines together, offer a choice
+        (<code>|</code>), loop back (<code>*</code>), without reading a
         character.
       </p>
       <p>
@@ -434,13 +439,12 @@
         <tr><td>\(\varepsilon\)-transitions</td><td>yes</td><td>no</td></tr>
       </table>
       <p>
-        Build small <em>or</em> run fast &mdash; the classic space/time trade.
+        Build small <em>or</em> run fast: the classic space/time trade.
         Sedgewick&rsquo;s route, and this chapter&rsquo;s: build the (small) NFA,
         then simulate it. &sect;6 returns to when you would instead pay to
         <em>determinize</em>. Either way, the bridge that makes everything cohere:
         the automaton is a <em>membership tester</em> for the regex&rsquo;s
-        language &mdash;
-      </p>
+        language:</p>
       <pre>  the NFA ACCEPTS a string   &hArr;   the string is IN the regex&#x27;s language
   &quot;does it match?&quot;  =  &quot;does the NFA accept?&quot;</pre>
 
@@ -449,10 +453,10 @@
       <p>
         <strong>Thompson&rsquo;s construction</strong> turns any regex into an NFA
         <em>compositionally</em>: each of the four operations has a fixed little
-        machine &mdash; a <em>gadget</em> &mdash; with a single entry and a single
+        machine (a <em>gadget</em>) with a single entry and a single
         exit, and gadgets plug together with \(\varepsilon\)-transitions, following
         the regex&rsquo;s recursive structure. Because every piece has one way in
-        and one way out, they compose without special cases &mdash; the same
+        and one way out, they compose without special cases: the same
         discipline as a recursive-descent parser or an expression-tree evaluation.
       </p>
       <h3>The atom: a single character</h3>
@@ -477,7 +481,7 @@
         <figcaption>
           The gadget for a single character <code>A</code>: two states, one
           transition on <code>A</code>. It accepts exactly the one-character string
-          <code>&quot;A&quot;</code> &mdash; the atom everything else is built from.
+          <code>&quot;A&quot;</code>: the atom everything else is built from.
         </figcaption>
       </figure>
       <h3>Concatenation <code>AB</code>: a series connection</h3>
@@ -507,7 +511,7 @@
           Concatenation: wire \(A\)&rsquo;s accept to \(B\)&rsquo;s start with an
           \(\varepsilon\)-transition (dashed). A string matches <code>AB</code> iff
           a prefix drives the \(A\)-machine to accept and the rest drives the
-          \(B\)-machine &mdash; exactly what &ldquo;reach \(A\)&rsquo;s accept, then
+          \(B\)-machine: exactly what &ldquo;reach \(A\)&rsquo;s accept, then
           start \(B\) for free&rdquo; enforces.
         </figcaption>
       </figure>
@@ -552,7 +556,7 @@
           Alternation: a fresh start state \(\varepsilon\)-branches into
           <em>both</em> machines, and both accepts \(\varepsilon\)-merge into a
           fresh accept. A string matches <code>A|B</code> iff it drives <em>one</em>
-          branch to accept &mdash; and after the free moves the machine is in both
+          branch to accept; and after the free moves the machine is in both
           branches at once. This is where &ldquo;in a set of states&rdquo; begins.
         </figcaption>
       </figure>
@@ -591,15 +595,13 @@
         </svg>
         <figcaption>
           Closure, the clever one. Two \(\varepsilon\)-moves do all the work: the
-          top arc <em>skips</em> \(A\) entirely (matching the empty string &mdash;
-          zero copies), and the bottom arc loops \(A\)&rsquo;s accept back to its
-          start (another copy). Together they generate &ldquo;zero or more&rdquo;
-          &mdash; a finite machine, revisited, encoding unbounded repetition.
+          top arc <em>skips</em> \(A\) entirely (matching the empty string: zero copies), and the bottom arc loops \(A\)&rsquo;s accept back to its
+          start (another copy). Together they generate &ldquo;zero or more&rdquo;: a finite machine, revisited, encoding unbounded repetition.
         </figcaption>
       </figure>
       <p>
         Four operators, four wirings, each preserving the single-entry/single-exit
-        invariant &mdash; so they nest freely, and building an NFA from a regex is
+        invariant, so they nest freely, and building an NFA from a regex is
         just applying them along the parse. Note the skip edge in the closure
         gadget: it is the machine-level face of &ldquo;<code>(AB)*</code> matches
         the empty string&rdquo; from &sect;1.
@@ -607,7 +609,7 @@
       <h3>Sedgewick&rsquo;s encoding: one state per character</h3>
       <p>
         The implementation insight that fits the whole construction in a page:
-        don&rsquo;t allocate gadget states &mdash; <em>reuse the regex string
+        don&rsquo;t allocate gadget states: <em>reuse the regex string
         itself</em>.
       </p>
       <div class="def">
@@ -617,14 +619,12 @@
         &ldquo;is&rdquo; the character <code>re[i]</code>:
         <ul>
           <li>a <strong>letter</strong> state consumes its own character, stepping
-            \(i \xrightarrow{\texttt{re}[i]} i+1\) &mdash; and
+            \(i \xrightarrow{\texttt{re}[i]} i+1\), and
             <strong>the only way to consume input is \(i \to i+1\)</strong>;</li>
           <li>a <strong>metacharacter</strong> state (<code>(</code>,
-            <code>)</code>, <code>|</code>, <code>*</code>) never consumes input
-            &mdash; it has only \(\varepsilon\)-edges.</li>
+            <code>)</code>, <code>|</code>, <code>*</code>) never consumes input: it has only \(\varepsilon\)-edges.</li>
         </ul>
-        The whole machine is the regex string plus an \(\varepsilon\)-digraph
-        &mdash; nothing else.
+        The whole machine is the regex string plus an \(\varepsilon\)-digraph: nothing else.
       </div>
       <div class="ex">
         <span class="tag">Example (build <code>A*B</code>, the chapter&rsquo;s main machine)</span>
@@ -632,14 +632,13 @@
 
   i=0 &#x27;A&#x27;, next is &#x27;*&#x27; &rarr;  &epsilon; 0&rarr;1  (skip the A)
                           &epsilon; 1&rarr;0  (repeat the A)
-                          match edge 0 &mdash;A&rarr; 1
+                          match edge 0 &#x2500;A&rarr; 1
   i=1 &#x27;*&#x27;              &rarr;  &epsilon; 1&rarr;2  (fall through the &#x27;*&#x27;)
-  i=2 &#x27;B&#x27;              &rarr;  match edge 2 &mdash;B&rarr; 3
+  i=2 &#x27;B&#x27;              &rarr;  match edge 2 &#x2500;B&rarr; 3
 
-  &epsilon;-edges: 0&rarr;1, 1&rarr;0, 1&rarr;2      match edges: 0&mdash;A&rarr;1, 2&mdash;B&rarr;3</pre>
-        The star wires two \(\varepsilon\)-edges around its operand &mdash;
-        \(0 \to 1\) skips the <code>A</code> (zero copies), \(1 \to 0\) loops back
-        (more copies) &mdash; and the <code>*</code> state falls through to the
+  &epsilon;-edges: 0&rarr;1, 1&rarr;0, 1&rarr;2      match edges: 0&#x2500;A&rarr;1, 2&#x2500;B&rarr;3</pre>
+        The star wires two \(\varepsilon\)-edges around its operand: \(0 \to 1\) skips the <code>A</code> (zero copies), \(1 \to 0\) loops back
+        (more copies), and the <code>*</code> state falls through to the
         <code>B</code>. Three \(\varepsilon\)-edges, two match edges, four states:
         Thompson&rsquo;s gadgets, compressed onto the string. This exact machine
         (same state numbers, same edges) is the one the in-class activity
@@ -702,8 +701,7 @@
       </figure>
       <h3>Where do the \(\varepsilon\)-edges go? A stack, and an outer wrap</h3>
       <p>
-        Each operator needs to know its <em>operands</em>, which requires parsing
-        &mdash; and Sedgewick does it in one left-to-right scan with a
+        Each operator needs to know its <em>operands</em>, which requires parsing, and Sedgewick does it in one left-to-right scan with a
         <strong>stack</strong>, exactly like evaluating an arithmetic expression:
       </p>
       <pre>  &#x27;(&#x27; or &#x27;|&#x27;  &rarr;  push its index
@@ -713,11 +711,11 @@
   &#x27;*&#x27; after an atom or group starting at lp:
                    &epsilon; lp&rarr;star  (skip)   and   &epsilon; star&rarr;lp  (repeat)
   &#x27;(&#x27;, &#x27;*&#x27;, &#x27;)&#x27;  &rarr;  &epsilon; i&rarr;i+1  (fall through the metacharacter)
-  first of all:    wrap the regex in implicit parens &mdash; &quot;A|B&quot; &rarr; &quot;(A|B)&quot;</pre>
+  first of all:    wrap the regex in implicit parens: &quot;A|B&quot; &rarr; &quot;(A|B)&quot;</pre>
       <p>
         The <strong>outer wrap</strong> is a real implementation detail worth
         understanding: a top-level <code>|</code> or <code>*</code> needs an
-        enclosing group to anchor its \(\varepsilon\)-edges &mdash; without it,
+        enclosing group to anchor its \(\varepsilon\)-edges: without it,
         <code>A|B</code> has no <code>(</code> to pop when the <code>)</code> logic
         fires. So the machine actually built for <code>A*B</code> is the machine for
         <code>(A*B)</code>: six states instead of four, the letters shifted up by
@@ -820,10 +818,10 @@
         branch-in/skip-out pair. So every character contributes at most one match
         edge and at most three \(\varepsilon\)-edges, and the single left-to-right
         scan does \(O(1)\) stack work per character. Check against the machine
-        above &mdash; <code>((A*B|AC)D)</code>: \(9\) \(\varepsilon\)-edges
+        above, <code>((A*B|AC)D)</code>: \(9\) \(\varepsilon\)-edges
         \(= 5\) fall-throughs (from <code>(&nbsp;(&nbsp;*&nbsp;)&nbsp;)</code>)
         \(+\ 2\) for the star \(+\ 2\) for the <code>|</code>, plus \(5\) match
-        edges from the \(5\) letters &mdash; exactly the tally the demo reports.
+        edges from the \(5\) letters: exactly the tally the demo reports.
         Contrast \(2^m\): that is what determinizing can cost (&sect;5); the NFA
         itself never blows up. <span class="qed">&#8718;</span>
       </div>
@@ -832,7 +830,7 @@
         <a href="../lib/demo.html?ds=nfa-build">Regex&nbsp;&rarr;&nbsp;NFA
         construction demo</a>. Type a regex over letters and <code>( ) | *</code> (up to 12
         characters, balanced parens) and press <em>Build</em>: the construction
-        replays edge by edge &mdash; states laid out one per character, then each
+        replays edge by edge; states laid out one per character, then each
         \(\varepsilon\)-edge with the rule that added it, then the match edges.
         Build <code>A*B</code> first and compare with the worked figure (the
         implicit wrap shifts every state up by one and adds the two end
@@ -844,7 +842,7 @@
       <!-- ============================================================ -->
       <h2 id="simulate">4. Simulating the NFA: track a set of states</h2>
       <p>
-        An NFA is easy to build and awkward to run &mdash; it makes
+        An NFA is easy to build and awkward to run: it makes
         <em>choices</em>. The resolution is the idea from &sect;2: instead of
         guessing which branch to take, follow <em>all</em> branches at once by
         maintaining the set of states the machine could possibly be in. That turns
@@ -856,7 +854,7 @@
       states = &epsilon;-closure(next)                          <span class="cm">// close</span>
   accept  iff  the accept state &isin; states</pre>
       <p>
-        Two phases per character &mdash; <strong>advance</strong> every letter state
+        Two phases per character: <strong>advance</strong> every letter state
         whose character matches (its one \(i \to i+1\) edge; the encoding invariant
         doing its job), then <strong>\(\varepsilon\)-close</strong> to add the free
         moves. No backtracking, no exponential guessing.
@@ -865,7 +863,7 @@
         <span class="tag">Definition (\(\varepsilon\)-closure)</span>
         The <strong>\(\varepsilon\)-closure</strong> of a set \(S\) of states is
         \(S\) together with every state reachable from \(S\) by following
-        \(\varepsilon\)-edges &mdash; a <strong>graph-reachability</strong>
+        \(\varepsilon\)-edges, a <strong>graph-reachability</strong>
         computation: a depth-first or breadth-first search over the
         \(\varepsilon\)-digraph, seeded with \(S\). This is the
         <a href="ch08-graphs.html">Chapter&nbsp;8</a> graph search, reused on the
@@ -881,13 +879,13 @@
   &rarr; {0, 1, 2}</pre>
         Read the result: before consuming <em>anything</em>, the machine is
         simultaneously ready to match an <code>A</code> (state 0) <em>and</em> to
-        match the <code>B</code> directly (state 2) &mdash; the skip edge has
+        match the <code>B</code> directly (state 2): the skip edge has
         already opened both the zero-<code>A</code>&rsquo;s and the
         some-<code>A</code>&rsquo;s futures. This exact set is ICA&nbsp;17&rsquo;s
         first test.
       </div>
       <p>
-        Here is the entire engine &mdash; construction, closure, and the
+        Here is the entire engine: construction, closure, and the
         set-of-states loop. It is a graph search per character, built from pieces
         you already own:
       </p>
@@ -1137,7 +1135,7 @@ impl Nfa {
       <figure>
         <table class="trace">
           <tr><th class="lab">A*B on &quot;AAB&quot;</th><th>advance on the char</th><th>after &epsilon;-closure</th></tr>
-          <tr><td class="lab">start</td><td>&mdash;</td><td class="cell lt">{0,1,2}</td></tr>
+          <tr><td class="lab">start</td><td>&middot;</td><td class="cell lt">{0,1,2}</td></tr>
           <tr><td class="lab">read A</td><td class="cell">0 matches A &rarr; {1}</td><td class="cell lt">{0,1,2}</td></tr>
           <tr><td class="lab">read A</td><td class="cell">0 matches A &rarr; {1}</td><td class="cell lt">{0,1,2}</td></tr>
           <tr><td class="lab">read B</td><td class="cell">2 matches B &rarr; {3}</td><td class="cell lt">{3}</td></tr>
@@ -1145,48 +1143,46 @@ impl Nfa {
         </table>
         <table class="trace">
           <tr><th class="lab">A*B on &quot;AC&quot;</th><th>advance on the char</th><th>after &epsilon;-closure</th></tr>
-          <tr><td class="lab">start</td><td>&mdash;</td><td class="cell lt">{0,1,2}</td></tr>
+          <tr><td class="lab">start</td><td>&middot;</td><td class="cell lt">{0,1,2}</td></tr>
           <tr><td class="lab">read A</td><td class="cell">0 matches A &rarr; {1}</td><td class="cell lt">{0,1,2}</td></tr>
-          <tr><td class="lab">read C</td><td class="cell piv">nobody matches C &rarr; { }</td><td class="cell piv">{ } &mdash; dead</td></tr>
+          <tr><td class="lab">read C</td><td class="cell piv">nobody matches C &rarr; { }</td><td class="cell piv">{ } (dead)</td></tr>
           <tr><td class="lab">verdict</td><td colspan="2">empty set can never recover &rarr; <strong>REJECT</strong></td></tr>
         </table>
         <figcaption>
           Left column: which states&rsquo; match edges fire. Right: the active set
           after re-closing over \(\varepsilon\)-edges. Each <code>A</code> is
           consumed by state 0, and the closure immediately re-arms both futures
-          \(\{0,1,2\}\) &mdash; the star&rsquo;s loop in action. On
+          \(\{0,1,2\}\): the star&rsquo;s loop in action. On
           <code>&quot;AC&quot;</code> the <code>C</code> matches nobody; an empty
-          set has no states, hence no edges, hence no future &mdash; reject,
+          set has no states, hence no edges, hence no future: reject,
           detected early.
         </figcaption>
       </figure>
       <p>
         Two more one-step traces test real understanding.
         <code>&quot;B&quot;</code>: the start closure \(\{0,1,2\}\) already contains
-        state 2, so the <code>B</code> advances to \(\{3\}\) &mdash;
-        <strong>accept</strong>, with zero <code>A</code>&rsquo;s: the skip edge made
+        state 2, so the <code>B</code> advances to \(\{3\}\): <strong>accept</strong>, with zero <code>A</code>&rsquo;s: the skip edge made
         concrete, the same subtlety as &ldquo;<code>(AB)*</code> matches the empty
         string&rdquo; in &sect;1. <code>&quot;BA&quot;</code>: after the
-        <code>B</code> the set is \(\{3\}\), and the accept state matches nothing
-        &mdash; the <code>A</code> empties the set: <strong>reject</strong>.
+        <code>B</code> the set is \(\{3\}\), and the accept state matches nothing; the <code>A</code> empties the set: <strong>reject</strong>.
         Acceptance is checked <em>after the last character</em>, not on first touch;
         reaching the accept state early only helps if the input ends there.
       </p>
       <h3>The full machine, both branches</h3>
       <p>
         The same simulation on the wrapped 12-state <code>(A*B|AC)D</code> machine
-        of &sect;3 shows nondeterminism earning its keep &mdash; one start set
+        of &sect;3 shows nondeterminism earning its keep: one start set
         covers both alternatives, and the input decides which branch survives:
       </p>
       <figure>
         <table class="trace">
-          <tr><th class="lab">(A*B|AC)D on&hellip;</th><th>&quot;AAABD&quot; &mdash; active set</th><th>&quot;ACD&quot; &mdash; active set</th><th>&quot;AAD&quot; &mdash; active set</th></tr>
+          <tr><th class="lab">(A*B|AC)D on&hellip;</th><th>&quot;AAABD&quot;: active set</th><th>&quot;ACD&quot;: active set</th><th>&quot;AAD&quot;: active set</th></tr>
           <tr><td class="lab">start</td><td class="cell">{0,1,2,3,4,6}</td><td class="cell">{0,1,2,3,4,6}</td><td class="cell">{0,1,2,3,4,6}</td></tr>
           <tr><td class="lab">read A</td><td class="cell">{2,3,4,7}</td><td class="cell">{2,3,4,7}</td><td class="cell">{2,3,4,7}</td></tr>
           <tr><td class="lab">read A / C / A</td><td class="cell">{2,3,4}</td><td class="cell">{8,9}</td><td class="cell">{2,3,4}</td></tr>
-          <tr><td class="lab">read A / D / D</td><td class="cell">{2,3,4}</td><td class="cell lt">{10,11}</td><td class="cell piv">{ } &mdash; dead</td></tr>
-          <tr><td class="lab">read B</td><td class="cell">{5,8,9}</td><td class="cell">&mdash;</td><td class="cell">&mdash;</td></tr>
-          <tr><td class="lab">read D</td><td class="cell lt">{10,11}</td><td class="cell">&mdash;</td><td class="cell">&mdash;</td></tr>
+          <tr><td class="lab">read A / D / D</td><td class="cell">{2,3,4}</td><td class="cell lt">{10,11}</td><td class="cell piv">{ } (dead)</td></tr>
+          <tr><td class="lab">read B</td><td class="cell">{5,8,9}</td><td class="cell">&middot;</td><td class="cell">&middot;</td></tr>
+          <tr><td class="lab">read D</td><td class="cell lt">{10,11}</td><td class="cell">&middot;</td><td class="cell">&middot;</td></tr>
           <tr><td class="lab">verdict</td><td><strong>ACCEPT</strong> (left branch)</td><td><strong>ACCEPT</strong> (right branch)</td><td><strong>REJECT</strong></td></tr>
         </table>
         <figcaption>
@@ -1194,7 +1190,7 @@ impl Nfa {
           a step index, so the middle rows name the character each run reads).
           The start closure \(\{0,1,2,3,4,6\}\) is ready to match the left
           branch&rsquo;s <code>A</code> (state 2), its <code>B</code> directly
-          (state 4 &mdash; zero <code>A</code>&rsquo;s), or the right
+          (state 4: zero <code>A</code>&rsquo;s), or the right
           branch&rsquo;s <code>A</code> (state 6). After one <code>A</code> both
           branches are still alive (\(\{2,3,4,7\}\)); the second character commits:
           another <code>A</code> keeps only the star loop, a <code>C</code> jumps
@@ -1213,13 +1209,12 @@ impl Nfa {
         <strong>Proof.</strong> The NFA has \(m+1\) states and \(O(m)\) edges
         (&sect;3). Each input character does at most \(m\) match checks (the set
         never exceeds \(m+1\) states) plus one graph search over the
-        \(O(m)\)-edge \(\varepsilon\)-digraph &mdash; \(O(m)\) work &mdash; for
+        \(O(m)\)-edge \(\varepsilon\)-digraph (\(O(m)\) work) for
         \(n\) characters. There is no input that makes this engine blow up, because
         the set is bounded by the state count no matter how the branches multiply.
         Compare Knuth&ndash;Morris&ndash;Pratt (KMP) from
         <a href="ch16-strings-tries.html">Chapter&nbsp;16</a>: the same flavor of
-        promise &mdash; linear, worst-case, never backs up over the text &mdash;
-        one level more general. <span class="qed">&#8718;</span>
+        promise (linear, worst-case, never backs up over the text), one level more general. <span class="qed">&#8718;</span>
       </div>
       <div class="thm">
         <span class="tag">Theorem (the simulation is exact)</span>
@@ -1228,12 +1223,12 @@ impl Nfa {
         consuming \(t[0..i)\). Hence the final accept test decides NFA acceptance.
       </div>
       <div class="proof">
-        <strong>Proof (induction on \(i\) &mdash; a loop invariant, like every
+        <strong>Proof (induction on \(i\): a loop invariant, like every
         other one this course).</strong> Base: before any input the reachable
-        states are those \(\varepsilon\)-reachable from the start &mdash; exactly
+        states are those \(\varepsilon\)-reachable from the start: exactly
         the initial closure. Step: a path consuming one more character
         \(t[i]\) must take some matching edge out of a state reachable on the
-        shorter prefix, then any number of \(\varepsilon\)-moves &mdash; exactly
+        shorter prefix, then any number of \(\varepsilon\)-moves: exactly
         advance-then-close, no more and no less. So the set is never an
         approximation. At the end, &ldquo;accept state \(\in\) set&rdquo; is
         literally the definition of NFA acceptance: some path consumes the whole
@@ -1243,25 +1238,22 @@ impl Nfa {
       <div class="aside">
         <span class="tag">Why set-simulation is safe: ReDoS</span>
         Many production engines (Perl, Java, Python, JavaScript) instead
-        <em>backtrack</em>: try one path, undo, try another &mdash; which supports
+        <em>backtrack</em>: try one path, undo, try another, which supports
         fancy features but risks exponential time. The pattern <code>(a*)*</code>
-        on <code>&quot;aaaa&hellip;aaaX&quot;</code> triggers exactly that
-        &mdash; <em>catastrophic backtracking</em>, a real denial-of-service vector
+        on <code>&quot;aaaa&hellip;aaaX&quot;</code> triggers exactly that: <em>catastrophic backtracking</em>, a real denial-of-service vector
         (regular-expression denial of service, ReDoS) that has taken down
         production services. The set-of-states simulation explores all paths
-        <em>simultaneously</em> in one forward pass, so it cannot blow up &mdash;
-        \(O(mn)\), full stop. <code>grep</code> and Google&rsquo;s RE2 use it for
+        <em>simultaneously</em> in one forward pass, so it cannot blow up: \(O(mn)\), full stop. <code>grep</code> and Google&rsquo;s RE2 use it for
         precisely this reason. The theory has direct engineering consequences.
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=nfa-sim">NFA simulation demo</a>. <em>Match</em>
         drives the set of active states (highlighted on the machine) one character
-        at a time &mdash; match edges, then \(\varepsilon\)-closure &mdash; against
+        at a time (match edges, then \(\varepsilon\)-closure) against
         the regex in the box (default <code>(A*B|AC)D</code>). Replay the table
         above: <code>AAABD</code> accepts through the left branch,
-        <code>ACD</code> through the right, and <code>AAD</code> dies mid-string
-        &mdash; watch the set go empty. The text box accepts a repeat shorthand:
+        <code>ACD</code> through the right, and <code>AAD</code> dies mid-string: watch the set go empty. The text box accepts a repeat shorthand:
         <code>A^9BD</code> means nine <code>A</code>&rsquo;s, and the star loop
         churns \(\{2,3,4\}\) for as long as you like. Then press <em>Build</em>
         with <code>(A|B)*B</code> from &sect;1 and match <code>B</code>,
@@ -1273,7 +1265,7 @@ impl Nfa {
       <div class="thm">
         <span class="tag">Theorem (Kleene)</span>
         Regular expressions and finite automata describe exactly the same class of
-        languages &mdash; the regular languages. Every regex has an equivalent
+        languages: the regular languages. Every regex has an equivalent
         finite automaton, and every finite automaton has an equivalent regex.
       </div>
       <div class="proof">
@@ -1282,7 +1274,7 @@ impl Nfa {
         is itself the proof, an explicit \(O(m)\) recipe. <em>Automaton \(\to\)
         regex</em> is <strong>state elimination</strong>: remove states one at a
         time, and whenever a state goes, merge the paths through it into a single
-        edge labeled by a <em>regex</em> &mdash; concatenate what came in and out,
+        edge labeled by a <em>regex</em>: concatenate what came in and out,
         star any self-loop, union parallel edges. When only one
         start\(\to\)accept edge remains, its label is a regex for the whole
         machine. Both directions constructive, so the two formalisms have exactly
@@ -1293,20 +1285,20 @@ impl Nfa {
         equivalence between a <em>syntax</em> (patterns you write) and a
         <em>machine model</em> (automata you run). It is why &ldquo;regular
         expression&rdquo; and &ldquo;finite automaton&rdquo; are two views of one
-        idea &mdash; and why we can answer &ldquo;does it match?&rdquo; by running
+        idea, and why we can answer &ldquo;does it match?&rdquo; by running
         a machine.
       </p>
       <div class="aside">
         <span class="tag">Determinizing: the subset construction</span>
         The simulation&rsquo;s &ldquo;current set of states&rdquo; can be made into
-        an explicit DFA state &mdash; one DFA state per reachable <em>subset</em> of
+        an explicit DFA state: one DFA state per reachable <em>subset</em> of
         NFA states, with the advance-and-close step precomputed into its
         transitions. That is the <strong>subset construction</strong>, and it is
         where the \(2^m\) in &sect;2&rsquo;s table comes from: up to one DFA state
         per subset. Once built, the DFA matches in pure \(O(n)\), no closure per
         step. A follow-up, <strong>minimization</strong>, merges DFA states that
         accept the same set of continuations, yielding the <em>unique smallest</em>
-        DFA for the language &mdash; a canonical form, so two regexes are
+        DFA for the language: a canonical form, so two regexes are
         equivalent iff their minimal DFAs coincide. Compilers minimize their lexer
         DFAs to save space.
       </div>
@@ -1326,7 +1318,7 @@ impl Nfa {
         <tr><td><strong>recursively enumerable</strong></td><td>Turing machine</td><td>unbounded</td><td>everything computable</td></tr>
       </table>
       <p>
-        Regex sits at the bottom rung &mdash; which explains both its speed (finite
+        Regex sits at the bottom rung, which explains both its speed (finite
         memory means one linear pass) and its limits (no counting, no nesting).
         Programming-language syntax lives one rung up, recognized with a stack:
         that is why a compiler&rsquo;s <em>lexer</em> is a regex engine but its
@@ -1343,17 +1335,17 @@ impl Nfa {
         <tr><th>you match&hellip;</th><th>use</th><th>why</th></tr>
         <tr><td>a pattern <strong>once</strong></td><td>simulate the NFA</td><td>\(O(mn)\), no build cost worth amortizing</td></tr>
         <tr><td><strong>one pattern, many texts</strong> (a lexer)</td><td>compile to a <strong>DFA</strong></td><td>pay the subset construction once, then \(O(n)\) per text</td></tr>
-        <tr><td><strong>untrusted</strong> patterns or inputs</td><td>NFA simulation</td><td>guaranteed \(O(mn)\) &mdash; immune to ReDoS</td></tr>
+        <tr><td><strong>untrusted</strong> patterns or inputs</td><td>NFA simulation</td><td>guaranteed \(O(mn)\), immune to ReDoS</td></tr>
       </table>
       <p>
-        Precompute or pay per query &mdash; the same decision as indexes, hash
+        Precompute or pay per query: the same decision as indexes, hash
         tables, and dynamic programming. And the ideas land everywhere:
         <code>grep</code> and RE2 are the set-of-states simulator of &sect;4;
         every compiler tokenizes source with a (minimized) DFA generated by tools
         like <code>flex</code>; protocol validators run automata over byte streams.
         One more callback: KMP&rsquo;s precomputed failure-function table from
         <a href="ch16-strings-tries.html">Chapter&nbsp;16</a> <em>is</em> a DFA,
-        specialized to a single fixed pattern &mdash; you were doing automata
+        specialized to a single fixed pattern: you were doing automata
         theory a chapter before the vocabulary arrived. Pattern \(\to\) machine
         threads through the whole strings unit.
       </p>
@@ -1367,10 +1359,10 @@ impl Nfa {
           the language \(L(\texttt{(A|B)C})\) as an explicit set.
           <details>
             <summary>solution</summary>
-            <code>&quot;ABAB&quot;</code> &mdash; yes (two copies of
-            <code>AB</code>); <code>&quot;ABA&quot;</code> &mdash; no (a dangling
+            <code>&quot;ABAB&quot;</code>: yes (two copies of
+            <code>AB</code>); <code>&quot;ABA&quot;</code>: no (a dangling
             <code>A</code> that no whole number of copies covers);
-            <code>&quot;&quot;</code> &mdash; yes (<code>*</code> allows zero
+            <code>&quot;&quot;</code>: yes (<code>*</code> allows zero
             copies). \(L(\texttt{(A|B)C}) = \{\texttt{AC}, \texttt{BC}\}\):
             the group offers one choice, then a <code>C</code>.
           </details>
@@ -1380,12 +1372,12 @@ impl Nfa {
           in <code>B</code>, and explain precisely why <code>A*B</code> is wrong.
           <details>
             <summary>solution</summary>
-            <code>(A|B)*B</code> &mdash; anything, then one final <code>B</code>.
+            <code>(A|B)*B</code>, anything, then one final <code>B</code>.
             <code>A*B</code> describes only &ldquo;a run of <code>A</code>&rsquo;s
             then a single <code>B</code>&rdquo;: it is a <em>subset</em> of
             ends-in-<code>B</code> that misses every string with an earlier
             <code>B</code>, e.g. <code>&quot;BAB&quot;</code> (which ends in
-            <code>B</code> but is rejected &mdash; after the first <code>B</code>
+            <code>B</code> but is rejected: after the first <code>B</code>
             the pattern is finished, and the trailing <code>AB</code> has nowhere
             to go). Boundary checks on the right answer: <code>&quot;B&quot;</code>
             &#10003;, <code>&quot;BA&quot;</code> &#10007;,
@@ -1405,8 +1397,7 @@ impl Nfa {
             <code>B</code>&rsquo;s&rdquo; while <code>(AB)*</code> is &ldquo;zero
             or more <code>AB</code> pairs&rdquo;: <code>&quot;A&quot;</code>
             matches <code>AB*</code> only (zero <code>B</code>&rsquo;s);
-            <code>&quot;&quot;</code> matches <code>(AB)*</code> only (zero pairs
-            &mdash; <code>AB*</code> requires the <code>A</code>);
+            <code>&quot;&quot;</code> matches <code>(AB)*</code> only (zero pairs; <code>AB*</code> requires the <code>A</code>);
             <code>&quot;ABAB&quot;</code> matches <code>(AB)*</code> only
             (<code>AB*</code> allows nothing after the <code>B</code>&rsquo;s
             start). No string here matches both, though e.g.
@@ -1416,7 +1407,7 @@ impl Nfa {
         <li>
           Build the NFA for <code>AB*</code> under Sedgewick&rsquo;s encoding
           (unwrapped, like the worked <code>A*B</code>): list the states, the
-          \(\varepsilon\)-edges, and the match edges &mdash; then compute
+          \(\varepsilon\)-edges, and the match edges, then compute
           \(\varepsilon\)-closure(\(\{0\}\)). It differs from
           <code>A*B</code>&rsquo;s in an instructive way.
           <details>
@@ -1428,11 +1419,10 @@ impl Nfa {
             \(2\to3\) (fall through). Match edges
             \(0\,\xrightarrow{\texttt{A}}\,1\) and
             \(1\,\xrightarrow{\texttt{B}}\,2\). And
-            \(\varepsilon\)-closure(\(\{0\}\)) \(= \{0\}\) &mdash; state 0 has
+            \(\varepsilon\)-closure(\(\{0\}\)) \(= \{0\}\): state 0 has
             <em>no</em> \(\varepsilon\)-edges out, so unlike <code>A*B</code>
             nothing is free before the first character: the <code>A</code> is
-            mandatory. (Check: <code>&quot;A&quot;</code> accepts &mdash;
-            \(\{0\}\to\{1,2,3\}\); <code>&quot;B&quot;</code> rejects &mdash; the
+            mandatory. (Check: <code>&quot;A&quot;</code> accepts: \(\{0\}\to\{1,2,3\}\); <code>&quot;B&quot;</code> rejects: the
             set dies immediately.)
           </details>
         </li>
@@ -1443,15 +1433,14 @@ impl Nfa {
           the second trace illustrate?
           <details>
             <summary>solution</summary>
-            <code>&quot;AB&quot;</code>: start \(\{0,1,2\}\); read <code>A</code>
-            &mdash; 0 advances to \(\{1\}\), closure \(\{0,1,2\}\); read
-            <code>B</code> &mdash; 2 advances to \(\{3\}\), closure \(\{3\}\);
+            <code>&quot;AB&quot;</code>: start \(\{0,1,2\}\); read <code>A</code>: 0 advances to \(\{1\}\), closure \(\{0,1,2\}\); read
+            <code>B</code>: 2 advances to \(\{3\}\), closure \(\{3\}\);
             \(3\) is the accept state &rarr; <strong>accept</strong>.
             <code>&quot;&quot;</code>: no characters are read, so the final set is
             the start closure \(\{0,1,2\}\), which does <em>not</em> contain
             \(3\) &rarr; <strong>reject</strong>. The general fact: acceptance is
             evaluated only <em>after the last character</em>, on whatever set is
-            active then &mdash; the machine being &ldquo;near&rdquo; the accept
+            active then: the machine being &ldquo;near&rdquo; the accept
             state, or passing through it mid-string, counts for nothing.
           </details>
         </li>
@@ -1465,12 +1454,12 @@ impl Nfa {
             matches, advance \(\{5\}\), closure \(\{5,8,9\}\) (the <code>|</code>
             skips to the <code>)</code>, which falls through to the
             <code>D</code>). Read <code>D</code>: state 9 advances to
-            \(\{10\}\), closure \(\{10,11\}\) &mdash; contains the accept state
+            \(\{10\}\), closure \(\{10,11\}\): contains the accept state
             \(11\) &rarr; <strong>accept</strong>. The <em>left</em> branch
             accepted, with the star contributing zero <code>A</code>&rsquo;s:
             <code>&quot;BD&quot;</code> is \(\texttt{A*B}\) (as just
             <code>B</code>) followed by <code>D</code>. The right branch
-            (<code>AC</code>) died on the first character &mdash; state 6 does not
+            (<code>AC</code>) died on the first character: state 6 does not
             match <code>B</code>.
           </details>
         </li>
@@ -1486,8 +1475,7 @@ impl Nfa {
             paid once and amortized over millions of \(O(n)\) matches; per-text
             there is no set tracking and no closure. User-supplied patterns: NFA
             simulation. The build is \(\Theta(m)\) and matching is guaranteed
-            \(O(mn)\), so no adversarial pattern can trigger exponential behavior
-            &mdash; whereas handing untrusted patterns to a backtracking engine
+            \(O(mn)\), so no adversarial pattern can trigger exponential behavior; whereas handing untrusted patterns to a backtracking engine
             invites ReDoS, and determinizing an adversarial pattern could itself
             blow up in space. This is the build-cost/run-cost trade of &sect;6:
             amortize when the pattern is reused, stay linear when it is not
@@ -1502,18 +1490,17 @@ impl Nfa {
           <details>
             <summary>solution</summary>
             (a) <strong>Regular</strong>: a two-state automaton whose state is the
-            parity of <code>A</code>&rsquo;s seen decides it &mdash; finite memory
-            (one bit) suffices. A regex: <code>(B|AB*A)*</code> &mdash; reading
+            parity of <code>A</code>&rsquo;s seen decides it: finite memory
+            (one bit) suffices. A regex: <code>(B|AB*A)*</code>, reading
             left to right, each block is either a lone <code>B</code> or a pair of
             <code>A</code>&rsquo;s with any <code>B</code>&rsquo;s between, so
             <code>A</code>&rsquo;s are consumed strictly in pairs.
             (b) <strong>Not regular</strong>: matching the <code>B</code>-count to
             the <code>A</code>-count requires remembering an unbounded integer
             \(n\), and a finite automaton&rsquo;s only memory is which of its
-            fixed states it occupies &mdash; the pumping lemma formalizes the
+            fixed states it occupies; the pumping lemma formalizes the
             contradiction. (c) <strong>Not regular</strong>, same reason: nesting
-            depth is an unbounded count. Both (b) and (c) are context-free &mdash;
-            one rung up the hierarchy, recognized with a stack.
+            depth is an unbounded count. Both (b) and (c) are context-free, one rung up the hierarchy, recognized with a stack.
           </details>
         </li>
       </ol>
@@ -1526,7 +1513,7 @@ impl Nfa {
     </div>
     <script>
       // code-tabs: per-snippet language selector, synced across the page (and
-      // across pages) via localStorage. Works offline — all languages inline.
+      // across pages) via localStorage. Works offline, all languages inline.
       (function () {
         const KEY = "css343-lang";
         function apply(lang) {

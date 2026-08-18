@@ -87,13 +87,13 @@ You use them daily: **grep**, search-and-replace, input validation.
 | **closure (star)** | `A*` | zero or more A |
 | **grouping** | `(…)` | precedence |
 
-Everything else in practical regex syntax is **sugar** over these four — next slide.
+Everything else in practical regex syntax is **sugar** over these four: next slide.
 
 --
 
 ## The sugar, spelled out
 
-Each shorthand **is** one of the four. `ε` is the **empty string** — zero characters:
+Each shorthand **is** one of the four. `ε` is the **empty string** (zero characters):
 
 ```text
    A+     =  AA*             one or more
@@ -103,6 +103,8 @@ Each shorthand **is** one of the four. `ε` is the **empty string** — zero cha
    \d     =  [0123456789]    one digit  ·  .  = any one char
    \(     =  a literal (     \ turns an operator into a plain char
 ```
+
+**Not** sugar: `^` and `$` **anchor** a match to the start/end. Theory matches **whole** strings; engines *search* inside the text, and `^…$` restores whole-string matching.
 
 --
 
@@ -179,23 +181,23 @@ Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtra
 
 ## A real pattern, decoded
 
-US phone — three formats, one pattern:
+US phone, three formats, one pattern:
 
 ```text
    \(?\d{3}\)?[- ]?\d{3}-?\d{4}
 
-   \(?     an optional literal (   — \( is ONE token; ? applies to it
+   \(?     an optional literal (      \( is ONE token; ? applies to it
    \d{3}   exactly three digits
    \)?     an optional literal )
    [- ]?   an optional dash OR space
    \d{3}   three digits
-   -?      an optional dash — NO space allowed here
+   -?      an optional dash (NO space allowed here)
    \d{4}   four digits
 ```
 
 ✓ `(206) 555-1234` · `206-555-1234` · `2065551234`
 
-<small>Boundary-check: `(206-555 1234` **✗** — the 2nd separator is only `-?`. But `(206-5551234` **✓(!)**: an unbalanced `(` slips through. Fix: `(\(\d{3}\)|\d{3})`</small>
+<small>Boundary-check: `(206-555 1234` **✗** (the 2nd separator is only `-?`). But `(206-5551234` **✓**: a too-simple regex accepts strings it never meant to. Say what you mean: `(\(\d{3}\)|\d{3})`. And a validator should **anchor**: `^…$`.</small>
 
 --
 
