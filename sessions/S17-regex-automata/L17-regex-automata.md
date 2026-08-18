@@ -87,7 +87,22 @@ You use them daily: **grep**, search-and-replace, input validation.
 | **closure (star)** | `A*` | zero or more A |
 | **grouping** | `(…)` | precedence |
 
-Everything else is **sugar**: `A+ = AA*` · `A? = (A|ε)` · `[abc] = (a|b|c)` · `.` = any char.
+Everything else in practical regex syntax is **sugar** over these four — next slide.
+
+--
+
+## The sugar, spelled out
+
+Each shorthand **is** one of the four. `ε` is the **empty string** — zero characters:
+
+```text
+   A+     =  AA*             one or more
+   A?     =  (A|ε)           optional: an A, or nothing at all
+   A{3}   =  AAA             exactly 3 copies
+   [abc]  =  (a|b|c)         any ONE of a, b, c
+   \d     =  [0123456789]    one digit  ·  .  = any one char
+   \(     =  a literal (     \ turns an operator into a plain char
+```
 
 --
 
@@ -158,13 +173,29 @@ Use `()` to override — the #1 source of regex bugs.
 - **validation** — emails, phone numbers, dates
 - **lexing** — the first phase of every compiler
 
+Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
+
+--
+
+## A real pattern, decoded
+
+US phone — three formats, one pattern:
+
 ```text
-   a real one — US phone, three formats at once:
    \(?\d{3}\)?[- ]?\d{3}-?\d{4}
-   matches (206) 555-1234 · 206-555-1234 · 2065551234
+
+   \(?     an optional literal (   — \( is ONE token; ? applies to it
+   \d{3}   exactly three digits
+   \)?     an optional literal )
+   [- ]?   an optional dash OR space
+   \d{3}   three digits
+   -?      an optional dash — NO space allowed here
+   \d{4}   four digits
 ```
 
-Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
+✓ `(206) 555-1234` · `206-555-1234` · `2065551234`
+
+<small>Boundary-check: `(206-555 1234` **✗** — the 2nd separator is only `-?`. But `(206-5551234` **✓(!)**: an unbalanced `(` slips through. Fix: `(\(\d{3}\)|\d{3})`</small>
 
 --
 

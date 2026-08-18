@@ -243,19 +243,56 @@
       </div>
       <div class="aside">
         <span class="tag">Everything else is sugar</span>
-        The rest of practical regex syntax is shorthand over the four operations:
-        <code>A+ = AA*</code> (one or more), <code>A? = (A|&epsilon;)</code>
-        (optional), the character class <code>[abc] = (a|b|c)</code>,
-        <code>.</code> = any single character, and named classes like
-        <code>\d</code> (digit). A realistic pattern decodes accordingly: the phone
-        validator <code>\(?\d{3}\)?[- ]?\d{3}-?\d{4}</code> matches
+        The rest of practical regex syntax is shorthand over the four
+        operations. Here <strong>\(\varepsilon\) is the <em>empty
+        string</em></strong> <code>&quot;&quot;</code> &mdash; the
+        theory-book name for it, and the same \(\varepsilon\) that labels the
+        free moves of &sect;2&rsquo;s automata:
+        <pre>  A+     =  AA*             one or more
+  A?     =  (A|&epsilon;)           optional: an A, or nothing
+  A{3}   =  AAA             exactly 3 copies
+  [abc]  =  (a|b|c)         any ONE of a, b, c
+  \d     =  [0123456789]    one digit   &middot;   .  = any one character
+  \(     =  a literal (     \ turns an operator into a plain character</pre>
+        Because it is all sugar, machinery for the four core operations
+        handles every regex.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (a real pattern, decoded &mdash; and boundary-checked)</span>
+        The phone validator
+        <code>\(?\d{3}\)?[- ]?\d{3}-?\d{4}</code> matches
         <code>(206)&nbsp;555-1234</code>, <code>206-555-1234</code>, and
-        <code>2065551234</code> &mdash; digit runs (<code>\d{3}</code> is a repeated
-        class), optional literal parentheses (<code>\(?</code>), an optional
-        space-or-dash (<code>[- ]?</code>). Because it is all sugar, machinery for
-        the four core operations handles every regex; it also illustrates the
-        readability tax &mdash; regexes get cryptic fast, which is why understanding
-        the underlying automaton (and testing thoroughly) matters.
+        <code>2065551234</code>. Piece by piece:
+        <pre>  \(?     an optional literal (   &mdash; \( is ONE token; ? applies to it
+  \d{3}   exactly three digits
+  \)?     an optional literal )
+  [- ]?   an optional dash OR space
+  \d{3}   three digits
+  -?      an optional dash &mdash; NO space allowed here
+  \d{4}   four digits</pre>
+        The piece that trips readers is <code>\(?</code>: the backslash binds
+        first, making <code>\(</code> a single ordinary-character token, and
+        <em>then</em> <code>?</code> makes that token optional &mdash; it
+        desugars to <code>( ( | &epsilon; )</code>, a choice between a literal
+        parenthesis and nothing, and has nothing to do with grouping. Now
+        boundary-check the pattern the way &sect;1&rsquo;s exercise taught.
+        Does it match <code>(206-555&nbsp;1234</code>? Walk it:
+        <code>\(?</code> takes <code>(</code>, <code>\d{3}</code> takes
+        <code>206</code>, <code>\)?</code> matches nothing, <code>[- ]?</code>
+        takes the dash, <code>\d{3}</code> takes <code>555</code> &mdash; and
+        then <code>-?</code> cannot take a <em>space</em>, so
+        <code>\d{4}</code> faces <code>&nbsp;1234</code> and fails.
+        <strong>No match</strong>: the two separators are not symmetric, and
+        only the first allows a space. The opposite embarrassment also holds:
+        <code>(206-5551234</code> <strong>does</strong> match, unbalanced
+        parenthesis and all, because <code>\(?</code> and <code>\)?</code> are
+        independent choices. The repair is a choice at the top:
+        <code>(\(\d{3}\)|\d{3})[- ]?\d{3}-?\d{4}</code> &mdash; both
+        behaviours verified against a real engine. Test a pattern against
+        near-misses in <em>both</em> directions: strings that should fail,
+        and sneaky ones that should not pass. It also illustrates the
+        readability tax &mdash; regexes get cryptic fast, which is why
+        understanding the underlying automaton matters.
       </div>
       <h3>Regular languages &mdash; and what a regex cannot say</h3>
       <div class="def">

@@ -42,6 +42,10 @@
   <script>
     Reveal.initialize({
       hash: true, slideNumber: "c/t", transition: "slide",
+      // reveal's math plugin omits "code" from KaTeX's default ignoredTags, so
+      // regex literals like \(? inside code spans would be parsed as
+      // inline-math delimiters — put "code" back on the ignore list
+      katex: { ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"] },
       plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX],
     });
   </script>
