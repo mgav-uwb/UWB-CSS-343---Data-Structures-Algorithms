@@ -659,15 +659,16 @@ Same `A*B` machine. Trace `"B"` and `"BA"`:
 
 <div class="algo-viz" data-algo="nfa-sim">
 <pre class="viz-fallback">
-   simulate (A*B|AC)D on typed strings — the set of ACTIVE
-   states (highlighted) advances one char at a time: match
-   edges, then ε-closure.  "AAABD" ✓ (left branch A*B),
-   "ACD" ✓ (right branch AC), "AAD" ✗ (set goes empty).
+   simulate (A*B|AC)D: states in a row (Sedgewick layout,
+   red ε-arcs above/below), input strip on top. Each char
+   is TWO steps: read c (match edges fire, green), then
+   apply ε-transitions (red arcs fire, new states ringed).
+   "AAABD" ✓ · "ACD" ✓ · "AAD" ✗ (set goes empty).
 [ interactive demo — open this deck on the course site ]
 </pre>
 </div>
 
-<small>**Match** drives the **set of active states** one char at a time — match edges, then **ε-closure**. Try `AAABD` ✓, `ACD` ✓ (the other branch), `AAD` ✗ (watch the set die). **Build** swaps in your own regex first.</small>
+<small>Each character is **two steps**: *read* (green match edges fire) then *apply ε-transitions* (red arcs fire, freshly reached states ringed). The **input strip** tracks what's consumed. Try `AAABD` ✓, `ACD` ✓, `AAD` ✗; **Build** swaps in your own regex.</small>
 
 --
 

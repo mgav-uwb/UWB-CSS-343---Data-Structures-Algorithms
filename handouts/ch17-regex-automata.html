@@ -1375,11 +1375,18 @@ impl Nfa {
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
-        <a href="../lib/demo.html?ds=nfa-sim">NFA simulation demo</a>. <em>Match</em>
-        drives the set of active states (highlighted on the machine) one character
-        at a time (match edges, then \(\varepsilon\)-closure) against
-        the regex in the box (default <code>(A*B|AC)D</code>). Replay the table
-        above: <code>AAABD</code> accepts through the left branch,
+        <a href="../lib/demo.html?ds=nfa-sim">NFA simulation demo</a>. The
+        machine is drawn the way this chapter draws it: states in a row with
+        their characters beneath, match edges straight on the line,
+        \(\varepsilon\)-arcs red and curved (forward above the row, the
+        star&rsquo;s repeat below), and an input strip on top that fills in as
+        characters are consumed. <em>Match</em> plays each character as
+        <strong>two steps</strong>, exactly the pseudocode&rsquo;s two lines:
+        <em>read</em> (the firing match edges turn green and the advanced
+        states light up) then <em>apply \(\varepsilon\)-transitions</em>
+        (the arcs the closure walks turn red and the states reached for free
+        are ringed). The regex in the box is the machine (default
+        <code>(A*B|AC)D</code>). Replay the table above: <code>AAABD</code> accepts through the left branch,
         <code>ACD</code> through the right, and <code>AAD</code> dies mid-string: watch the set go empty. The text box accepts a repeat shorthand:
         <code>A^9BD</code> means nine <code>A</code>&rsquo;s, and the star loop
         churns \(\{2,3,4\}\) for as long as you like. Then press <em>Build</em>

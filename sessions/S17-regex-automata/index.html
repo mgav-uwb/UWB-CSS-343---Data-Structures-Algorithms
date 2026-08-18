@@ -63,7 +63,7 @@
                          ("AAABD" ✓ left branch, "ACD" ✓ right, "AAD" ✗);
                          Build swaps in a different regex first -->
   <script type="module">
-    import { initDeckDemos, NFA, DFA, GraphRenderer } from "../../lib/deck.js";
+    import { initDeckDemos, NFA, DFA, GraphRenderer, NfaRenderer } from "../../lib/deck.js";
     const RE = "(A*B|AC)D";
     // sanitize a typed regex: letters + ( ) | * only, balanced parens, ≤ 9
     // chars (the wrapped machine stays readable at 12 states); else default
@@ -74,7 +74,9 @@
       return s.length && bal === 0 ? s : dflt;
     };
     const cleanText = (v) => String(v ?? "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 12);
-    const graph = () => ({ renderer: (c) => new GraphRenderer(c, { directed: true }),
+    // the two NFA mounts use the Sedgewick line-layout renderer (states in a
+    // row, red curved ε-arcs, input strip); the DFA keeps the general 2-D one
+    const graph = () => ({ renderer: (c) => new NfaRenderer(c),
                            costs: ["visit", "compare", "link"], chrome: { showCosts: true }, width: 820, height: 250 });
     initDeckDemos({
       // P3 — Thompson/Sedgewick construction, edge by edge, of a typed regex.
