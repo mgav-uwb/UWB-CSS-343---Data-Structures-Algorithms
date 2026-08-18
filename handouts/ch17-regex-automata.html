@@ -440,9 +440,10 @@
       </table>
       <p>
         Build small <em>or</em> run fast: the classic space/time trade.
-        Sedgewick&rsquo;s route, and this chapter&rsquo;s: build the (small) NFA,
-        then simulate it. &sect;6 returns to when you would instead pay to
-        <em>determinize</em>. Either way, the bridge that makes everything cohere:
+        Sedgewick&rsquo;s route, and this chapter&rsquo;s, is to build the
+        (small) NFA and simulate it. The other choice, paying the
+        <em>determinization</em> cost up front to earn the \(O(n)\) scan, is
+        weighed in &sect;6. Either way, one bridge makes everything cohere:
         the automaton is a <em>membership tester</em> for the regex&rsquo;s
         language:</p>
       <pre>  the NFA ACCEPTS a string   &hArr;   the string is IN the regex&#x27;s language
