@@ -711,7 +711,7 @@ The scan then completes the occurrence at index **4** — exactly the alignment 
 
 <div class="algo-viz" data-algo="string-search">
 <pre class="viz-fallback">
-   brute force vs KMP on the SAME text, in lockstep — both
+   BF / KMP / Boyer–Moore raced pairwise on the SAME text —
    find EVERY occurrence and count matches. the text box is
    editable (A^40B expands); the value box takes the PATTERN.
    bold chips = the two indices · tinted run = the current
@@ -720,7 +720,7 @@ The scan then completes the occurrence at index **4** — exactly the alignment 
 </pre>
 </div>
 
-<small>**Race both**: 2 matches, **32 vs 22** total ops; adversarial `A^40B` / `A^6B`: **245 vs 110**; DNA: KMP **loses**, **1364 vs 1483** — the KMP title counts **cmp + tbl**, because a fall-back is work too.</small>
+<small>The **Run menu picks the pairing**: BF vs KMP, BF vs Boyer, KMP vs Boyer. Prose: **Boyer 249 vs BF 897** — sublinear, live. DNA: **BF beats both** (1364 · 1483 · 1707). Adversarial: BF dies (245 · 110 · 75). Titles count **cmp + tbl** — table reads are work too.</small>
 
 --
 
@@ -768,7 +768,7 @@ The text pointer stays at 5 — `text[0..4]` are never re-read.
 
 ## Boyer-Moore: skip ahead
 
-<small>(survey — idea and one trace; we implement only brute force and KMP)</small>
+<small>(the bad-character rule below is implemented — race it: **BF vs Boyer** in the search demo)</small>
 
 Compare the pattern **right-to-left**; on a mismatch, use the **bad character** to jump far ahead:
 

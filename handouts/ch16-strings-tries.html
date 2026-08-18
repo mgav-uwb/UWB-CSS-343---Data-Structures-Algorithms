@@ -1995,9 +1995,12 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
       <div class="demo">
         <span class="tag">Interactive</span>
         <a href="../lib/demo.html?ds=string-search">Substring-search race</a>.
-        Brute force and KMP run the <em>same</em> text side by side in
-        lockstep, one comparison per tick, and both find <em>every</em>
-        occurrence with a live match count. The <strong>text is typed straight
+        The <strong>Run menu picks a pairing</strong> &mdash; BF vs KMP, BF
+        vs Boyer, KMP vs Boyer (&sect;7&rsquo;s bad-character rule, comparing
+        right-to-left, its <code>right[]</code> table drawn under the
+        pattern) &mdash; and the two chosen searchers run the <em>same</em>
+        text side by side in lockstep, one comparison per tick, every
+        occurrence found and counted. The <strong>text is typed straight
         into the left panel</strong> (long prose is fine; <code>A^40B</code>
         expands), the value box takes only the <strong>pattern</strong> —
         spaces allowed, case ignored — and the KMP panel draws
@@ -2029,15 +2032,23 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         run on real data: <code>GATC</code> &mdash; the Sau3AI restriction
         site &mdash; in the first \(1150\) bases of the human mitochondrial
         reference sequence (rCRS, NC_012920), \(3\) cut sites found. On the
-        DNA, <strong>KMP loses on total work</strong>: \(1364\) against
-        \(1315 + 168 = 1483\). A 4-letter alphabet starts a partial match at
-        a quarter of all positions, every teardown costs KMP a table read
-        that brute force never pays, and <code>GATC</code>&rsquo;s lack of
-        self-overlap (\(\mathit{fail} = [0,0,0,0]\)) means the table never
-        saves a comparison. That is the honest shape of KMP: on typical text
-        brute force is already \(\approx n\) and KMP&rsquo;s constant is
-        worse; what it buys is the <em>worst-case guarantee</em> and the
-        never-back-up property the next paragraph turns into streaming.
+        DNA, <strong>brute force beats both clever algorithms</strong>:
+        \(1364\) against KMP&rsquo;s \(1315 + 168 = 1483\) and
+        Boyer&ndash;Moore&rsquo;s \(1000 + 707 = 1707\). A 4-letter alphabet
+        defeats them symmetrically &mdash; <code>GATC</code>&rsquo;s lack of
+        self-overlap (\(\mathit{fail} = [0,0,0,0]\)) means KMP&rsquo;s table
+        never saves a comparison while every teardown costs a read, and every
+        text character occurs somewhere in <code>GATC</code>, so the
+        bad-character leap never comes (the average shift is barely \(2\)).
+        On the <em>prose</em> the tables turn: Boyer&ndash;Moore reads only
+        \(158\) of the \(807\) characters (\(+\,91\) table reads
+        \(= 249\) ops) against brute force&rsquo;s \(897\) &mdash;
+        &sect;7&rsquo;s sublinear claim, live on screen. That is the honest
+        shape of the family: brute force wins small alphabets,
+        Boyer&ndash;Moore wins real text, and KMP&rsquo;s prize is the
+        <em>worst-case guarantee</em> plus the never-back-up property the
+        next paragraph turns into streaming &mdash; the one thing
+        Boyer&ndash;Moore, re-reading inside every window, cannot offer.
       </div>
       <p>
         Scaled up, the gap is not academic: on an all-<code>A</code>s text with
@@ -2057,8 +2068,11 @@ fn kmp_search(t: &amp;str, p: &amp;str) -&gt; i32 {
         after raw speed, and on typical text it examines <em>fewer than
         \(n\)</em> characters &mdash; sublinear &mdash; which is why it (or a
         variant) sits inside <code>grep</code> and most editors&rsquo; find.
-        This section is a survey &mdash; the idea and one trace; this
-        course&rsquo;s implementations are brute force and KMP.
+        The written treatment here is the idea and one trace &mdash; but the
+        <a href="../lib/demo.html?ds=string-search">race demo</a> implements
+        the bad-character rule traced below, so every claim in this section
+        can be checked live (pick <strong>BF vs Boyer</strong> or
+        <strong>KMP vs Boyer</strong> in its Run menu).
       </p>
       <p>
         Two reversals produce the speed. Compare each alignment

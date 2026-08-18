@@ -98,6 +98,8 @@
 .u-srch-ch.is-cur { background: #7c5cff; color: #fff; font-weight: 800; }
 .u-srch-ch.is-cur.is-bad { background: #b3261e; }
 .u-srch-ch.is-fb { background: #fff6e0; color: #9a5b00; font-weight: 800; }
+/* Boyer–Moore's bad-character entries ("g:0") size to their content */
+.u-srch-row .u-srch-ch.is-bc { width: auto; min-width: 0; padding: 0 10px 0 0; }
 /* the alignment window — a thin frame around the m text cells the pattern
    currently covers; -a / -z close its left/right ends. Drawn with inset
    box-shadows so it composes with any chip background (tint, green, purple) */
