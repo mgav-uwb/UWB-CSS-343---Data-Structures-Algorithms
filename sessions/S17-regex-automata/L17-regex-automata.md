@@ -99,7 +99,9 @@ Each shorthand **is** one of the four. `ε` is the **empty string** (zero charac
    A+     =  AA*             one or more
    A?     =  (A|ε)           optional: an A, or nothing at all
    A{3}   =  AAA             exactly 3 copies
+   A{1,2} =  (A|AA)          between 1 and 2 copies
    [abc]  =  (a|b|c)         any ONE of a, b, c
+   [a-z]  =  any one of a..z  ·  [^ab] = any one char EXCEPT a, b
    \d     =  [0123456789]    one digit  ·  .  = any one char
    \(     =  a literal (     \ turns an operator into a plain char
 ```
@@ -171,9 +173,10 @@ Use `()` to override — the #1 source of regex bugs.
    if (std::regex_match(s, re)) …           // whole-string match
 ```
 
-- **search** — grep, editor find, log analysis
-- **validation** — emails, phone numbers, dates
-- **lexing** — the first phase of every compiler
+- **search**: grep, editor find, log analysis
+- **validation**: emails, phone numbers, dates
+- **lexing**: the first phase of every compiler
+- **biology**: the genome marker `gcg(cgg|agg)*ctg` matches `gcgaggaggcggcggctg`
 
 Under the hood: **parse → NFA/DFA → run**. Beware — some engines **backtrack** (can be slow).
 
@@ -511,6 +514,29 @@ Same stack-based operator parsing as **expression trees** (L03).
 
 --
 
+## The scan, with the stack
+
+`((A*B|AC)D)` again; watch **when** each edge appears:
+
+```text
+    i  re[i]  stack    edges added
+    0   (     [0]      ε 0→1
+    1   (     [0,1]    ε 1→2
+    2   A     [0,1]    ε 2→3, ε 3→2 (star pair) · 2 ─A→ 3
+    3   *     [0,1]    ε 3→4
+    4   B     [0,1]    4 ─B→ 5
+    5   |     [0,1,5]  nothing yet: wired at the ')'
+    6   A     [0,1,5]  6 ─A→ 7
+    7   C     [0,1,5]  7 ─C→ 8
+    8   )     [0]      pop | and (:  ε 1→6, ε 5→8 · ε 8→9
+    9   D     [0]      9 ─D→ 10
+   10   )     []       ε 10→11
+```
+
+The `|` is **silent** when scanned; its fork (`1→6`) and join (`5→8`) both appear when the `)` pops it.
+
+--
+
 ## 🎬 Demo — build the NFA
 
 <div class="algo-viz" data-algo="nfa-build">
@@ -544,6 +570,23 @@ Count the edges per character of the (wrapped) regex:
 ### Part 4 · Simulating the NFA
 
 <small>(~26 min)</small>
+
+--
+
+## Why not just guess?
+
+Commit to single choices on `((A*B|AC)D)` and watch them die:
+
+```text
+   input AAABD, guess the RIGHT branch:
+      0 →ε 1 →ε 6 ─A→ 7      stuck: 7 wants C, input has A
+
+   input AAAAC (loop the star, the only path):
+      … 2 ─A→ 3 →ε 2 ─A→ 3 … →ε 4
+                              stuck: 4 wants B, input has C
+```
+
+A wrong guess strands you in a state with **no usable edge**, and nothing tells you at guessing time. The input decides, **later**.
 
 --
 

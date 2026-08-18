@@ -243,9 +243,13 @@
         <pre>  A+     =  AA*             one or more
   A?     =  (A|&epsilon;)           optional: an A, or nothing at all
   A{3}   =  AAA             exactly 3 copies
+  A{1,2} =  (A|AA)          between 1 and 2 copies
   [abc]  =  (a|b|c)         any ONE of a, b, c
+  [a-z]  =  any one of a..z &middot; [^ab] = any one char EXCEPT a, b
   \d     =  [0123456789]    one digit   &middot;   .  = any one character
   \(     =  a literal (     \ turns an operator into a plain character</pre>
+        (Inside brackets <code>^</code> negates; outside them, as the end of
+        this aside explains, it anchors.)
         Because it is all sugar, machinery for the four core operations
         handles every regex. Two practical symbols are <em>not</em> sugar,
         because they change what &ldquo;match&rdquo; means rather than
@@ -300,6 +304,21 @@
         longer string. The example also shows the readability tax: regexes
         get cryptic fast, which is why understanding the underlying automaton
         matters.
+      </div>
+      <div class="aside">
+        <span class="tag">DNA again: a genome marker</span>
+        One more application, from Sedgewick, over the DNA alphabet: the
+        <strong>genome marker</strong> <code>gcg(cgg|agg)*ctg</code>, a
+        <code>gcg</code>, then any number of <code>cgg</code>/<code>agg</code>
+        codon blocks, then <code>ctg</code>. It matches
+        <code>gcgaggaggcggcggctg</code> (blocks
+        <code>agg&middot;agg&middot;cgg&middot;cgg</code>) and, because
+        <code>*</code> allows zero blocks, the bare <code>gcgctg</code>;
+        it rejects <code>gcgagctg</code>, whose middle is no whole number of
+        blocks. <a href="ch16-strings-tries.html">Chapter&nbsp;16</a>&rsquo;s
+        DNA search looked for one <em>fixed</em> string; a regex describes a
+        whole <em>family</em> of strings, which is what motif-finding tools
+        actually match.
       </div>
       <h3>Regular languages, and what a regex cannot say</h3>
       <div class="def">
@@ -638,9 +657,9 @@
   i=2 &#x27;B&#x27;              &rarr;  match edge 2 &#x2500;B&rarr; 3
 
   &epsilon;-edges: 0&rarr;1, 1&rarr;0, 1&rarr;2      match edges: 0&#x2500;A&rarr;1, 2&#x2500;B&rarr;3</pre>
-        Each state&rsquo;s <em>out</em>-edges are listed beside it, which is
-        not just tidier: it is literally the adjacency list that
-        &sect;4&rsquo;s \(\varepsilon\)-closure will graph-search. The star
+        Each state&rsquo;s <em>out</em>-edges are listed beside it: this is
+        the adjacency list that &sect;4&rsquo;s \(\varepsilon\)-closure
+        will graph-search. The star
         wires two \(\varepsilon\)-edges around its operand: \(0 \to 1\)
         skips the <code>A</code> (zero copies; it leaves state \(0\), so it
         is listed there) and \(1 \to 0\) loops back for more copies (listed
@@ -714,10 +733,18 @@
   &#x27;)&#x27;         &rarr;  pop; if a &#x27;|&#x27; comes off, wire the alternation:
                    &epsilon; from the &#x27;(&#x27; to just after the &#x27;|&#x27;   (enter branch 2)
                    &epsilon; from the &#x27;|&#x27; to the &#x27;)&#x27;             (skip to the join)
+                       addEdge(lp, or+1);   addEdge(or, i);
   &#x27;*&#x27; after an atom or group starting at lp:
                    &epsilon; lp&rarr;star  (skip)   and   &epsilon; star&rarr;lp  (repeat)
+                       addEdge(lp, i+1);   addEdge(i+1, lp);
   &#x27;(&#x27;, &#x27;*&#x27;, &#x27;)&#x27;  &rarr;  &epsilon; i&rarr;i+1  (fall through the metacharacter)
+                       addEdge(i, i+1);
   first of all:    wrap the regex in implicit parens: &quot;A|B&quot; &rarr; &quot;(A|B)&quot;</pre>
+      <p>
+        Those five <code>addEdge</code> calls are the <em>entire</em>
+        construction, and they are what ICA&nbsp;17&rsquo;s
+        <code>buildNFA</code> extra credit asks you to write.
+      </p>
       <p>
         The <strong>outer wrap</strong> is a real implementation detail worth
         understanding: a top-level <code>|</code> or <code>*</code> needs an
@@ -730,6 +757,34 @@
         figures above drop the wrap for clarity, and every state number simply
         shifts by one.
       </p>
+      <div class="ex">
+        <span class="tag">Example (the scan, with the stack: when each edge appears)</span>
+        The print book draws this as twelve little machines growing row by
+        row; here it is as a table, for the wrapped
+        <code>((A*B|AC)D)</code>. The stack holds the positions of
+        <code>(</code> and <code>|</code>:
+        <pre>   i  re[i]   stack     edges added at this step
+   0   (      [0]       &epsilon; 0&rarr;1  (fall through)
+   1   (      [0,1]     &epsilon; 1&rarr;2  (fall through)
+   2   A      [0,1]     &epsilon; 2&rarr;3, &epsilon; 3&rarr;2  (lookahead sees the &#x27;*&#x27;)  &middot;  2 &#x2500;A&rarr; 3
+   3   *      [0,1]     &epsilon; 3&rarr;4  (fall through)
+   4   B      [0,1]     4 &#x2500;B&rarr; 5
+   5   |      [0,1,5]   nothing yet: pushed, wired at the &#x27;)&#x27;
+   6   A      [0,1,5]   6 &#x2500;A&rarr; 7
+   7   C      [0,1,5]   7 &#x2500;C&rarr; 8
+   8   )      [0]       pop &#x27;|&#x27;(5) and &#x27;(&#x27;(1): &epsilon; 1&rarr;6, &epsilon; 5&rarr;8;  then &epsilon; 8&rarr;9
+   9   D      [0]       9 &#x2500;D&rarr; 10
+  10   )      []        &epsilon; 10&rarr;11  (fall through)</pre>
+        Two timings are worth noticing. The star pair arrives <em>early</em>,
+        at \(i=2\), by lookahead: the scan sees the coming <code>*</code>
+        and wires skip and repeat around the atom that just ended. The
+        <code>|</code> is the opposite: <em>silent</em> when scanned, it only
+        pushes its position, and both of its \(\varepsilon\)-edges (the
+        fork \(1\to6\) and the join \(5\to8\)) materialize when the
+        <code>)</code> pops it at \(i=8\). The stack never holds more than
+        the nesting depth: \(O(1)\) work per character, which is the
+        Proposition below.
+      </div>
       <div class="ex">
         <span class="tag">Example (Sedgewick&rsquo;s running example <code>(A*B|AC)D</code>: the complete state list)</span>
         The construction&rsquo;s full-size example, and the machine the demo
@@ -889,6 +944,23 @@
         maintaining the set of states the machine could possibly be in. That turns
         nondeterminism into bookkeeping:
       </p>
+      <div class="ex">
+        <span class="tag">Example (why not just guess?)</span>
+        Sedgewick calls these <em>stalling sequences</em>. Commit to single
+        choices on <code>((A*B|AC)D)</code> and watch them die:
+        <pre>  input AAABD, guess the RIGHT branch:
+      0 &rarr;&epsilon; 1 &rarr;&epsilon; 6 &#x2500;A&rarr; 7        stuck: state 7 wants C, the input has A
+
+  input AAAAC (the star loop is forced; nothing to guess):
+      &hellip; 2 &#x2500;A&rarr; 3 &rarr;&epsilon; 2 &#x2500;A&rarr; 3 &hellip; &rarr;&epsilon; 4    stuck: state 4 wants B</pre>
+        A wrong guess strands the machine in a state with no usable edge, and
+        nothing tells you <em>at guessing time</em> which choice is wrong: the
+        input decides, later. Backtracking (undo and try the other branch)
+        restores correctness at a possibly exponential price (see the engines
+        aside below). The algorithm here refuses to guess at all: it keeps
+        every viable state alive at once and lets the input kill the wrong
+        ones.
+      </div>
       <pre>  states = &epsilon;-closure({ start })
   for each character c of the text:
       next   = { i+1 : i &isin; states and re[i] == c }     <span class="cm">// advance</span>
@@ -1241,6 +1313,20 @@ impl Nfa {
           state: \(11\).
         </figcaption>
       </figure>
+      <div class="ex">
+        <span class="tag">Example (the witness: one accepting path for <code>&quot;AAABD&quot;</code>)</span>
+        Acceptance means at least one path through the machine consumes the
+        whole string and lands on the accept state. The simulation never
+        names that path, but it exists; unrolled:
+        <pre>  0 &rarr;&epsilon; 1 &rarr;&epsilon; 2 &#x2500;A&rarr; 3 &rarr;&epsilon; 2 &#x2500;A&rarr; 3 &rarr;&epsilon; 2 &#x2500;A&rarr; 3 &rarr;&epsilon; 4
+    &#x2500;B&rarr; 5 &rarr;&epsilon; 8 &rarr;&epsilon; 9 &#x2500;D&rarr; 10 &rarr;&epsilon; 11   accept</pre>
+        Three trips through the star&rsquo;s loop consume the
+        <code>A</code>&rsquo;s, the fall-through takes the <code>B</code>, the
+        <code>|</code> skips to the join, and the <code>D</code> drives home.
+        Every hop is an edge of the machine in &sect;3. The set-of-states
+        simulation is the device that establishes such a path exists without
+        ever guessing which one it will be.
+      </div>
       <div class="thm">
         <span class="tag">Proposition (simulation cost)</span>
         Simulating a length-\(m\) regex&rsquo;s NFA on a length-\(n\) text takes
