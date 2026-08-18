@@ -464,13 +464,35 @@ The invariant that makes it implementable in a page:
    re:  A   *   B         states 0 1 2 3   (3 = accept)
 
    i=0 'A', next is '*' →  ε 0→1 (skip the A)
-                           ε 1→0 (repeat the A)
                            match edge 0 ──A──► 1
    i=1 '*'              →  ε 1→2 (fall through)
+                           ε 1→0 (repeat the A)
    i=2 'B'              →  match edge 2 ──B──► 3
 
    ε: 0→1, 1→0, 1→2      match: 0─A→1, 2─B→3
 ```
+
+--
+
+## Build `(A*B|AC)D`, Sedgewick's example
+
+Wrapped: `((A*B|AC)D)`, states 0..11 (11 = accept). Each state's **out-edges**:
+
+```text
+   i=0  '('  →  ε 0→1   (fall through)
+   i=1  '('  →  ε 1→2   (fall through) · ε 1→6 (right branch)
+   i=2  'A'  →  ε 2→3   (skip A) · match 2 ──A──► 3
+   i=3  '*'  →  ε 3→4   (fall through) · ε 3→2 (repeat A)
+   i=4  'B'  →  match 4 ──B──► 5
+   i=5  '|'  →  ε 5→8   (branch done: skip to ')')
+   i=6  'A'  →  match 6 ──A──► 7
+   i=7  'C'  →  match 7 ──C──► 8
+   i=8  ')'  →  ε 8→9   (fall through)
+   i=9  'D'  →  match 9 ──D──► 10
+   i=10 ')'  →  ε 10→11 (fall through: accept)
+```
+
+**9 ε + 5 match edges**, all from one scan; the `(`/`|` wiring: next slide.
 
 --
 

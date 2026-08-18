@@ -628,20 +628,25 @@
         The whole machine is the regex string plus an \(\varepsilon\)-digraph: nothing else.
       </div>
       <div class="ex">
-        <span class="tag">Example (build <code>A*B</code>, the chapter&rsquo;s main machine)</span>
+        <span class="tag">Example (warm-up: build <code>A*B</code>)</span>
         <pre>  re:  A   *   B         states 0 1 2 3   (3 = accept)
 
   i=0 &#x27;A&#x27;, next is &#x27;*&#x27; &rarr;  &epsilon; 0&rarr;1  (skip the A)
-                          &epsilon; 1&rarr;0  (repeat the A)
                           match edge 0 &#x2500;A&rarr; 1
   i=1 &#x27;*&#x27;              &rarr;  &epsilon; 1&rarr;2  (fall through the &#x27;*&#x27;)
+                          &epsilon; 1&rarr;0  (repeat the A)
   i=2 &#x27;B&#x27;              &rarr;  match edge 2 &#x2500;B&rarr; 3
 
   &epsilon;-edges: 0&rarr;1, 1&rarr;0, 1&rarr;2      match edges: 0&#x2500;A&rarr;1, 2&#x2500;B&rarr;3</pre>
-        The star wires two \(\varepsilon\)-edges around its operand: \(0 \to 1\) skips the <code>A</code> (zero copies), \(1 \to 0\) loops back
-        (more copies), and the <code>*</code> state falls through to the
-        <code>B</code>. Three \(\varepsilon\)-edges, two match edges, four states:
-        Thompson&rsquo;s gadgets, compressed onto the string. This exact machine
+        Each state&rsquo;s <em>out</em>-edges are listed beside it, which is
+        not just tidier: it is literally the adjacency list that
+        &sect;4&rsquo;s \(\varepsilon\)-closure will graph-search. The star
+        wires two \(\varepsilon\)-edges around its operand: \(0 \to 1\)
+        skips the <code>A</code> (zero copies; it leaves state \(0\), so it
+        is listed there) and \(1 \to 0\) loops back for more copies (listed
+        under state \(1\)), whose other edge falls through to the
+        <code>B</code>. Three \(\varepsilon\)-edges, two match edges, four
+        states: Thompson&rsquo;s gadgets, compressed onto the string. This exact machine
         (same state numbers, same edges) is the one the in-class activity
         (ICA&nbsp;17) hands you.
       </div>
@@ -725,6 +730,41 @@
         figures above drop the wrap for clarity, and every state number simply
         shifts by one.
       </p>
+      <div class="ex">
+        <span class="tag">Example (Sedgewick&rsquo;s running example <code>(A*B|AC)D</code>: the complete state list)</span>
+        The construction&rsquo;s full-size example, and the machine the demo
+        builds by default. Wrapped, the regex is <code>((A*B|AC)D)</code>:
+        states \(0..11\), state \(11\) the accept. Every state with its
+        out-edges:
+        <pre>  re:  ( ( A * B | A C ) D )      states 0..11   (11 = accept)
+
+  i=0  &#x27;(&#x27;   &rarr;  &epsilon; 0&rarr;1    (fall through)
+  i=1  &#x27;(&#x27;   &rarr;  &epsilon; 1&rarr;2    (fall through)
+                &epsilon; 1&rarr;6    (enter the right branch; wired at the &#x27;)&#x27;)
+  i=2  &#x27;A&#x27;, next is &#x27;*&#x27;
+             &rarr;  &epsilon; 2&rarr;3    (skip the A)
+                match edge 2 &#x2500;A&rarr; 3
+  i=3  &#x27;*&#x27;   &rarr;  &epsilon; 3&rarr;4    (fall through the &#x27;*&#x27;)
+                &epsilon; 3&rarr;2    (repeat the A)
+  i=4  &#x27;B&#x27;   &rarr;  match edge 4 &#x2500;B&rarr; 5
+  i=5  &#x27;|&#x27;   &rarr;  &epsilon; 5&rarr;8    (left branch done: skip to the &#x27;)&#x27;)
+  i=6  &#x27;A&#x27;   &rarr;  match edge 6 &#x2500;A&rarr; 7
+  i=7  &#x27;C&#x27;   &rarr;  match edge 7 &#x2500;C&rarr; 8
+  i=8  &#x27;)&#x27;   &rarr;  &epsilon; 8&rarr;9    (fall through)
+  i=9  &#x27;D&#x27;   &rarr;  match edge 9 &#x2500;D&rarr; 10
+  i=10 &#x27;)&#x27;   &rarr;  &epsilon; 10&rarr;11  (fall through: accept)
+
+  &epsilon;-edges (9): 0&rarr;1, 1&rarr;2, 1&rarr;6, 2&rarr;3, 3&rarr;2, 3&rarr;4, 5&rarr;8, 8&rarr;9, 10&rarr;11
+  match  (5):  2&#x2500;A&rarr;3, 4&#x2500;B&rarr;5, 6&#x2500;A&rarr;7, 7&#x2500;C&rarr;8, 9&#x2500;D&rarr;10</pre>
+        The states with <em>two</em> out-edges are exactly where
+        nondeterminism lives: state \(1\) forks into the two alternatives
+        (its jump to \(6\) is wired when the scan reaches the
+        <code>)</code>), state \(2\) can consume an <code>A</code> or skip
+        it, and state \(3\) falls through or loops back. Everything else
+        has a single obligatory edge. These two-edge states are what makes
+        the <em>set</em> of states in &sect;4 grow past one; the figure below
+        draws the same machine.
+      </div>
       <figure>
         <svg viewBox="0 0 920 270" role="img" aria-label="The twelve-state NFA for the wrapped regex ((A*B|AC)D). Twelve states 0 to 11 sit on a line; each shows its regex character beneath: two open parens, A, star, B, bar, A, C, close paren, D, close paren, and the accept state 11. Solid arrows on the line consume characters: 2 to 3 on A, 4 to 5 on B, 6 to 7 on A, 7 to 8 on C, 9 to 10 on D. Dashed epsilon arcs above connect 0-1, 1-2, 2-3, 3-4, 8-9, 10-11 (short), 1 to 6 (the alternation branch, long) and 5 to 8 (the bar skipping to the close paren). One dashed arc below runs from 3 back to 2, the star's repeat.">
           <defs>
