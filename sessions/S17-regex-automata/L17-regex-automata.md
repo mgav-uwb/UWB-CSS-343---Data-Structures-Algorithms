@@ -715,15 +715,37 @@ Linear in the text, linear in the regex — no catastrophic blow-up.
 
 --
 
-## Why set-simulation is safe
+## How real engines match
 
-Many engines (Perl, Java, Python, JS) **backtrack** — try a path, undo, try another:
+Perl, Java, Python, JS, C++ `<regex>`: no automaton. **Backtracking** search over the pattern's choices:
 
 ```text
-   pattern (a*)*  on  "aaaa…aaaX"  → EXPONENTIAL time  (ReDoS)
+   (a|aa)*b   on   "aaaa…aaac"   (n a's, then a c)
+
+   at each step try  a , continue; if that fails later,
+   come back, undo, try  aa , continue …
+   every way to cut n a's into 1s and 2s is one path
+   #paths = Fib(n) ≈ 1.618ⁿ · the final c fails them ALL
 ```
 
-The NFA set-simulation **never backtracks** → guaranteed **O(mn)**. `grep`, RE2 use it.
+<small>Measured (Python `re.fullmatch`): n=20, 10,946 paths, 0.002 s · n=30, 1.3M, 0.17 s · n=40, 166M, **22 s**.</small>
+
+--
+
+## ReDoS, and our immunity
+
+**ReDoS** = regular-expression denial of service: input (or a pattern) chosen so matching takes superlinear time, so one small request pins a CPU core.
+
+```text
+   backtracker's state = a PATH        → 1.618ⁿ of them
+   our state = a SET of NFA states     → at most m+1 of them
+
+   two paths in the same state have the same future;
+   the set stores that state ONCE.  Memoize by state:
+   the DP move (L14), applied to path search.
+```
+
+<small>Same input, our engine: **0.0002 s** at n=40; ~6M characters in the 22 s above. `grep`, RE2 use it. Guaranteed O(mn) for **every** pattern and input.</small>
 
 --
 
@@ -767,14 +789,18 @@ You can convert an NFA to a DFA by the **subset construction** — each DFA stat
 
 ## Minimizing the DFA
 
-A DFA can carry **redundant** states; **minimization** merges equivalent ones:
+Determinize `(A|B)*B` (Part 1's your-turn) and read the rows:
 
 ```text
-   merge states that accept the same set of continuations
-   → the UNIQUE smallest DFA for the language
+   D0 = {0,1,2,4,6,7}      start    A→D1   B→D2
+   D1 = {1,2,3,4,5,6,7}             A→D1   B→D2
+   D2 = {1,2,4,5,6,7,8,9}  accept   A→D1   B→D2
+
+   D0 and D1: different SETS, identical BEHAVIOR
+   → merge → the 2-state "ends in B" DFA of Part 2
 ```
 
-The minimal DFA is a **canonical form** — two regexes are equivalent iff their minimal DFAs match.
+**Continuations** of a state = the strings from it that reach accept. Same continuations → merge.
 
 --
 

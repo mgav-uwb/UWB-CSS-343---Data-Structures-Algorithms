@@ -211,6 +211,7 @@ const DEMOS = {
   "nfa-build":     { title:"RE → NFA", desc:"Thompson construction, ε-edges one by one" },
   "dfa":           { title:"DFA (deterministic)", desc:"one arrow per character — a pointer walk, and the state IS the machine\u2019s whole memory" },
   "nfa-sim":       { title:"NFA Simulation", desc:"the active-state set, char by char" },
+  "nfa2dfa":       { title:"NFA → DFA", desc:"subset construction, then the race" },
 };
 
 // ───────── one row per session: card + its handouts + its demos ─────────
@@ -280,7 +281,7 @@ const SESSIONS = [
   { id:"L17", dir:"sessions/S17-regex-automata",
     title:"Regular Expressions &amp; Finite Automata",
     topics:"regexes &amp; the languages they describe · NFAs (ε-transitions) · Thompson's RE→NFA construction · NFA simulation (set of states) · Kleene's theorem",
-    handouts:["ch17"], demos:["dfa","nfa-build","nfa-sim"] },
+    handouts:["ch17"], demos:["dfa","nfa-build","nfa-sim","nfa2dfa"] },
   { id:"S18", exam:true, title:"Final Exam",
     topics:"in class, 110 min Canvas quiz · comprehensive, ~two-thirds post-midterm (S11–S17) · study guide, practice final &amp; worked guide on Canvas" },
 ];

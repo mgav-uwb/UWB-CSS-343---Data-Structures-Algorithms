@@ -1362,16 +1362,98 @@ impl Nfa {
         string and ends at the accept state. Nondeterminism handled by
         bookkeeping, proved by induction. <span class="qed">&#8718;</span>
       </div>
+      <h3>Backtracking, ReDoS, and why this engine cannot blow up</h3>
+      <p>
+        Most production engines do not simulate an automaton at all. Perl, Java,
+        Python, JavaScript, and C++&rsquo;s <code>&lt;regex&gt;</code> match by
+        <strong>backtracking</strong>: a recursive search over the
+        pattern&rsquo;s choices. At <code>(a|aa)</code> the engine tries
+        <code>a</code> and continues with the rest of the pattern; if that fails
+        somewhere later, it comes back, undoes the choice, tries
+        <code>aa</code>, and continues again. Its working state is a single
+        <em>path</em> through the pattern, held on the call stack, and failure
+        means unwinding and trying the next path. That is
+        &ldquo;try all possibilities&rdquo; taken literally, with all the cost
+        that implies.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (how a pattern goes exponential)</span>
+        Match <code>(a|aa)*b</code> against \(n\) <code>a</code>&rsquo;s followed
+        by a <code>c</code>. Every way of cutting the run of
+        <code>a</code>&rsquo;s into pieces of size one and two is a
+        <em>different</em> path through the pattern, and the engine tries them
+        all. The number of such cuts obeys \(f(n) = f(n-1) + f(n-2)\)
+        (the first piece is either one <code>a</code> or two), so it is a
+        Fibonacci number: it grows like \(\varphi^{\,n} \approx 1.618^{\,n}\).
+        The trailing <code>c</code> is the adversary&rsquo;s trick, an input that
+        <em>almost</em> matches: no path can short-circuit, so every one must be
+        tried before the engine can answer &ldquo;no&rdquo;.
+        <table>
+          <tr><th>\(n\)</th><th>paths</th><th>backtracking (Python <code>re</code>)</th><th>set simulation (<code>nfa.py</code>)</th></tr>
+          <tr><td>20</td><td>10,946</td><td>0.002 s</td><td>0.0001 s</td></tr>
+          <tr><td>25</td><td>121,393</td><td>0.017 s</td><td>0.0001 s</td></tr>
+          <tr><td>30</td><td>1,346,269</td><td>0.17 s</td><td>0.0001 s</td></tr>
+          <tr><td>35</td><td>14,930,352</td><td>1.9 s</td><td>0.0002 s</td></tr>
+          <tr><td>40</td><td>165,580,141</td><td>22 s</td><td>0.0002 s</td></tr>
+        </table>
+        Each added character costs about 60% more time, so two characters past
+        the last row is a full minute. In the 22 seconds the backtracking engine
+        spends failing on 41 characters, the set simulation of &sect;4 consumes
+        about six million. (Measured on one laptop, same machine for both
+        columns; the shape of the growth is the point, not the constants.)
+        Nothing here is a defect in Python: it is what the algorithm does.
+      </div>
+      <div class="def">
+        <span class="tag">Definition (ReDoS)</span>
+        A <strong>regular-expression denial of service</strong> (ReDoS) attack
+        supplies input, or a pattern, chosen so that matching takes superlinear
+        time, so that one small request occupies a CPU core for seconds or
+        minutes. Both halves are reachable in real systems: user input matched
+        against a fixed pattern, and user-supplied patterns (search boxes,
+        filters, alerting rules).
+      </div>
+      <p>
+        This is not hypothetical. Stack Overflow was down for 34 minutes in July
+        2016 when a post containing roughly 20,000 consecutive space characters
+        met a pattern that trimmed trailing whitespace; Cloudflare served global
+        HTTP 502s for 27 minutes in July 2019 when one regex in a new firewall
+        rule exhausted CPU across the fleet. Sedgewick&rsquo;s booksite records
+        an earlier one: an address pattern in SpamAssassin that a hostile
+        return address could stall.
+      </p>
+      <div class="thm">
+        <span class="tag">Why the set simulation is immune: paths versus states</span>
+        A backtracking engine&rsquo;s state is a <em>path</em>, and there are
+        \(\varphi^{\,n}\) of them. This chapter&rsquo;s engine keeps a
+        <em>set of NFA states</em>, and there are only \(m+1\) of those.
+      </div>
+      <p>
+        Two paths that arrive at the same NFA state after the same number of
+        characters have <em>identical futures</em>: nothing about the rest of the
+        match can distinguish them. The set stores that state once, so the work
+        those two paths share is done once. A backtracker cannot notice the
+        coincidence, because it only ever holds one path at a time. Collapsing
+        exponentially many paths by indexing the work on the state they share is
+        exactly <a href="ch14-dp-i.html">memoization</a>: the same move as
+        dynamic programming, applied to path search instead of to a grid of
+        subproblems. That is what takes \(1.618^{\,n}\) down to \(O(mn)\), and
+        the \(O(mn)\) bound of the proposition above is unconditional: no pattern
+        and no input can trigger a bad case, because the set is bounded by the
+        state count no matter how the branches multiply. This is precisely why
+        <code>grep</code> and Google&rsquo;s RE2 are built this way, and why
+        untrusted patterns must go through an engine of this kind (&sect;6).
+      </p>
       <div class="aside">
-        <span class="tag">Why set-simulation is safe: ReDoS</span>
-        Many production engines (Perl, Java, Python, JavaScript) instead
-        <em>backtrack</em>: try one path, undo, try another, which supports
-        fancy features but risks exponential time. The pattern <code>(a*)*</code>
-        on <code>&quot;aaaa&hellip;aaaX&quot;</code> triggers exactly that: <em>catastrophic backtracking</em>, a real denial-of-service vector
-        (regular-expression denial of service, ReDoS) that has taken down
-        production services. The set-of-states simulation explores all paths
-        <em>simultaneously</em> in one forward pass, so it cannot blow up: \(O(mn)\), full stop. <code>grep</code> and Google&rsquo;s RE2 use it for
-        precisely this reason. The theory has direct engineering consequences.
+        <span class="tag">In fairness: what backtracking buys</span>
+        Backtracking supports features that are <em>not regular</em>, and so
+        cannot be compiled into a finite automaton at all: back references such
+        as <code>(a+)\1</code> (&ldquo;the same text again&rdquo;, which requires
+        remembering an arbitrary captured string) and lookaround. Matching with
+        back references is NP-hard, so the exponential is not laziness that a
+        better implementation could optimize away: it is the price of leaving the
+        regular languages. The engineering rule follows. If your pattern needs
+        only the four operations and their sugar, which is almost always, an
+        automaton engine gives you the same answer with a guarantee.
       </div>
       <div class="demo">
         <span class="tag">Interactive</span>
@@ -1430,11 +1512,72 @@ impl Nfa {
         transitions. That is the <strong>subset construction</strong>, and it is
         where the \(2^m\) in &sect;2&rsquo;s table comes from: up to one DFA state
         per subset. Once built, the DFA matches in pure \(O(n)\), no closure per
-        step. A follow-up, <strong>minimization</strong>, merges DFA states that
-        accept the same set of continuations, yielding the <em>unique smallest</em>
-        DFA for the language: a canonical form, so two regexes are
-        equivalent iff their minimal DFAs coincide. Compilers minimize their lexer
-        DFAs to save space.
+        step.
+      </div>
+      <p>
+        The subset construction is honest but wasteful: it can hand back states
+        that no input can tell apart. <strong>Minimization</strong> merges them.
+        Say that the <strong>continuations</strong> of a state are the strings
+        that drive it to an accept state, so a state&rsquo;s continuations are
+        the language it still has left to recognize. Two states with the same
+        continuations cannot be distinguished by any input, so keeping them
+        separate records history the language does not care about, and they can
+        be merged.
+      </p>
+      <div class="ex">
+        <span class="tag">Example (minimization, worked on <code>(A|B)*B</code>)</span>
+        Determinize &sect;1&rsquo;s ends-in-<code>B</code> pattern. The subset
+        construction on the wrapped machine <code>((A|B)*B)</code> reaches three
+        states, each a set of NFA states:
+        <pre>  D0 = {0,1,2,4,6,7}       start     A &rarr; D1    B &rarr; D2
+  D1 = {1,2,3,4,5,6,7}               A &rarr; D1    B &rarr; D2
+  D2 = {1,2,4,5,6,7,8,9}   accept    A &rarr; D1    B &rarr; D2</pre>
+        <code>D0</code> (before any character) and <code>D1</code> (after an
+        <code>A</code>) are different sets of NFA states, but read the rows: the
+        behavior is identical, and the continuations of both are &ldquo;every
+        string ending in <code>B</code>&rdquo;. They differ only in history, so
+        they merge, and what comes out is the two-state machine of
+        &sect;2 with the alphabet renamed:
+        <pre>  q0           "the input so far does NOT end in B"   A &rarr; q0   B &rarr; q1
+  q1  accept   "the input so far ends in B"           A &rarr; q0   B &rarr; q1</pre>
+        Three states down to two on a seven-character pattern; the same merging
+        is what keeps the table of a real lexer, built from dozens of token
+        patterns at once, small enough to ship.
+      </div>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=nfa2dfa">NFA &rarr; DFA demo</a>.
+        <em>Determinize</em> runs the subset construction as a worklist, one
+        step per (subset, character): the top panel replays each step ON the
+        NFA line (match edges green, closure arcs red, exactly &sect;4&rsquo;s
+        two phases), while the bottom panel grows the DFA, each state captioned
+        with the subset it froze. The default <code>(A*B|AC)D</code> reaches
+        only 6 DFA states (9 arrows) from its 12-state NFA. Type
+        <code>(A|B)*B</code> in the regex box and Determinize to reproduce the
+        example above: the demo&rsquo;s S0, S1, S2 are exactly D0, D1, D2, same
+        subsets, same arrows. Then walk the preset family &ldquo;k-th letter
+        from the end is A&rdquo;: the reachable subsets go 3, 5, 9, 17
+        (\(2^k+1\)), and one more <code>(A|B)</code> hits the demo&rsquo;s
+        32-state guard, the \(2^m\) blow-up in person.
+      </div>
+      <div class="ex">
+        <span class="tag">Example (the canonical form decides equivalence)</span>
+        Minimization always yields <em>the</em> unique smallest DFA for a
+        language, which makes it a canonical form: two patterns denote the same
+        language exactly when their minimal DFAs coincide. Take
+        <code>A(BA)*</code> and <code>(AB)*A</code>. They determinize to five
+        and four states respectively, and both minimize to the same three:
+        <pre>  q0             start    A &rarr; q1     B &rarr; dead
+  q1  accept              A &rarr; dead   B &rarr; q0
+  dead                    A &rarr; dead   B &rarr; dead</pre>
+        So the two patterns describe one language, the alternating strings that
+        start and end with <code>A</code>:
+        \(\{\texttt{A}, \texttt{ABA}, \texttt{ABABA}, \dots\}\). This is how
+        tools decide regex equivalence, and it is the only reliable way:
+        comparing the patterns themselves tells you nothing, since a language has
+        infinitely many regexes but exactly one minimal DFA. Compilers minimize
+        their lexer DFA for the other reason, space: that table is generated once
+        and then ships inside every copy of the compiler.
       </div>
       <h3>Above the regular languages</h3>
       <p>
@@ -1483,6 +1626,18 @@ impl Nfa {
         theory a chapter before the vocabulary arrived. Pattern \(\to\) machine
         threads through the whole strings unit.
       </p>
+      <div class="demo">
+        <span class="tag">Interactive</span>
+        <a href="../lib/demo.html?ds=nfa2dfa">NFA &rarr; DFA demo</a>,
+        <em>Match both</em>: the table&rsquo;s middle row, live. The two
+        machines race on the same string in lockstep. The NFA lane spends two
+        steps and \(O(m)\) set work per character; the DFA lane follows
+        <strong>one arrow</strong> per character (watch its counter read
+        &ldquo;\(n\) table reads, no set work&rdquo;) and visibly finishes
+        first. The set arithmetic did not disappear: <em>Determinize</em>
+        prepaid it, which is exactly the lexer&rsquo;s bargain, and exactly
+        what KMP&rsquo;s failure table prepaid for its one pattern.
+      </div>
 
       <!-- ============================================================ -->
       <h2 id="ex">7. Exercises (with solutions)</h2>
@@ -1640,7 +1795,7 @@ impl Nfa {
       </ol>
 
       <footer>
-        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 17 v1.0
+        CSS 343 &middot; Summer 2026 &middot; course text, Chapter 17 v1.1
         &middot; prepared by Dr. Marcel Gavriliu. Typeset with MathJax; interactive
         demos in the course library.
       </footer>
